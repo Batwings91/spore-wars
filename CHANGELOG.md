@@ -14,3 +14,7 @@
 
 ## 2026-09-05 — Opening wave progression
 - Centre the first scout group and introduce diving bombers on wave 3, then aimed-fire frigates on wave 4 before the unchanged wave-5 Battleship. Enemy counts, stats, pickup rules, and wave timing are unchanged.
+
+## 2026-09-05 — Battleship readability and opening balance
+- Add a bow charge ring before fan volleys and a marker for the next phase-2 sweep shot.
+- Reduce the first Battleship hull health by 20%, slow its aimed turret shots from 2.6 to 2.2, and increase turret shot intervals from 110/70 to 150/100 ticks. Later Battleships, fan volleys, sweep shots, and rewards are unchanged.
