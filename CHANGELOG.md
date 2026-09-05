@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-05 — Player weapon readability
+- Give all five gun levels exclusive white/cyan bolt shapes and matching visible gun mounts and muzzle flashes. Cache procedural bolt artwork once; retain separate enemy plasma visuals.
+- Show the new gun level on pickup and label maximum-level pickups as a +100 score reward. Damage, cadence, shot trajectories and pickup timing are unchanged.
+
 ## 2026-09-05 — Menu and overlay presentation
 - Playtest polish: smaller regular-weight footer credits and lighter translucent panels (55% opacity).
 - Add an original AI-assisted hangar illustration, live menu buttons, pointer hover and a procedural title fallback. Remove the gameplay HUD from the title screen.

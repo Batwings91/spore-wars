@@ -24,6 +24,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 2d. Movement hint stays at the bottom edge; incoming boss notice stays at the top. Pause/game-over panels leave the scene visible. Clicking BOMB while paused spends nothing; it works after resuming.
 3. Play: arrows/WASD move, auto-fire on, ship banks when moving sideways, no console errors.
 4. First kill drops a `W`; pickup shows flash + slow-mo + banner.
+4b. Check PULSE/TWIN/TRIPLE/SPREAD/STORM: each has a distinct white/cyan bolt shape and 1/2/3/5/6 visible mounts. Enemy fire stays visually separate. Upgrades show the level; a W at STORM gives +100 score and says GUN MAX. Losing a ship reduces the visible gun level as before.
 5. `X` fires megabomb (screen flash, ring, bullets cleared). BOMB panel tap works on touch.
 6. `?wave=4`: warning banner + siren, Battleship enters, health bar, turrets die individually (+150), phase 2 at 50%, death sequence, drops W/S/B + cores, waves resume.
 7. Game over → Enter restarts in under 2 s; `[C]` continue works once.
