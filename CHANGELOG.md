@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-05 — Crawler artwork
+- Add original segmented bronze/olive carapace art, six articulated hooked legs and an amber organ that brightens during the existing lunge.
+- Mirror the drawing with its travel direction; retain the procedural fallback. Movement, lunge timing, damage and collision logic are unchanged. Encode artwork as lossless WebP.
+
 ## 2026-09-05 — Wave-six lurker artwork
 - Encode the hangar and lurker as lossless WebP and support PNG/WebP in both builders. Visible pixels and alpha match the source PNGs; projected build is 8.20 MB raw / 6.10 MB gzip.
 - Add an original AI-assisted armoured body with breathing motion, shaded articulated tendrils and a visible firing-organ charge.

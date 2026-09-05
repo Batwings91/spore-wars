@@ -3,6 +3,12 @@ SPORE WARS — a 640K Games production
 
 Art credits
 -----------
+Crawler body (assets/crawler_body.webp):
+  Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
+  Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.
+  Encoded as lossless WebP; visible pixels and transparency preserved.
+  Legs, breathing and lunge glow are animated by the game code.
+
 Wave-six lurker body (assets/lurker_body.webp):
   Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
   Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.

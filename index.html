@@ -25,10 +25,10 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
-const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp'};
+const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
@@ -694,6 +694,27 @@ function drawLurker(e){const cx=X(e.x),cy=X(e.y);
   ctx.fillStyle='#c060d0';ctx.beginPath();ctx.ellipse(cx-8,cy-12,22,10,0,0,6.283);ctx.fill();
   for(let i=-1;i<=1;i++){seg(cx+i*16,cy+2,5,e.ct<25?C.magenta:'#101018','#e0e0ff');seg(cx+i*16,cy+2,2,C.white,C.white);}
   for(let i=0;i<7;i++){ctx.fillStyle='#3a0c48';ctx.fillRect(cx-42+i*14,cy+20,6,8);}}
+// Crawler legs and amber organ animate from the existing gait/lunge state.
+function drawCrawlerArt(e){
+  ctx.save();ctx.translate(X(e.x),X(e.y));ctx.scale(e.dir,1);ctx.lineCap='round';ctx.lineJoin='round';
+  for(const side of [-1,1])for(let j=0;j<3;j++){
+    const root=-13+j*10,step=Math.sin(e.t*0.25+j*1.8+side)*3;
+    const knee=root+(e.lunge>0?-6:step),foot=root+(e.lunge>0?-10:step*1.5);
+    ctx.beginPath();ctx.moveTo(X(root),X(side*8));ctx.lineTo(X(knee),X(side*18));ctx.lineTo(X(foot+4),X(side*24));
+    ctx.strokeStyle='#16180f';ctx.lineWidth=X(4);ctx.stroke();
+    ctx.strokeStyle='#6c6545';ctx.lineWidth=X(2.4);ctx.stroke();
+    ctx.strokeStyle='#b7ac80';ctx.lineWidth=X(0.7);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(X(foot+4),X(side*24));ctx.lineTo(X(foot+8),X(side*21));ctx.strokeStyle='#d6c8a2';ctx.lineWidth=X(1.2);ctx.stroke();
+  }
+  ctx.imageSmoothingEnabled=true;
+  const breath=1+Math.sin(e.t*0.1)*0.015;
+  ctx.drawImage(IMG.crawler_body,X(-25),X(-18*breath),X(50),X(36*breath));
+  ctx.globalAlpha=e.lunge>0?0.85:0.25;ctx.fillStyle='#ffad37';
+  ctx.beginPath();ctx.ellipse(X(15),0,X(e.lunge>0?3:2),X(2),0,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+
 function drawCrawler(e){const cx=X(e.x),cy=X(e.y),d=e.dir;
   // spiky segmented body
   for(let i=0;i<5;i++){seg(cx-d*i*10,cy+i*3,10-i,i%2?'#4a7a20':'#6aa030','#1c3808');}
@@ -725,6 +746,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     else if(e.k===1){const wob=Math.sin(e.t*0.3);ctx.save();ctx.translate(X(e.x),X(e.y));ctx.rotate(wob*0.12);const b=IMG.bomber;if(b)ctx.drawImage(b,-b.width/2,-b.height/2);else ctx.drawImage(E2,-E2.width*0.75,-E2.height*0.75,E2.width*1.5,E2.height*1.5);ctx.restore();}
     else if(e.k===2){if(!img('frigate',e.x,e.y))blit(E3,e.x,e.y,1.5);if(e.ct<30&&Math.floor(e.ct/4)%2===0){ctx.fillStyle=C.magenta;ctx.fillRect(X(e.x)-9,X(e.y)+8,18,6);}}
     else if(e.k===3&&IMG.lurker_body){drawLurkerArt(e);}
+    else if(e.k===4&&IMG.crawler_body){drawCrawlerArt(e);}
     else{const sc=K/1.5,cx=X(e.x),cy=X(e.y);ctx.save();ctx.translate(cx*(1-sc),cy*(1-sc));ctx.scale(sc,sc);if(e.k===3)drawLurker(e);else drawCrawler(e);ctx.restore();}
     if(e.flash>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.fillStyle=C.white;ctx.fillRect(X(e.x)-X(R[e.k]),X(e.y)-X(R[e.k]),X(R[e.k]*2),X(R[e.k]*2));ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
   }

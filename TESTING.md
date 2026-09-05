@@ -26,6 +26,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 4. First kill drops a `W`; pickup shows flash + slow-mo + banner.
 4b. Check PULSE/TWIN/TRIPLE/SPREAD/STORM: each has a distinct white/cyan bolt shape and 1/2/3/5/6 visible mounts. Enemy fire stays visually separate. Upgrades show the level; a W at STORM gives +100 score and says GUN MAX. Losing a ship reduces the visible gun level as before.
 4c. Use ?god=1&wave=5 to inspect lurkers: shaded carapace, moving tendrils and a firing organ brightening during the 25 ticks before firing. Pause freezes animation. Block lurker_body.webp to verify the original procedural fallback. With god mode off, check the visible tips match their dangerous reach.
+4d. Use ?god=1&wave=8 for crawlers: head faces travel direction, hooked legs animate and amber organ brightens during a lunge. Block crawler_body.webp to verify its procedural fallback. Collision and lunge behaviour should feel unchanged.
 5. `X` fires megabomb (screen flash, ring, bullets cleared). BOMB panel tap works on touch.
 6. `?wave=4`: warning banner + siren, Battleship enters, health bar, turrets die individually (+150), phase 2 at 50%, death sequence, drops W/S/B + cores, waves resume.
 7. Game over → Enter restarts in under 2 s; `[C]` continue works once.
