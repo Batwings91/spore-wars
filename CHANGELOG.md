@@ -32,3 +32,8 @@
 - Add the Mech at waves 10, 25, 40, and onward in that slot of the planned three-boss rotation. Other boss waves retain the Battleship until the Mothership is added.
 - The Mech moves, locks a visible aim point for 45 ticks, then fires a six-shot twin-cannon spread. Below half health it moves and attacks faster. Reuse the existing walk/fire sprites with a procedural fallback.
 - Retain common bomb damage, death sequence, rewards, Continue, and wave progression; use smaller Mech collision bounds matching its sprite.
+
+## 2026-09-05 — Mothership boss
+- Complete the three-boss rotation with the Mothership at waves 15, 30, 45, and onward. Reuse the existing sprite with a procedural fallback.
+- Two destructible bays launch scouts with a six-escort cap. Slow volleys leave a two-lane gap marked 45 ticks before firing; phase 2 increases launch and volley frequency. Disable generic boss reinforcements for this encounter.
+- Retain shared bomb damage, scoring, death rewards, Continue, and wave progression; size hull collision bounds for the larger carrier.

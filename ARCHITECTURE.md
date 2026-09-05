@@ -10,7 +10,7 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 - **Entities:** `enemies[]` with `k`: 0 scout (drift), 1 bomber (dive), 2 frigate (aimed plasma), 3 lurker (procedural tentacles, from wave 6), 4 crawler (procedural hooks, from wave 9). `R[k]` = collision radii. `shots[]` (player, carries `g` gun level and `dmg`), `eshots[]` (`blue:true` = lurker/boss bow), `drops[]` (`k`: core/w/s/b), `booms[]` (strip explosions or spark particles), `floats[]`, `rings[]`.
 - **Guns:** `GUN[0..4]` PULSE/TWIN/TRIPLE/SPREAD/STORM with dmg 1/1/2/2/3. New gun on first kill, then every ~9 kills (`dropFor`). Dying drops one gun level.
 - **Megabomb:** `fireBomb()` — X/B/Shift or tap the BOMB panel. 6 dmg to all enemies, clears bullets, 25 to boss hull + 8 to turrets. Max 3, start with 1. Gold `B` capsule adds one.
-- **Boss:** `boss` object; `startBossWarning()` → `spawnBoss()` → `updateBoss()`/`drawBoss()`. Battleship is the default; Mech appears when level%15===10 (waves 10, 25, 40). Mech uses updateMech() for movement, 45-tick aim lock, and twin-cannon spreads. Phase 2 below 50% HP. Death sequence `bossDying` countdown. Bosses every 5th wave, HP scales with `bossCount`/`level`.
+- **Boss:** `boss` object; `startBossWarning()` → `spawnBoss()` → `updateBoss()`/`drawBoss()`. The rotation is Battleship (5, 20...), Mech (10, 25...), Mothership (15, 30...). Mothership uses updateMothership(): destructible launch bays, at most six scouts, and volleys with a marked two-lane gap. Mech uses updateMech() for movement, 45-tick aim lock, and twin-cannon spreads. Phase 2 below 50% HP. Death sequence `bossDying` countdown. Bosses every 5th wave, HP scales with `bossCount`/`level`.
 - **Audio (`SFX`):** all effects synthesised (rendered to 8-bit 11 kHz buffers = "Sound Blaster digitised" feel; explosions are layered filtered noise, deliberately no tonal component). Music: `TR.main` streamed from `MAIN_TRACK` via Web Audio BufferSource with trailing-silence trim + loop; an OPL-style synth loop is the fallback. `bossTheme()` exists but is a no-op (boss track removed by owner: "didn't mix"). `M` / SOUND panel toggles mute (persisted).
 - **Save:** `localStorage['640k.sporewars.v3']` = {cores,best,weapon,shield,engine}.
 - **Input:** arrows/WASD, auto-fire (Space also fires); touch = drag anywhere to move, tap panels. `TOUCH` hides keycap hints. Keyboard hints render as keycaps via `keycap()`.
@@ -28,7 +28,7 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 | Main loop | `frame()`, `stepLogic()`, `render()` (no-op) |
 | Player | `ship`, `spd()`, `hitShip()`, `drawShip()`, `GUN`, `MAXW`, `fireT` |
 | Enemies | `spawnWave()`, `enemies`, `R`, `drawLurker()`, `drawCrawler()` |
-| Boss | `startBossWarning()`, `spawnBoss()`, `updateBoss()`, `drawBoss()`, `bombBoss()`, `updateMech()`, `drawMechFallback()`, `bossWarn`, `bossDying`, `bossCount` |
+| Boss | `startBossWarning()`, `spawnBoss()`, `updateBoss()`, `drawBoss()`, `bombBoss()`, `updateMech()`, `updateMothership()`, `drawMechFallback()`, `drawMothershipFallback()`, `bossWarn`, `bossDying`, `bossCount` |
 | Projectiles | `shots`, `eshots`, `BOLT`, `PLASMA` |
 | Pickups/economy | `drops`, `dropFor()`, `pickupEvent()`, `save`, `persist()`, `SHOP`, `buy()` |
 | Megabomb | `fireBomb()`, `bombs`, `bombFx` |
