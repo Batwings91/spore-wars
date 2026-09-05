@@ -7,7 +7,8 @@ const src=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const assets=path.join(root,'assets');
 const data={};
 for(const f of fs.readdirSync(assets).sort()){
-  if(f.endsWith('.png'))data[f.slice(0,-4)]='data:image/png;base64,'+fs.readFileSync(path.join(assets,f)).toString('base64');
+  const ext=path.extname(f);
+  if(ext==='.png'||ext==='.webp')data[path.basename(f,ext)]='data:image/'+ext.slice(1)+';base64,'+fs.readFileSync(path.join(assets,f)).toString('base64');
 }
 const music='data:audio/mp4;base64,'+fs.readFileSync(path.join(assets,'fly.m4a')).toString('base64');
 // Match Python json.dumps, which separates with ", " and ": " — keeps both builders byte-identical.

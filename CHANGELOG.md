@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-05 — Wave-six lurker artwork
+- Encode the hangar and lurker as lossless WebP and support PNG/WebP in both builders. Visible pixels and alpha match the source PNGs; projected build is 8.20 MB raw / 6.10 MB gzip.
+- Add an original AI-assisted armoured body with breathing motion, shaded articulated tendrils and a visible firing-organ charge.
+- Align rendered tendril tips with the existing collision coordinates; retain the original procedural drawing if the image is unavailable. Health, attacks, movement and collision logic are unchanged.
+
 ## 2026-09-05 — Player weapon readability
 - Give all five gun levels exclusive white/cyan bolt shapes and matching visible gun mounts and muzzle flashes. Cache procedural bolt artwork once; retain separate enemy plasma visuals.
 - Show the new gun level on pickup and label maximum-level pickups as a +100 score reward. Damage, cadence, shot trajectories and pickup timing are unchanged.

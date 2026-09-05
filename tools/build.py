@@ -5,8 +5,9 @@ root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src=open(os.path.join(root,'index.html'),encoding='utf8').read()
 data={}
 for f in sorted(os.listdir(os.path.join(root,'assets'))):
-    if f.endswith('.png'):
-        data[f[:-4]]='data:image/png;base64,'+base64.b64encode(open(os.path.join(root,'assets',f),'rb').read()).decode()
+    name,ext=os.path.splitext(f)
+    if ext in ('.png','.webp'):
+        data[name]='data:image/'+ext[1:]+';base64,'+base64.b64encode(open(os.path.join(root,'assets',f),'rb').read()).decode()
 music='data:audio/mp4;base64,'+base64.b64encode(open(os.path.join(root,'assets','fly.m4a'),'rb').read()).decode()
 out=re.sub(r"const ASSET_DATA=\{.*?\};[^\n]*\n","const ASSET_DATA="+json.dumps(data)+";\n",src,count=1,flags=re.S)
 out=re.sub(r"const MAIN_TRACK='[^']*';","const MAIN_TRACK='"+music+"';",out,count=1)

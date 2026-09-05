@@ -11,7 +11,7 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 
 ## Layout
 ```
-index.html          dev build — loads ./assets/*.png and ./assets/fly.m4a. Serve over http (see below); file:// won't fetch the music.
+index.html          dev build — loads ./assets/ PNG/WebP images and fly.m4a. Serve over http (see below); file:// won't fetch the music.
 assets/             final game sprites (already palette-reduced/outlined), music
 tools/build.py      inlines assets into a single file → dist/spore-wars.html (this is what we upload to portals)
 tools/build.js      identical Node port of build.py — use whichever runtime the machine has

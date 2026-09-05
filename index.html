@@ -25,12 +25,13 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
+const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
-  for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.png');}
+  for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
   for(const n in strips){const im=new Image();im.onload=()=>{STRIP[n]={img:im,n:strips[n],w:im.width/strips[n],h:im.height};done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.png');}
 })();
 function img(name,x,y,sc,alpha){const im=IMG[name];if(!im)return false;sc=sc||1;if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.drawImage(im,X(x)-Math.round(im.width*sc/2),X(y)-Math.round(im.height*sc/2),Math.round(im.width*sc),Math.round(im.height*sc));if(alpha!==undefined)ctx.globalAlpha=1;return true;}
@@ -649,6 +650,38 @@ function update(){t++;scroll=(scroll+1.8)%TH;
 
 function blit(img,x,y,sc){sc=sc||1;const w=img.width*sc,h=img.height*sc;ctx.drawImage(img,X(x)-Math.floor(w/2),X(y)-Math.floor(h/2),w,h);}
 function seg(x,y,r,fill,edge){ctx.fillStyle=edge;ctx.fillRect(Math.round(x-r-1),Math.round(y-r-1),r*2+2,r*2+2);ctx.fillStyle=fill;ctx.fillRect(Math.round(x-r),Math.round(y-r),r*2,r*2);}
+// Wave-six lurker: layered carapace over articulated, shaded tendrils.
+// The endpoint expression matches the existing tip collision in update().
+function drawLurkerArt(e){
+  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  for(let j=0;j<e.tent.length;j++){
+    const tn=e.tent[j],sw=Math.sin(e.t*0.05+tn.ph);
+    const ax=e.x+(j-1.5)*11,ay=e.y+12;
+    const tx=e.x+sw*tn.len*1.2,ty=e.y+18+tn.len*1.6;
+    let px=ax,py=ay;
+    for(let i=1;i<=14;i++){
+      const f=i/14,k=1-f;
+      const x=k*k*ax+2*k*f*(ax+sw*22)+f*f*tx,y=k*k*ay+2*k*f*(ay+tn.len*0.9)+f*f*ty;
+      const r=4.5-3*f;
+      ctx.beginPath();ctx.moveTo(X(px),X(py));ctx.lineTo(X(x),X(y));ctx.strokeStyle='#130e20';ctx.lineWidth=X(r*2+2);ctx.stroke();
+      ctx.strokeStyle=i%2?'#70445f':'#4b304d';ctx.lineWidth=X(r*2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(X(px-0.8),X(py-0.5));ctx.lineTo(X(x-0.8),X(y-0.5));ctx.strokeStyle='#a78196';ctx.lineWidth=X(Math.max(0.6,r*0.45));ctx.stroke();
+      px=x;py=y;
+    }
+    // Bright ivory hook marks the harmful tip, not a projectile.
+    ctx.beginPath();ctx.moveTo(X(tx-3),X(ty-4));ctx.lineTo(X(tx),X(ty+3));ctx.lineTo(X(tx+3),X(ty-3));ctx.strokeStyle='#d1b4c8';ctx.lineWidth=X(1.5);ctx.stroke();
+  }
+  const breath=1+Math.sin(e.t*0.07)*0.018;
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(IMG.lurker_body,X(e.x-31*breath),X(e.y-26*breath),X(62*breath),X(52*breath));
+  // Firing organ swells and brightens during the existing 25-tick charge.
+  const charge=e.ct<25?1-e.ct/25:0,glow=0.28+charge*0.65;
+  ctx.globalAlpha=glow;ctx.fillStyle='#fa459a';ctx.beginPath();ctx.ellipse(X(e.x),X(e.y+20),X(2.2+charge*1.2),X(3.2+charge),0,0,Math.PI*2);ctx.fill();
+  if(charge>0){ctx.globalAlpha=charge;ctx.strokeStyle='#ff9ed0';ctx.lineWidth=X(0.7);ctx.beginPath();ctx.arc(X(e.x),X(e.y+20),X(6-charge*2),0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
+
+
 function drawLurker(e){const cx=X(e.x),cy=X(e.y);
   // tentacles: chains of shrinking segments ending in a hook
   for(const tn of e.tent){let px=cx,py=cy+24;const sw=Math.sin(e.t*0.05+tn.ph);
@@ -691,6 +724,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     if(e.k===0){if(!img('scout',e.x,e.y,1+Math.sin(e.t*0.15)*0.04)){const p=1.5+Math.sin(e.t*0.15)*0.12;blit(E1,e.x,e.y,p);}}
     else if(e.k===1){const wob=Math.sin(e.t*0.3);ctx.save();ctx.translate(X(e.x),X(e.y));ctx.rotate(wob*0.12);const b=IMG.bomber;if(b)ctx.drawImage(b,-b.width/2,-b.height/2);else ctx.drawImage(E2,-E2.width*0.75,-E2.height*0.75,E2.width*1.5,E2.height*1.5);ctx.restore();}
     else if(e.k===2){if(!img('frigate',e.x,e.y))blit(E3,e.x,e.y,1.5);if(e.ct<30&&Math.floor(e.ct/4)%2===0){ctx.fillStyle=C.magenta;ctx.fillRect(X(e.x)-9,X(e.y)+8,18,6);}}
+    else if(e.k===3&&IMG.lurker_body){drawLurkerArt(e);}
     else{const sc=K/1.5,cx=X(e.x),cy=X(e.y);ctx.save();ctx.translate(cx*(1-sc),cy*(1-sc));ctx.scale(sc,sc);if(e.k===3)drawLurker(e);else drawCrawler(e);ctx.restore();}
     if(e.flash>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.fillStyle=C.white;ctx.fillRect(X(e.x)-X(R[e.k]),X(e.y)-X(R[e.k]),X(R[e.k]*2),X(R[e.k]*2));ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
   }
