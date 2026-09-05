@@ -11,3 +11,6 @@
 
 ## 2026-09-05 — Faster death-to-retry flow
 - Accept a fresh retry press or tap immediately after game over instead of discarding input during the first half-second.
+
+## 2026-09-05 — Opening wave progression
+- Centre the first scout group and introduce diving bombers on wave 3, then aimed-fire frigates on wave 4 before the unchanged wave-5 Battleship. Enemy counts, stats, pickup rules, and wave timing are unchanged.

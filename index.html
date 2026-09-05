@@ -423,9 +423,10 @@ const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,
 const spd=()=>3.7+save.engine*0.5;
 const R={0:17,1:20,2:23,3:30,4:20};
 function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,2+Math.floor(level/2));
-  let kind=level<3?0:(level%4===3?2:(level%3===0?1:0));
+  // Opening: scouts, scouts, diving bombers, aimed-fire frigates, then the boss.
+  let kind=level<=4?[0,0,1,2][level-1]:(level%4===3?2:(level%3===0?1:0));
   if(level>=6&&level%3===0)kind=3;if(level>=9&&level%4===1)kind=4;
-  const base=PX+56+Math.random()*(PW-112);
+  const base=level===1?PX+PW/2:PX+56+Math.random()*(PW-112);
   for(let i=0;i<n;i++){
     if(kind===0)enemies.push({k:0,x:base,y:-24-i*40,ph:i*0.6,hp:1,t:0});
     if(kind===1)enemies.push({k:1,x:PX+28+Math.random()*(PW-56),y:-24-i*48,hp:1,t:0});
