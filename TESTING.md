@@ -36,7 +36,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 Headless Chromium via Playwright: load page, press Enter twice, run ~40 s with `?god=1&wave=4`, capture screenshots, assert no `pageerror`/console errors. Re-create with any headless browser if needed.
 
 ## Release checklist
-1. `python3 tools/build.py` → `dist/spore-wars.html`; check size (target < 8 MB for Poki; currently ~4.8 MB).
+1. `python3 tools/build.py` (or `node tools/build.js` — same bytes) → `dist/spore-wars.html`; check size (target < 8 MB for Poki; currently ~4.8 MB).
 2. Open dist by double-click: assets and music load, no errors.
 3. CREDITS.txt reflects every asset in `assets/`.
 4. Commit with a version tag.

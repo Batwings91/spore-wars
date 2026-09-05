@@ -37,3 +37,6 @@
 - Complete the three-boss rotation with the Mothership at waves 15, 30, 45, and onward. Reuse the existing sprite with a procedural fallback.
 - Two destructible bays launch scouts with a six-escort cap. Slow volleys leave a two-lane gap marked 45 ticks before firing; phase 2 increases launch and volley frequency. Disable generic boss reinforcements for this encounter.
 - Retain shared bomb damage, scoring, death rewards, Continue, and wave progression; size hull collision bounds for the larger carrier.
+
+## 2026-09-05 — Node build script
+- Add tools/build.js, a Node port of build.py with byte-identical output (verified against the committed dist/ of a9a621f). Python is not installed on the Windows dev machine, so this is the only way to regenerate dist/ there. Docs updated; debug.log (a Dropbox crash log) gitignored.

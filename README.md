@@ -14,6 +14,7 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 index.html          dev build — loads ./assets/*.png and ./assets/fly.m4a. Serve over http (see below); file:// won't fetch the music.
 assets/             final game sprites (already palette-reduced/outlined), music
 tools/build.py      inlines assets into a single file → dist/spore-wars.html (this is what we upload to portals)
+tools/build.js      identical Node port of build.py — use whichever runtime the machine has
 dist/               release artefact (regenerate with build.py; don't hand-edit)
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)
 CREDITS.txt         licence/attribution for every third-party asset. Keep it accurate; it ships with the game.
@@ -52,4 +53,4 @@ Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop
 - Prefer small, reviewable changes over rewrites. Keep the single-IIFE structure unless the owner agrees to a refactor.
 - Don't rebalance and refactor in the same commit.
 - Never regress: the procedural fallbacks, touch controls, mute persistence, and the debug params must keep working.
-- Rebuild dist/ (`python3 tools/build.py`) before any release/upload.
+- Rebuild dist/ (`python3 tools/build.py` or `node tools/build.js`) before any release/upload.
