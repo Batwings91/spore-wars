@@ -27,3 +27,8 @@
 - Add one enemy to standard waves up to the existing cap of eight, and one scout escort to lurker/crawler waves. Reduce wave minimum intervals from 150/110 to 120/90 ticks.
 - Restore first-Battleship hull health to 198 at wave 5 and turret intervals to 130/85 ticks, retaining slower aimed shots and attack cues. Multiplier rules and later boss stats are unchanged.
 - Keep regular weapon drops at nine kills through wave 5, then space them fifteen kills apart. Boss weapon drops restart that counter to avoid an immediate follow-up upgrade.
+
+## 2026-09-05 — Assault Mech boss
+- Add the Mech at waves 10, 25, 40, and onward in that slot of the planned three-boss rotation. Other boss waves retain the Battleship until the Mothership is added.
+- The Mech moves, locks a visible aim point for 45 ticks, then fires a six-shot twin-cannon spread. Below half health it moves and attacks faster. Reuse the existing walk/fire sprites with a procedural fallback.
+- Retain common bomb damage, death sequence, rewards, Continue, and wave progression; use smaller Mech collision bounds matching its sprite.
