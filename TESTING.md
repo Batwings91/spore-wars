@@ -18,7 +18,8 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 
 ## Manual smoke test (do this before every commit that touches gameplay)
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
-2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap.
+2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.
+2b. Esc: Workshop to title; Fleet Lost to title (touch: tap the 'main menu' line). In play, Esc pauses (bombs blocked, scene frozen); Enter/P/click resumes; Esc again returns to title and the run's cores appear in the Workshop total exactly once.
 3. Play: arrows/WASD move, auto-fire on, ship banks when moving sideways, no console errors.
 4. First kill drops a `W`; pickup shows flash + slow-mo + banner.
 5. `X` fires megabomb (screen flash, ring, bullets cleared). BOMB panel tap works on touch.

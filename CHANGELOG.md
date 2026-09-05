@@ -40,3 +40,11 @@
 
 ## 2026-09-05 — Node build script
 - Add tools/build.js, a Node port of build.py with byte-identical output (verified against the committed dist/ of a9a621f). Python is not installed on the Windows dev machine, so this is the only way to regenerate dist/ there. Docs updated; debug.log (a Dropbox crash log) gitignored.
+
+## 2026-09-05 — Title and game-over UI fixes
+- Title: up/down (W/S) move the selection between LAUNCH / WORKSHOP / SOUND; Enter/Space activates it. Q and M still work as direct hotkeys.
+- Esc returns to the title from the Workshop and the Fleet Lost screen (touch: a 'main menu' tap line on Fleet Lost). In play, Esc or P pauses; Enter/Space/P/click resumes; Esc again quits to the title through quitRun(), which banks cores exactly as death does. Bombs are blocked while paused.
+- Returning to the title from a run now clears leftover enemies, boss, explosions and floats (clearScene()). drawField() draws the world and the title uses it as a backdrop, so they bled through; this was already reachable via Fleet Lost -> Workshop -> title and Esc made it common.
+- Fleet Lost: removed the developer '(ad slot)' label from the continue line; the rewarded-ad hook is now a code comment.
+- HUD: the SHIPS box no longer overflows at three lives (spacing 30 to 22); the GUN level meter is five equal pips inside its box instead of an ascending 'signal bars' staircase that poked above it.
+- Title footer text is clipped to the playfield so it no longer runs over the side panels; removed credits for assets not in the game (Juhani Junkala's boss track was cut, Kenney packs are unused).

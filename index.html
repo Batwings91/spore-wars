@@ -398,9 +398,14 @@ addEventListener('keydown',e=>{
   if(KEYMAP[e.code]){keys[KEYMAP[e.code]]=true;e.preventDefault();}
   if(e.code==='Space'){if(!e.repeat){tapped=true;tapSrc='key';}e.preventDefault();}
   if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
-  if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play')fireBomb();
-  if(e.code==='KeyQ'){if(mode==='title'||mode==='dead')mode='shop';else if(mode==='shop')mode='title';}
+  if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
+  if(e.code==='KeyQ'){if(mode==='title'||mode==='dead')mode='shop';else if(mode==='shop'){clearScene();mode='title';}}
   if(mode==='shop'){if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=(shopSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=(shopSel+1)%3;}
+  if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%3;}
+  if(mode==='play'&&e.code==='KeyP'&&!e.repeat)paused=!paused;
+  if(mode==='play'&&paused&&(e.code==='Enter'||e.code==='Space'))paused=false;
+  // Esc: leave any menu; in play it pauses first, a second press quits (cores banked in quitRun).
+  if(e.code==='Escape'&&!e.repeat){if(mode==='dead'||mode==='shop'){clearScene();mode='title';t=0;}else if(mode==='play'){if(paused)quitRun();else paused=true;}}
   if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)continueRun();
   if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.music(true);mode='title';t=0;}
 });
@@ -665,13 +670,13 @@ function drawPanels(){bevel(0,0,PX,LH,false);bevel(PX+PW,0,LW-PX-PW,LH,false);be
   const box=(x,y,w,h,label,val,col)=>{bevel(x,y,w,h,true);txt(label,x+8,y+5,C.dim,12);if(val!==undefined)txt(val,x+8,y+20,col,16);};
   box(12,12,PX-24,44,'SCORE',String(score).padStart(6,'0'),C.yellow);
   box(12,64,PX-24,44,'HI',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
-  box(12,116,PX-24,44,'SHIPS');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*30),X(131),24,22);
+  box(12,116,PX-24,44,'SHIPS');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(131),24,22);
   box(12,168,PX-24,44,'WAVE',boss||bossWarn?'BOSS':String(level),boss||bossWarn?C.red:C.text);
   box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
   txt('3 kills: +1x',PX/2,284,C.dim,9,'center');
   const rx=PX+PW+12,rw=LW-PX-PW-24;
-  box(rx,12,rw,44,'GUN',GUN[wpn].n,C.orange);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?[C.yellow,C.cyan,C.orange,C.G,C.cKf][i]:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(8+(4-i)*2),X(4),X(10-(4-i)*2));}
+  box(rx,12,rw,44,'GUN',GUN[wpn].n,C.orange);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?[C.yellow,C.cyan,C.orange,C.G,C.cKf][i]:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(18),X(4),X(8));}
   box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(24),X(24));ctx.globalAlpha=1;}
   box(rx,116,rw,44,'CORES',String(cores),C.cyan);
   box(rx,168,rw,44,TOUCH?'BOMB  (tap)':'BOMB');if(!TOUCH)keycap('X',rx+rw-15,171);for(let i=0;i<3;i++){ctx.globalAlpha=i<bombs?1:0.2;ctx.fillStyle=C.G;ctx.fillRect(X(rx+8+i*18),X(186),X(12),X(16));ctx.fillStyle=C.white;ctx.fillRect(X(rx+11+i*18),X(183),X(6),X(3));ctx.globalAlpha=1;}
@@ -689,7 +694,7 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];con
   L.forEach((l,i)=>txt(l[0],16,16+i*20,l[1],16));
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleFleet=null;
+let titleFleet=null,titleSel=0,paused=false;
 function titleScreen(){
   if(!titleFleet){titleFleet=[];for(let i=0;i<7;i++)titleFleet.push({x:PX+40+Math.random()*(PW-80),y:-60-i*70,k:i%3,sp:0.35+Math.random()*0.3,ph:Math.random()*6});}
   drawField();
@@ -717,18 +722,24 @@ function titleScreen(){
   const bw=150,bh=30,bx=LW/2-bw/2;
   const btn=(y,label,hot,col)=>{bevel(bx,y,bw,bh,hot);txt(label,LW/2,y+8,hot?C.yellow:col||C.white,15,'center');};
   const pulse=Math.floor(blink/24)%2===0;
-  btn(150,pulse?'>  LAUNCH  <':'LAUNCH',pulse,C.orange);
-  btn(186,'WORKSHOP',false);
-  btn(222,SFX.isMuted()?'SOUND: OFF':'SOUND: ON',false,SFX.isMuted()?C.dim:C.cyan);
+  const sel=(i,l)=>titleSel===i&&pulse?'>  '+l+'  <':l;
+  btn(150,sel(0,'LAUNCH'),titleSel===0,C.orange);
+  btn(186,sel(1,'WORKSHOP'),titleSel===1);
+  btn(222,sel(2,SFX.isMuted()?'SOUND: OFF':'SOUND: ON'),titleSel===2,SFX.isMuted()?C.dim:C.cyan);
   if(!TOUCH){keycap('↵',bx+bw-14,153);keycap('Q',bx+bw-14,189);keycap('M',bx+bw-14,225);}
+  ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
   txt(TOUCH?'drag to move  ·  tap BOMB panel for megabomb':'arrows / WASD move  ·  X megabomb  ·  auto-fire',LW/2,330,C.dim,11,'center');
-  txt('art: Skorpio · Daniel Cook · chabull · LuminousDragonGames · Kenney   music: Alexandr Zhelanov · Juhani Junkala',LW/2,346,C.dim,9,'center');
+  txt('art: Skorpio · Daniel Cook · chabull · LuminousDragonGames   music: Alexandr Zhelanov',LW/2,346,C.dim,9,'center');
+  ctx.restore();
 }
 function deadScreen(){playScene();bevel(PX+16,80,PW-32,200,false);
   txt('FLEET LOST',LW/2,100,C.red,28,'center');txt('score '+score+'   wave '+level+'   +'+cores+' cores',LW/2,144,C.white,16,'center');
-  if(!usedContinue)txt('[C] continue  (ad slot)',LW/2,184,C.cyan,16,'center');
+  if(!usedContinue)txt('[C] continue',LW/2,184,C.cyan,16,'center'); // rewarded-ad hook (README item 4): wire to SDK later
   txt('enter / tap  retry   ·   [Q] workshop',LW/2,212,C.orange,16,'center');
-  if(score>=save.best&&score>0)txt('new best!',LW/2,244,C.yellow,16,'center');}
+  if(score>=save.best&&score>0)txt('new best!',LW/2,244,C.yellow,16,'center');
+  txt(TOUCH?'tap here  main menu':'[ESC] main menu',LW/2,262,C.dim,14,'center');}
+function pauseScreen(){bevel(PX+16,LH/2-50,PW-32,100,false);txt('PAUSED',LW/2,LH/2-36,C.yellow,28,'center');
+  txt('enter / P  resume',LW/2,LH/2+2,C.white,14,'center');txt('esc again  quit to menu  (cores are banked)',LW/2,LH/2+22,C.dim,12,'center');}
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
   {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>50+l*70,max:3}];
@@ -737,6 +748,10 @@ function shopScreen(){bevel(0,0,LW,LH,false);txt('WORKSHOP',20,16,C.yellow,24);t
     txt(it.name+'  '+'■'.repeat(lvl)+'□'.repeat(it.max-lvl),24,y,col,16);txt(it.desc,24,y+22,C.dim,14);txt(maxed?'max':c+' cores',LW-24,y,i===shopSel?C.yellow:col,16,'right');});
   txt('space/tap: buy   up/down: choose   [Q] back',LW/2,LH-32,C.text,14,'center');}
 function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
+// drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
+// clear the run's transient state on every return to the title so nothing bleeds through.
+function clearScene(){enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
+function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();paused=false;mode='title';t=0;SFX.bossTheme(false);}
 function continueRun(){chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
@@ -744,10 +759,10 @@ let lastT=0,acc=0;
 function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}render();requestAnimationFrame(frame);}
 function stepLogic(){blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
   if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();SFX.music(true);mode='title';t=0;}}
-  else if(mode==='title'){titleScreen();if(tapped&&t>10){if(tapSrc==='ptr'){const y=ptr.rel*LH,inx=ptr.x>LW/2-75&&ptr.x<LW/2+75;if(inx&&y>186&&y<216){mode='shop';}else if(inx&&y>222&&y<252){SFX.toggleMute();}else if(y<150||y>252||inx){newRun();mode='play';t=0;}}else{newRun();mode='play';t=0;}}}
-  else if(mode==='play'){if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}
-  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else{newRun();mode='play';t=0;}}}
-  else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else mode='title';}}
+  else if(mode==='title'){titleScreen();if(tapped&&t>10){if(tapSrc==='ptr'){const y=ptr.rel*LH,inx=ptr.x>LW/2-75&&ptr.x<LW/2+75;if(inx&&y>186&&y<216){mode='shop';}else if(inx&&y>222&&y<252){SFX.toggleMute();}else if(y<150||y>252||inx){newRun();mode='play';t=0;}}else{if(titleSel===1)mode='shop';else if(titleSel===2)SFX.toggleMute();else{newRun();mode='play';t=0;}}}}
+  else if(mode==='play'){if(paused){playScene();pauseScreen();if(tapped)paused=false;}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}}
+  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else if(tapSrc==='ptr'&&ptr.rel>0.70&&ptr.rel<0.80){mode='title';t=0;}else{newRun();mode='play';t=0;}}}
+  else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else{clearScene();mode='title';}}}
   tapped=false;}
 function render(){}
 requestAnimationFrame(frame);
