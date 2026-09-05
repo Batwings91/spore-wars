@@ -417,12 +417,15 @@ addEventListener('touchstart',pdown,{passive:false});addEventListener('touchmove
 let mode='boot',t=0,blink=0,shopSel=0,scroll=0,lastW=0;
 let boss=null,bossWarn=0,bossDying=0,bossCount=0;let muzz=0,shieldHit=0,floats=[],evt=0,evtText='',evtCol='#fff',rings=[],bombs=0,bombFx=0,slow=0;let ship,shots,eshots,enemies,drops,booms,score,lives,cores,wpn,shield,usedContinue,shake,flash,waveT,level,fireT,hint,kills;
 let bankedCores=0;
-function newRun(){bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+const CHAIN_TIME=240;let chain=0,chainT=0;
+const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
+function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
+function newRun(){chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(STARTWAVE)level=STARTWAVE;}
 const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:9},{n:'STORM',dmg:3,rate:6}];const MAXW=4;
 const spd=()=>3.7+save.engine*0.5;
 const R={0:17,1:20,2:23,3:30,4:20};
-function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,2+Math.floor(level/2));
+function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,3+Math.floor(level/2));
   // Opening: scouts, scouts, diving bombers, aimed-fire frigates, then the boss.
   let kind=level<=4?[0,0,1,2][level-1]:(level%4===3?2:(level%3===0?1:0));
   if(level>=6&&level%3===0)kind=3;if(level>=9&&level%4===1)kind=4;
@@ -434,10 +437,10 @@ function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,2+Math.flo
     if(kind===3&&i<3)enemies.push({k:3,x:PX+80+i*((PW-160)/2),y:-40-i*30,hp:8,t:i*20,ct:80,ty:50+i*12,tent:[0,1,2,3].map(j=>({ph:j*1.7+i,len:26+j*4}))});
     if(kind===4&&i<4)enemies.push({k:4,x:i%2?PX+20:PX+PW-20,y:-30-i*60,hp:4,t:0,dir:i%2?1:-1,lunge:0});}
   // add a few drifters alongside the new types so the screen isn't empty
-  if(kind>=3)for(let i=0;i<3;i++)enemies.push({k:0,x:base,y:-140-i*40,ph:i*0.6,hp:1,t:0});}
+  if(kind>=3)for(let i=0;i<4;i++)enemies.push({k:0,x:base,y:-140-i*40,ph:i*0.6,hp:1,t:0});}
 // ================= BOSS: BATTLESHIP =================
 function startBossWarning(){bossWarn=150;level++;eshots=[];SFX.siren();addFloat(LW/2,150,'',C.red);}
-function spawnBoss(){bossCount++;const hpMax=Math.round((140+bossCount*60)*(1+level*0.02)*(bossCount===1?0.8:1));
+function spawnBoss(){bossCount++;const hpMax=Math.round((140+bossCount*60)*(1+level*0.02)*(bossCount===1?0.9:1));
   boss={x:PX+PW/2,y:-120,ty:88,hp:hpMax,hpMax,t:0,phase:1,dir:1,fireT:90,volT:200,flash:0,
     turrets:[{dx:-52,dy:26,hp:12,ct:60},{dx:52,dy:26,hp:12,ct:120},{dx:0,dy:58,hp:16,ct:180}]};
   SFX.bossTheme(true);}
@@ -449,7 +452,7 @@ function updateBoss(){
     b.y+=0.4;b.x+=Math.sin(b.t*0.3)*1.5;
     if(bossDying===0){booms.push({x:b.x,y:b.y,f:0,life:40,kind:'exp_boss',sc:1.4});booms.push({x:b.x,y:b.y+20,f:0,life:60,kind:'smoke',sc:2});flash=14;shake=26;slow=30;
       score+=2000+bossCount*500;addFloat(b.x,b.y-40,'+'+(2000+bossCount*500),C.G,true);pickupEvent('BATTLESHIP DESTROYED',C.G);
-      drops.push({x:b.x-40,y:b.y,k:'w'});drops.push({x:b.x,y:b.y,k:'s'});drops.push({x:b.x+40,y:b.y,k:'b'});for(let i=0;i<6;i++)drops.push({x:b.x-60+i*24,y:b.y+30,k:'core'});
+      lastW=kills;drops.push({x:b.x-40,y:b.y,k:'w'});drops.push({x:b.x,y:b.y,k:'s'});drops.push({x:b.x+40,y:b.y,k:'b'});for(let i=0;i<6;i++)drops.push({x:b.x-60+i*24,y:b.y+30,k:'core'});
       boss=null;waveT=200;SFX.bossTheme(false);}
     return;}
   // entry
@@ -459,7 +462,7 @@ function updateBoss(){
   // Give the first Battleship more dodge time between aimed shots.
   const turretSpeed=bossCount===1?2.2:2.6;
   // turrets: aimed plasma
-  for(const tu of b.turrets){if(tu.hp<=0)continue;tu.ct--;if(tu.ct<=0){tu.ct=bossCount===1?(b.phase===2?100:150):(b.phase===2?70:110);const tx=b.x+tu.dx,ty=b.y+tu.dy;const a=Math.atan2(ship.y-ty,ship.x-tx);eshots.push({x:tx,y:ty,vx:Math.cos(a)*turretSpeed,vy:Math.sin(a)*turretSpeed});SFX.plasma();}}
+  for(const tu of b.turrets){if(tu.hp<=0)continue;tu.ct--;if(tu.ct<=0){tu.ct=bossCount===1?(b.phase===2?85:130):(b.phase===2?70:110);const tx=b.x+tu.dx,ty=b.y+tu.dy;const a=Math.atan2(ship.y-ty,ship.x-tx);eshots.push({x:tx,y:ty,vx:Math.cos(a)*turretSpeed,vy:Math.sin(a)*turretSpeed});SFX.plasma();}}
   // bow volley: fan of plasma
   b.volT--;if(b.volT<=0){b.volT=b.phase===2?150:230;const n=b.phase===2?9:5;for(let i=0;i<n;i++){const a=Math.PI/2+(i-(n-1)/2)*0.22;eshots.push({x:b.x,y:b.y+70,vx:Math.cos(a)*2.2,vy:Math.sin(a)*2.2,blue:true});}SFX.plasma();}
   // phase 2 sweep: a line of shots that walks across
@@ -468,13 +471,13 @@ function updateBoss(){
   if(Math.abs(ship.x-b.x)<70&&Math.abs(ship.y-b.y)<55){hitShip();}
   // player shots vs turrets then hull
   for(const s of shots){if(s.y<-50)continue;let hit=false;
-    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){tu.hp-=(s.dmg||1);hit=true;booms.push({x:s.x,y:s.y,f:0,life:8,kind:'hit',sc:1});if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);score+=150;addFloat(b.x+tu.dx,b.y+tu.dy,'+150',C.yellow);}break;}}
+    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){tu.hp-=(s.dmg||1);hit=true;booms.push({x:s.x,y:s.y,f:0,life:8,kind:'hit',sc:1});if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}break;}}
     if(!hit&&Math.abs(s.x-b.x)<80&&Math.abs(s.y-b.y)<60){b.hp-=(s.dmg||1);b.flash=3;hit=true;booms.push({x:s.x,y:s.y,f:0,life:8,kind:'hit',sc:1});SFX.hit();}
     if(hit)s.y=-99;}
   if(b.phase===1&&b.hp<b.hpMax*0.5){b.phase=2;pickupEvent('HULL BREACH',C.red);shake=10;flash=6;}
   if(b.hp<=0){bossDying=110;eshots=[];SFX.bossTheme(false);}
 }
-function bombBoss(){if(!boss||bossDying)return;boss.hp-=25;boss.flash=6;for(const tu of boss.turrets){const wasAlive=tu.hp>0;tu.hp-=8;if(wasAlive&&tu.hp<=0){boom(boss.x+tu.dx,boss.y+tu.dy,false);score+=150;addFloat(boss.x+tu.dx,boss.y+tu.dy,'+150',C.yellow);}}}
+function bombBoss(){if(!boss||bossDying)return;boss.hp-=25;boss.flash=6;for(const tu of boss.turrets){const wasAlive=tu.hp>0;tu.hp-=8;if(wasAlive&&tu.hp<=0){boom(boss.x+tu.dx,boss.y+tu.dy,false);awardKill(150,boss.x+tu.dx,boss.y+tu.dy);}}}
 function drawBoss(){
   if(bossWarn>0){const on=Math.floor(bossWarn/10)%2===0;if(on){ctx.fillStyle='rgba(255,40,40,0.12)';ctx.fillRect(X(PX),0,X(PW),H);}
     bevel(PX+30,LH/2-36,PW-60,72,true);txt('WARNING',LW/2,LH/2-28,on?C.red:C.white,28,'center');txt('CAPITAL SHIP APPROACHING',LW/2,LH/2+8,C.text,14,'center');}
@@ -496,10 +499,11 @@ function drawBoss(){
 }
 function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,kind:big?'exp_big':'exp_small'});for(let i=0;i<(big?10:4);i++)booms.push({x,y,vx:(Math.random()-0.5)*(big?6:4),vy:(Math.random()-0.5)*(big?6:4),life:12+Math.random()*12});}
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();return;}
-  lives--;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  chain=0;chainT=0;lives--;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
-  if(wpn<MAXW&&(kills===1||kills-lastW>=9)){lastW=kills;return 'w';}   // a new gun roughly every 9 kills until maxed
+  const weaponGap=level<=5?9:15;
+  if(wpn<MAXW&&(kills===1||kills-lastW>=weaponGap)){lastW=kills;return 'w';}
   const early=level<=4;const r=Math.random();
   if(r<0.30)return 'core';
   if(r<0.34)return 'b';
@@ -510,9 +514,10 @@ function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;ri
   for(let i=0;i<14;i++)booms.push({x:ship.x,y:ship.y,vx:Math.cos(i/14*6.283)*4,vy:Math.sin(i/14*6.283)*4,life:18,col});}
 function fireBomb(){if(bombs<=0||bombFx>0)return;bombs--;bombFx=40;shake=18;flash=10;slow=14;SFX.bomb();
   rings.push({x:ship.x,y:ship.y,r:20,col:C.white,life:40,big:true});booms.push({x:ship.x,y:ship.y,f:0,life:24,kind:'exp_ring',sc:1});
-  for(const e of enemies){if(e.y>-10){e.hp-=6;if(e.hp<=0){score+=e.k===2?50:(e.k===1?20:10);boom(e.x,e.y,true);}}}
+  for(const e of enemies){if(e.y>-10){e.hp-=6;if(e.hp<=0){awardKill(e.k===2?50:(e.k===1?20:10),e.x,e.y);boom(e.x,e.y,true);}}}
   enemies=enemies.filter(e=>e.hp>0);eshots=[];bombBoss();addFloat(ship.x,ship.y-60,'MEGABOMB',C.G,true);}
 function update(){t++;scroll=(scroll+1.8)%TH;
+  if(chainT>0&&--chainT===0)chain=0;
   let dx=0,dy=0;if(keys.l)dx-=1;if(keys.r)dx+=1;if(keys.u)dy-=1;if(keys.d)dy+=1;
   if(ptr.down){dx+=(ptr.x-ptr.lx)*4.6/spd();dy+=(ptr.y-ptr.ly)*4.6/spd();ptr.lx=ptr.x;ptr.ly=ptr.y;}
   if(dx&&dy&&!ptr.down){dx*=0.707;dy*=0.707;}
@@ -527,8 +532,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.x>PX&&s.x<PX+PW);
   waveT--;
   if(boss||bossWarn>0||bossDying>0){ if(boss&&!bossDying&&t%240===0&&enemies.length<3){for(let i=0;i<2;i++)enemies.push({k:0,x:PX+60+Math.random()*(PW-120),y:-30-i*40,ph:i,hp:1,t:0});} }
-  else if(enemies.length===0&&waveT<=0){if((level+1)%5===0){startBossWarning();}else{spawnWave();waveT=level<4?150:110;}}
-  else if(waveT<=0&&enemies.length<4&&(level+1)%5!==0){spawnWave();waveT=level<4?150:110;}
+  else if(enemies.length===0&&waveT<=0){if((level+1)%5===0){startBossWarning();}else{spawnWave();waveT=level<4?120:90;}}
+  else if(waveT<=0&&enemies.length<4&&(level+1)%5!==0){spawnWave();waveT=level<4?120:90;}
   updateBoss();
   for(const e of enemies){e.t++;
     if(e.k===0){e.y+=1.1+level*0.04;e.x+=Math.sin(e.t*0.05+e.ph)*1.8;}
@@ -541,7 +546,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(e.k===2){e.y+=0.6;e.ct--;if(e.ct<=0&&e.y>0){e.ct=90;const a=Math.atan2(ship.y-e.y,ship.x-e.x);eshots.push({x:e.x,y:e.y+8,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4});SFX.plasma();}}
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
   for(const s of shots)for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();booms.push({x:s.x,y:s.y-4,f:0,life:8,kind:'hit',sc:1});}s.y=-99;
-      if(e.hp<=0){score+=[10,20,50,150,60][e.k];boom(e.x,e.y,e.k>=2);addFloat(e.x,e.y,'+'+[10,20,50,150,60][e.k],C.yellow);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}}
+      if(e.hp<=0){awardKill([10,20,50,150,60][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}}
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
   for(const s of eshots){s.x+=s.vx;s.y+=s.vy;if(Math.abs(s.x-ship.x)<16&&Math.abs(s.y-ship.y)<20){s.y=999;hitShip();}}
   eshots=eshots.filter(s=>s.y<LH+10&&s.y>-10&&s.x>PX&&s.x<PX+PW);
@@ -616,6 +621,9 @@ function drawPanels(){bevel(0,0,PX,LH,false);bevel(PX+PW,0,LW-PX-PW,LH,false);be
   box(12,64,PX-24,44,'HI',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
   box(12,116,PX-24,44,'SHIPS');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*30),X(131),24,22);
   box(12,168,PX-24,44,'WAVE',boss||bossWarn?'BOSS':String(level),boss||bossWarn?C.red:C.text);
+  box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
+  ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
+  txt('3 kills: +1x',PX/2,284,C.dim,9,'center');
   const rx=PX+PW+12,rw=LW-PX-PW-24;
   box(rx,12,rw,44,'GUN',GUN[wpn].n,C.orange);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?[C.yellow,C.cyan,C.orange,C.G,C.cKf][i]:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(8+(4-i)*2),X(4),X(10-(4-i)*2));}
   box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(24),X(24));ctx.globalAlpha=1;}
@@ -683,7 +691,7 @@ function shopScreen(){bevel(0,0,LW,LH,false);txt('WORKSHOP',20,16,C.yellow,24);t
     txt(it.name+'  '+'■'.repeat(lvl)+'□'.repeat(it.max-lvl),24,y,col,16);txt(it.desc,24,y+22,C.dim,14);txt(maxed?'max':c+' cores',LW-24,y,i===shopSel?C.yellow:col,16,'right');});
   txt('space/tap: buy   up/down: choose   [Q] back',LW/2,LH-32,C.text,14,'center');}
 function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
-function continueRun(){usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
+function continueRun(){chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
 let lastT=0,acc=0;
