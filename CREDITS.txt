@@ -3,6 +3,11 @@ SPORE WARS — a 640K Games production
 
 Art credits
 -----------
+Title-menu hangar (assets/menu_hangar.png):
+  Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
+  Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.
+  Interface text and controls are drawn separately by the game.
+
 Player ship, alien fleet, bosses and mechs:
   "Space Ship Construction Kit" and "Space Ship / Mech Construction Kit 2" by Skorpio
   https://opengameart.org/content/space-ship-construction-kit

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-05 — Menu and overlay presentation
+- Playtest polish: smaller regular-weight footer credits and lighter translucent panels (55% opacity).
+- Add an original AI-assisted hangar illustration, live menu buttons, pointer hover and a procedural title fallback. Remove the gameplay HUD from the title screen.
+- Replace central movement hints and boss warnings with compact edge notices; use translucent pause/game-over panels and a slimmer boss health display.
+- Keep combat balance, the playfield, fixed timestep and saved progression unchanged.
+
+## 2026-09-05 — Pause and touch menu review fixes
+- Block megabombs while paused for pointer input as well as keyboard input.
+- Clear the previous run's scene when tapping main menu after game over, matching the keyboard path.
+
 ## 2026-09-05 — Handover build (Battleship baseline)
 - Docs split: README (overview/roadmap), ARCHITECTURE, DECISIONS, TESTING, CHANGELOG, CREDITS.
 - Split single-file build into index.html + assets/ + tools/build.py (dist/ is the release artefact).

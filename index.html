@@ -27,7 +27,7 @@ addEventListener('resize',fit);fit();cv.focus();
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.png');}
@@ -412,9 +412,9 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
 let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
 function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width*LW,y:(p.clientY-r.top)/r.height*LH};}
-function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>PX+PW+12&&p.y>LH-88&&p.y<LH-58&&mode!=='boot'&&mode!=='shop'){SFX.toggleMute();return;}
+function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>PX+PW+12&&p.y>LH-88&&p.y<LH-58&&(mode==='play'||mode==='dead')){SFX.toggleMute();return;}
   if(mode==='play'&&p.x>PX+PW+12&&p.y>168&&p.y<212){fireBomb();ptr.down=false;return;}ptr.down=true;ptr.x=ptr.lx=p.x;ptr.y=ptr.ly=p.y;ptr.rel=p.y/LH;tapped=true;tapSrc='ptr';}
-function pmove(e){if(!ptr.down)return;if(e.cancelable)e.preventDefault();const p=pos(e);ptr.x=p.x;ptr.y=p.y;}
+function pmove(e){if(mode==='title'&&!e.touches){const p=pos(e),i=TITLE_BUTTONS.findIndex(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);if(i>=0)titleSel=i;}if(!ptr.down)return;if(e.cancelable)e.preventDefault();const p=pos(e);ptr.x=p.x;ptr.y=p.y;}
 function pup(e){if(e.cancelable)e.preventDefault();ptr.down=false;}
 addEventListener('mousedown',pdown);addEventListener('mousemove',pmove);addEventListener('mouseup',pup);
 addEventListener('touchstart',pdown,{passive:false});addEventListener('touchmove',pmove,{passive:false});addEventListener('touchend',pup,{passive:false});
@@ -509,8 +509,7 @@ function updateMothership(b){
 }
 function bombBoss(){if(!boss||bossDying)return;boss.hp-=25;boss.flash=6;for(const tu of boss.turrets){const wasAlive=tu.hp>0;tu.hp-=8;if(wasAlive&&tu.hp<=0){boom(boss.x+tu.dx,boss.y+tu.dy,false);awardKill(150,boss.x+tu.dx,boss.y+tu.dy);}}}
 function drawBoss(){
-  if(bossWarn>0){const on=Math.floor(bossWarn/10)%2===0;if(on){ctx.fillStyle='rgba(255,40,40,0.12)';ctx.fillRect(X(PX),0,X(PW),H);}
-    bevel(PX+30,LH/2-36,PW-60,72,true);txt('WARNING',LW/2,LH/2-28,on?C.red:C.white,28,'center');txt(level%15===0?'MOTHERSHIP APPROACHING':level%15===10?'ASSAULT MECH APPROACHING':'CAPITAL SHIP APPROACHING',LW/2,LH/2+8,C.text,14,'center');}
+  if(bossWarn>0){glassPanel(PX+40,12,PW-80,32,'#ee9871');txt('INCOMING / '+(level%15===0?'MOTHERSHIP':level%15===10?'ASSAULT MECH':'BATTLESHIP'),LW/2,20,'#ffd3ad',13,'center');}
   if(!boss)return;const b=boss;
   const im=b.mother?IMG.boss_mothership:b.mech?((b.fireFlash>0?IMG.boss_mech_fire:IMG.boss_mech)||IMG.boss_mech||IMG.boss_mech_fire):IMG.boss_battleship;if(im){ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);}
   else if(b.mother){drawMothershipFallback(b);}
@@ -534,7 +533,7 @@ function drawBoss(){
     if(b.y>=b.ty&&b.volT<=45&&b.gap!==undefined){const spacing=(PW-64)/7;ctx.save();ctx.strokeStyle=C.cyan;ctx.lineWidth=X(2);
       ctx.strokeRect(X(PX+32+(b.gap-0.35)*spacing),X(b.y+139),X(spacing*1.7),X(12));txt('GAP',PX+32+(b.gap+0.5)*spacing,b.y+141,C.white,10,'center');ctx.restore();}}
   // health bar
-  const bw=PW-40;bevel(PX+20,8,bw,16,true);const f=Math.max(0,b.hp/b.hpMax);ctx.fillStyle=b.phase===2?C.red:C.orange;ctx.fillRect(X(PX+23),X(11),X((bw-6)*f),X(10));txt(b.mother?'MOTHERSHIP':b.mech?'ASSAULT MECH':'BATTLESHIP',LW/2,10,C.white,10,'center');
+  const bw=PW-40;glassPanel(PX+20,6,bw,20,'#b88364');const f=Math.max(0,Math.min(1,b.hp/b.hpMax));txt(b.mother?'MOTHERSHIP':b.mech?'ASSAULT MECH':'BATTLESHIP',PX+28,9,'#e6c6b0',9);ctx.fillStyle='#293642';ctx.fillRect(X(PX+145),X(12),X(bw-135),X(5));ctx.fillStyle=b.phase===2?'#ed7f86':'#eeb275';ctx.fillRect(X(PX+145),X(12),X((bw-135)*f),X(5));
 }
 function drawMechFallback(b){
   // Keep the Mech legible when both sprites fail to load.
@@ -563,7 +562,7 @@ function dropFor(e){kills++;
 function addFloat(x,y,txt,col,big){floats.push({x,y,txt,col,life:60,big});}
 function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;rings.push({x:ship.x,y:ship.y,r:10,col,life:30});
   for(let i=0;i<14;i++)booms.push({x:ship.x,y:ship.y,vx:Math.cos(i/14*6.283)*4,vy:Math.sin(i/14*6.283)*4,life:18,col});}
-function fireBomb(){if(bombs<=0||bombFx>0)return;bombs--;bombFx=40;shake=18;flash=10;slow=14;SFX.bomb();
+function fireBomb(){if(paused||bombs<=0||bombFx>0)return;bombs--;bombFx=40;shake=18;flash=10;slow=14;SFX.bomb();
   rings.push({x:ship.x,y:ship.y,r:20,col:C.white,life:40,big:true});booms.push({x:ship.x,y:ship.y,f:0,life:24,kind:'exp_ring',sc:1});
   for(const e of enemies){if(e.y>-10){e.hp-=6;if(e.hp<=0){awardKill(e.k===2?50:(e.k===1?20:10),e.x,e.y);boom(e.x,e.y,true);}}}
   enemies=enemies.filter(e=>e.hp>0);eshots=[];bombBoss();addFloat(ship.x,ship.y-60,'MEGABOMB',C.G,true);}
@@ -685,8 +684,8 @@ function drawPanels(){bevel(0,0,PX,LH,false);bevel(PX+PW,0,LW-PX-PW,LH,false);be
 function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=shake?Math.round((Math.random()-0.5)*shake):0;if(shake>0)shake-=1;
   ctx.save();ctx.translate(sx,sy);drawField();ctx.restore();drawPanels();
   if(flash>0){ctx.fillStyle='rgba(255,255,255,'+(flash/12)+')';ctx.fillRect(X(PX),0,X(PW),H);flash--;}
-  if(evt>0&&mode==='play'){const sc=evt>42?1+(evt-42)*0.08:1;ctx.globalAlpha=Math.min(1,evt/12);txt(evtText,LW/2+2,96+2,C.s0,Math.round(28*sc),'center');txt(evtText,LW/2,96,evtCol,Math.round(28*sc),'center');ctx.globalAlpha=1;}
-  if(hint>0&&mode==='play'){bevel(PX+20,LH/2-30,PW-40,60,false);txt('arrows / WASD to move',LW/2,LH/2-20,C.white,16,'center');txt('you fire automatically',LW/2,LH/2+2,C.orange,16,'center');}}
+  if(evt>0&&mode==='play'){ctx.save();ctx.globalAlpha=Math.min(1,evt/12);glassPanel(PX+50,48,PW-100,25,evtCol);txt(evtText,LW/2,54,evtCol,12,'center');ctx.restore();}
+  if(hint>0&&mode==='play'&&!paused){glassPanel(PX+32,LH-30,PW-64,23,'#55c5d8');txt(TOUCH?'DRAG TO MOVE / AUTO-FIRE':'ARROWS / WASD TO MOVE / AUTO-FIRE',LW/2,LH-24,'#d2e8ef',11,'center');}}
 function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];const line=(n,s,c)=>{if(t>n)L.push([s,c||DOS.grey]);if(t===n+1&&s)SFX.boot();};
   line(0,'Starting DOS...');line(30,'');line(40,'HIMEM is testing extended memory...done.');line(80,'640K Sound System v1.0 installed. AdLib compatible.');
   line(110,'');line(120,'C:\\>cd games\\spore');line(150,'C:\\GAMES\\SPORE>spore.exe');line(180,'');line(185,'SPORE WARS  (c) 1991 '+BRAND);
@@ -694,58 +693,58 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];con
   L.forEach((l,i)=>txt(l[0],16,16+i*20,l[1],16));
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleFleet=null,titleSel=0,paused=false;
-function titleScreen(){
-  if(!titleFleet){titleFleet=[];for(let i=0;i<7;i++)titleFleet.push({x:PX+40+Math.random()*(PW-80),y:-60-i*70,k:i%3,sp:0.35+Math.random()*0.3,ph:Math.random()*6});}
-  drawField();
-  // enemy fleet drifting down behind the menu
-  for(const f of titleFleet){f.y+=f.sp;f.x+=Math.sin(t*0.02+f.ph)*0.4;if(f.y>LH+60){f.y=-70;f.x=PX+40+Math.random()*(PW-80);}ctx.globalAlpha=0.55;img(['scout','bomber','frigate'][f.k],f.x,f.y,0.8);ctx.globalAlpha=1;}
-  drawPanels();
-  // vignette so the logo pops
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.55)');g.addColorStop(0.45,'rgba(0,0,0,0.15)');g.addColorStop(1,'rgba(0,0,0,0.6)');ctx.fillStyle=g;ctx.fillRect(X(PX),0,X(PW),H);
-  // logo plate
-  const lx=PX+30,ly=34,lw=PW-60,lh=92;
-  bevel(lx,ly,lw,lh,false);bevel(lx+4,ly+4,lw-8,lh-8,true);
-  for(let i=0;i<6;i++){ctx.fillStyle=C.m3;ctx.fillRect(X(lx+8+i*((lw-16)/5)),X(ly+7),4,4);ctx.fillRect(X(lx+8+i*((lw-16)/5)),X(ly+lh-11),4,4);}
-  txt('640K GAMES PRESENTS',LW/2,ly+9,C.dim,10,'center');
-  const wob=Math.sin(t*0.06)*1.5;
-  txt('SPORE WARS',LW/2+4,ly+26+4+wob,C.s0,44,'center');
-  txt('SPORE WARS',LW/2+2,ly+26+2+wob,C.gd,44,'center');
-  txt('SPORE WARS',LW/2,ly+26+wob,C.G,44,'center');
-  ctx.globalAlpha=0.35+Math.sin(t*0.1)*0.15;txt('SPORE WARS',LW/2-1,ly+25+wob,C.white,44,'center');ctx.globalAlpha=1;
-  txt('a 1991 vertical shooter',LW/2,ly+72,C.text,12,'center');
-  // ship showcase with hover
-  const b=IMG.player||SHIP,hov=Math.sin(t*0.05)*3;
-  const fl=FLAME[t%6<3?0:1];blit(fl,LW/2-11,314+hov,1.2);blit(fl,LW/2+11,314+hov,1.2);
-  ctx.drawImage(b,X(LW/2)-b.width/2,X(282+hov)-b.height/2);
-  // menu buttons
-  const bw=150,bh=30,bx=LW/2-bw/2;
-  const btn=(y,label,hot,col)=>{bevel(bx,y,bw,bh,hot);txt(label,LW/2,y+8,hot?C.yellow:col||C.white,15,'center');};
-  const pulse=Math.floor(blink/24)%2===0;
-  const sel=(i,l)=>titleSel===i&&pulse?'>  '+l+'  <':l;
-  btn(150,sel(0,'LAUNCH'),titleSel===0,C.orange);
-  btn(186,sel(1,'WORKSHOP'),titleSel===1);
-  btn(222,sel(2,SFX.isMuted()?'SOUND: OFF':'SOUND: ON'),titleSel===2,SFX.isMuted()?C.dim:C.cyan);
-  if(!TOUCH){keycap('↵',bx+bw-14,153);keycap('Q',bx+bw-14,189);keycap('M',bx+bw-14,225);}
-  ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
-  txt(TOUCH?'drag to move  ·  tap BOMB panel for megabomb':'arrows / WASD move  ·  X megabomb  ·  auto-fire',LW/2,330,C.dim,11,'center');
-  txt('art: Skorpio · Daniel Cook · chabull · LuminousDragonGames   music: Alexandr Zhelanov',LW/2,346,C.dim,9,'center');
-  ctx.restore();
+let titleSel=0,paused=false;
+const TITLE_BUTTONS=[{x:40,y:178,w:230,h:38},{x:40,y:224,w:230,h:32},{x:40,y:264,w:230,h:30}];
+// Translucent surfaces keep the scene visible; text remains fully opaque.
+function glassPanel(x,y,w,h,accent){
+  ctx.save();ctx.fillStyle='rgba(5,12,22,0.55)';ctx.fillRect(X(x),X(y),X(w),X(h));
+  ctx.strokeStyle=accent||'#435765';ctx.lineWidth=X(0.5);ctx.strokeRect(X(x)+0.5,X(y)+0.5,X(w)-1,X(h)-1);
+  ctx.fillStyle=accent||'#597481';ctx.fillRect(X(x),X(y),X(2),X(h));ctx.restore();
 }
-function deadScreen(){playScene();bevel(PX+16,80,PW-32,200,false);
+function titleScreen(){
+  ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);
+  if(IMG.menu_hangar){ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(IMG.menu_hangar,0,0,W,H);ctx.restore();}
+  else{
+    // A complete title remains usable when the illustration is unavailable.
+    for(const st of STARS){ctx.fillStyle=st.c;ctx.fillRect(st.x,(st.y+scroll*0.3)%H,st.s,st.s);}
+    ctx.strokeStyle='#263b4c';ctx.lineWidth=X(3);ctx.strokeRect(X(355),X(42),X(230),X(265));
+    const b=IMG.player||SHIP;ctx.drawImage(b,X(470)-b.width,X(190)-b.height,b.width*2,b.height*2);
+  }
+  const shade=ctx.createLinearGradient(0,0,X(360),0);shade.addColorStop(0,'rgba(3,8,16,0.45)');shade.addColorStop(1,'rgba(3,8,16,0)');
+  ctx.fillStyle=shade;ctx.fillRect(0,0,X(360),H);
+  txt(BRAND,40,25,'#94acb9',11);
+  ctx.fillStyle='#39c7df';ctx.fillRect(X(40),X(49),X(28),X(2));
+  txt('SPORE',42,66,'#102331',48);txt('SPORE',40,64,'#dbe8eb',48);
+  txt('WARS',42,112,'#102331',48);txt('WARS',40,110,'#dbe8eb',48);
+  txt('Beyond the last machine.',42,159,'#8faebc',11);
+  const labels=['LAUNCH','WORKSHOP',SFX.isMuted()?'SOUND: OFF':'SOUND: ON'];
+  TITLE_BUTTONS.forEach((b,i)=>{const hot=titleSel===i;
+    glassPanel(b.x,b.y,b.w,b.h,hot?'#56dcf1':'#3d5364');
+    if(hot){ctx.fillStyle='rgba(39,160,190,0.12)';ctx.fillRect(X(b.x+2),X(b.y+1),X(b.w-3),X(b.h-2));}
+    txt(labels[i],b.x+20,b.y+(i===0?10:8),hot?'#a3f2ff':'#adc0cd',i===0?19:13);
+    if(hot)txt('>',b.x+7,b.y+(i===0?12:8),'#56dcf1',13);
+    if(!TOUCH)txt(i===0?'ENTER':i===1?'Q':'M',b.x+b.w-10,b.y+12,'#7e9aa9',9,'right');
+  });
+  txt(TOUCH?'Drag to move / tap BOMB to clear fire':'ARROWS / WASD  move    X  bomb    P  pause',40,313,'#93a9b8',10);
+  ctx.save();ctx.font=X(7)+'px monospace';ctx.fillStyle='#788a98';ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',X(40),X(336));
+  ctx.fillText('Music: Alexandr Zhelanov / Menu: AI-assisted',X(40),X(348));ctx.restore();
+}
+
+function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,200,'#b86a72');
   txt('FLEET LOST',LW/2,100,C.red,28,'center');txt('score '+score+'   wave '+level+'   +'+cores+' cores',LW/2,144,C.white,16,'center');
   if(!usedContinue)txt('[C] continue',LW/2,184,C.cyan,16,'center'); // rewarded-ad hook (README item 4): wire to SDK later
   txt('enter / tap  retry   ·   [Q] workshop',LW/2,212,C.orange,16,'center');
   if(score>=save.best&&score>0)txt('new best!',LW/2,244,C.yellow,16,'center');
   txt(TOUCH?'tap here  main menu':'[ESC] main menu',LW/2,262,C.dim,14,'center');}
-function pauseScreen(){bevel(PX+16,LH/2-50,PW-32,100,false);txt('PAUSED',LW/2,LH/2-36,C.yellow,28,'center');
-  txt('enter / P  resume',LW/2,LH/2+2,C.white,14,'center');txt('esc again  quit to menu  (cores are banked)',LW/2,LH/2+22,C.dim,12,'center');}
+function pauseScreen(){glassPanel(PX+40,LH/2-50,PW-80,100,'#55c5d8');txt('PAUSED',LW/2,LH/2-36,'#d2e8ef',28,'center');
+  txt(TOUCH?'tap to resume':'enter / P  resume',LW/2,LH/2+2,C.white,14,'center');txt('esc: menu / cores saved',LW/2,LH/2+24,'#a4b8c6',12,'center');}
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
   {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>50+l*70,max:3}];
-function shopScreen(){bevel(0,0,LW,LH,false);txt('WORKSHOP',20,16,C.yellow,24);txt(save.cores+' cores',LW-20,20,C.cyan,16,'right');
-  SHOP.forEach((it,i)=>{const y=72+i*68,lvl=save[it.k],maxed=lvl>=it.max,c=it.cost(lvl);bevel(12,y-8,LW-24,60,i===shopSel);const col=i===shopSel?C.white:C.text;
-    txt(it.name+'  '+'■'.repeat(lvl)+'□'.repeat(it.max-lvl),24,y,col,16);txt(it.desc,24,y+22,C.dim,14);txt(maxed?'max':c+' cores',LW-24,y,i===shopSel?C.yellow:col,16,'right');});
+function shopScreen(){ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);if(IMG.menu_hangar){ctx.save();ctx.globalAlpha=0.2;ctx.drawImage(IMG.menu_hangar,0,0,W,H);ctx.restore();}txt('WORKSHOP',20,16,'#d2e8ef',24);txt(save.cores+' cores',LW-20,20,C.cyan,16,'right');
+  SHOP.forEach((it,i)=>{const y=72+i*68,lvl=save[it.k],maxed=lvl>=it.max,c=it.cost(lvl);glassPanel(12,y-8,LW-24,60,i===shopSel?'#56dcf1':'#3d5364');const col=i===shopSel?C.white:C.text;
+    txt(it.name+'  '+'■'.repeat(lvl)+'□'.repeat(it.max-lvl),24,y,col,16);txt(it.desc,24,y+22,'#9bafbd',14);txt(maxed?'max':c+' cores',LW-24,y,i===shopSel?C.cyan:col,16,'right');});
   txt('space/tap: buy   up/down: choose   [Q] back',LW/2,LH-32,C.text,14,'center');}
 function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
@@ -759,9 +758,9 @@ let lastT=0,acc=0;
 function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}render();requestAnimationFrame(frame);}
 function stepLogic(){blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
   if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();SFX.music(true);mode='title';t=0;}}
-  else if(mode==='title'){titleScreen();if(tapped&&t>10){if(tapSrc==='ptr'){const y=ptr.rel*LH,inx=ptr.x>LW/2-75&&ptr.x<LW/2+75;if(inx&&y>186&&y<216){mode='shop';}else if(inx&&y>222&&y<252){SFX.toggleMute();}else if(y<150||y>252||inx){newRun();mode='play';t=0;}}else{if(titleSel===1)mode='shop';else if(titleSel===2)SFX.toggleMute();else{newRun();mode='play';t=0;}}}}
+  else if(mode==='title'){titleScreen();if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}
   else if(mode==='play'){if(paused){playScene();pauseScreen();if(tapped)paused=false;}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}}
-  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else if(tapSrc==='ptr'&&ptr.rel>0.70&&ptr.rel<0.80){mode='title';t=0;}else{newRun();mode='play';t=0;}}}
+  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else if(tapSrc==='ptr'&&ptr.rel>0.70&&ptr.rel<0.80){clearScene();mode='title';t=0;}else{newRun();mode='play';t=0;}}}
   else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else{clearScene();mode='title';}}}
   tapped=false;}
 function render(){}

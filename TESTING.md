@@ -20,6 +20,8 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
 2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.
 2b. Esc: Workshop to title; Fleet Lost to title (touch: tap the 'main menu' line). In play, Esc pauses (bombs blocked, scene frozen); Enter/P/click resumes; Esc again returns to title and the run's cores appear in the Workshop total exactly once.
+2c. Title: hover highlights the matching button; clicking its visible rectangle activates it. Clicking the hangar or gaps does not launch. Hide menu_hangar.png to verify the procedural title and buttons still work.
+2d. Movement hint stays at the bottom edge; incoming boss notice stays at the top. Pause/game-over panels leave the scene visible. Clicking BOMB while paused spends nothing; it works after resuming.
 3. Play: arrows/WASD move, auto-fire on, ship banks when moving sideways, no console errors.
 4. First kill drops a `W`; pickup shows flash + slow-mo + banner.
 5. `X` fires megabomb (screen flash, ring, bullets cleared). BOMB panel tap works on touch.
