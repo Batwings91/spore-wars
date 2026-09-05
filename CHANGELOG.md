@@ -8,3 +8,6 @@
 - Six-layer parallax background (LuminousDragonGames), 256-colour master palette, Skorpio ship/alien art, Tyrian bolts/icons, chabull explosions.
 - Music: "Fly" (Alexandr Zhelanov) streamed via Web Audio with tight loop. Boss track removed by request.
 - Debug: ?god=1 and ?wave=N URL parameters.
+
+## 2026-09-05 — Faster death-to-retry flow
+- Accept a fresh retry press or tap immediately after game over instead of discarding input during the first half-second.

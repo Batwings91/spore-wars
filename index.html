@@ -684,7 +684,7 @@ function stepLogic(){blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
   if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();SFX.music(true);mode='title';t=0;}}
   else if(mode==='title'){titleScreen();if(tapped&&t>10){if(tapSrc==='ptr'){const y=ptr.rel*LH,inx=ptr.x>LW/2-75&&ptr.x<LW/2+75;if(inx&&y>186&&y<216){mode='shop';}else if(inx&&y>222&&y<252){SFX.toggleMute();}else if(y<150||y>252||inx){newRun();mode='play';t=0;}}else{newRun();mode='play';t=0;}}}
   else if(mode==='play'){if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}
-  else if(mode==='dead'){deadScreen();if(tapped&&t>30){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else{newRun();mode='play';t=0;}}}
+  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else{newRun();mode='play';t=0;}}}
   else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else mode='title';}}
   tapped=false;}
 function render(){}
