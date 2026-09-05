@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-09-05 — Handover build (Battleship baseline)
+- Docs split: README (overview/roadmap), ARCHITECTURE, DECISIONS, TESTING, CHANGELOG, CREDITS.
 - Split single-file build into index.html + assets/ + tools/build.py (dist/ is the release artefact).
 - ChatGPT patch adopted: fixed 60 Hz timestep (no forced step per rAF); megabomb turret kills now award +150 and explode.
 - Battleship boss every 5th wave: warning, turrets, bow fan, phase-2 sweep, death sequence, guaranteed drops.
