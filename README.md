@@ -18,6 +18,7 @@ tools/build.js      identical Node port of build.py — use whichever runtime th
 dist/               release artefact (regenerate with build.py; don't hand-edit)
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)
 CREDITS.txt         licence/attribution for every third-party asset. Keep it accurate; it ships with the game.
+brand/              640K Games logo: gen.js is the source (pixel font → SVG), svg/ and png/ are exports. © 640K Games, not CC. See brand/README.md.
 CHANGELOG.md        one entry per session
 ```
 Run locally: `python3 -m http.server 8000` in the project folder, open `http://localhost:8000/index.html`.
