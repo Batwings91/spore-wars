@@ -1,0 +1,40 @@
+SPORE WARS — a 640K Games production
+====================================
+
+Art credits
+-----------
+Player ship, alien fleet, bosses and mechs:
+  "Space Ship Construction Kit" and "Space Ship / Mech Construction Kit 2" by Skorpio
+  https://opengameart.org/content/space-ship-construction-kit
+  https://opengameart.org/content/space-ship-mech-construction-kit-2
+  Licence: CC-BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
+  Modified: cropped, resized, palette-reduced, recoloured and outlined by 640K Games.
+  The modified ship/alien sprites in assets/ are released under the same CC-BY-SA 3.0 licence.
+
+Weapon bolts, plasma, pickup icons, fireball flashes:
+  "Remastered Tyrian Graphics" by Daniel Cook (Lostgarden.com)
+  https://opengameart.org/content/remastered-tyrian-graphics
+  Licence: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Modified: individual sprites extracted, upscaled and palette-reduced.
+
+Explosions, hit sparks, muzzle flash, smoke:
+  "explosions" by chabull
+  https://opengameart.org/content/explosions-0
+  Licence: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Modified: frames selected, resized, alpha dithered and palette-reduced.
+
+Background:
+  "Parallax Space Scene" by LuminousDragonGames — CC0
+  https://opengameart.org/content/parallax-space-scene-seamlessly-scrolls-too
+  Modified: resized, palette-reduced, alpha dithered.
+
+UI icons and particles (reserved):
+  Kenney (www.kenney.nl) — CC0
+
+Music
+-----
+Main theme: "Fly" (Techno Space) by Alexandr Zhelanov — CC-BY 3.0
+  https://opengameart.org/content/techno-space  ·  https://soundcloud.com/alexandr-zhelanov
+  Converted to AAC; otherwise unmodified.
+
+Everything else — code, sound synthesis, music, procedural art, design — © 640K Games.
