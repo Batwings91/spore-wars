@@ -19,7 +19,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 ## Manual smoke test (do this before every commit that touches gameplay)
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
 2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.
-2b. Esc: Workshop to title; Fleet Lost to title (touch: tap the 'main menu' line). In play, Esc pauses (bombs blocked, scene frozen); Enter/P/click resumes; Esc again returns to title and the run's cores appear in the Workshop total exactly once.
+2b. Esc: Workshop to title; Fleet Lost to title (touch: tap the 'main menu' line). In play, Esc pauses (bombs blocked, scene frozen); Esc/P/Space or Resume resumes; Enter opens exit confirmation with Keep playing selected. Esc from confirmation resumes. Only selecting Return to main menu and confirming ends the run and banks cores exactly once. Held keys and double taps must not accidentally exit.
 2c. Title: hover highlights the matching button; clicking its visible rectangle activates it. Clicking the hangar or gaps does not launch. Hide menu_hangar.webp to verify the procedural title and buttons still work.
 2e. HUD: verify score/best, ships, wave/boss, chain meter, all five gun levels, shields and bomb counts. Check SOUND and BOMB by keyboard and touch; labels must fit their panels.
 2d. Movement hint stays at the bottom edge; incoming boss notice stays at the top. Pause/game-over panels leave the scene visible. Clicking BOMB while paused spends nothing; it works after resuming.

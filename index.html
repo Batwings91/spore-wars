@@ -551,6 +551,16 @@ const keys={};let tapped=false,tapSrc='key';
 const KEYMAP={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',KeyA:'l',KeyD:'r',KeyW:'u',KeyS:'d'};
 addEventListener('keydown',e=>{
   if(e.code==='KeyM'&&!e.repeat){SFX.toggleMute();}
+  if(mode==='play'){
+    if(e.code==='Escape'||e.code==='KeyP'){e.preventDefault();if(!e.repeat)setPaused(!paused);return;}
+    if(paused){
+      e.preventDefault();if(e.repeat)return;
+      if(exitConfirm&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))exitChoice=1-exitChoice;
+      else if(e.code==='Enter'){if(!exitConfirm){exitConfirm=true;exitChoice=0;exitWait=15;}else if(exitChoice===1)quitRun();else setPaused(false);}
+      else if(e.code==='Space')setPaused(false);
+      return;
+    }
+  }
   if(KEYMAP[e.code]){keys[KEYMAP[e.code]]=true;e.preventDefault();}
   if(e.code==='Space'){if(!e.repeat){tapped=true;tapSrc='key';}e.preventDefault();}
   if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
@@ -558,10 +568,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyQ'){if(mode==='title'||mode==='dead')mode='shop';else if(mode==='shop'){clearScene();mode='title';}}
   if(mode==='shop'){if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=(shopSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=(shopSel+1)%3;}
   if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%3;}
-  if(mode==='play'&&e.code==='KeyP'&&!e.repeat)paused=!paused;
-  if(mode==='play'&&paused&&(e.code==='Enter'||e.code==='Space'))paused=false;
-  // Esc: leave any menu; in play it pauses first, a second press quits (cores banked in quitRun).
-  if(e.code==='Escape'&&!e.repeat){if(mode==='dead'||mode==='shop'){clearScene();mode='title';t=0;}else if(mode==='play'){if(paused)quitRun();else paused=true;}}
+  if(e.code==='Escape'&&!e.repeat&&(mode==='dead'||mode==='shop')){clearScene();mode='title';t=0;}
   if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)continueRun();
   if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();mode='title';t=0;}
 });
@@ -569,6 +576,7 @@ addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
 let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
 function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width*LW,y:(p.clientY-r.top)/r.height*LH};}
 function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>PX+PW+12&&p.y>LH-88&&p.y<LH-58&&(mode==='play'||mode==='dead')){SFX.toggleMute();return;}
+  if(mode==='play'&&paused){pauseTap(p);return;}
   if(mode==='play'&&p.x>PX+PW+12&&p.y>168&&p.y<212){fireBomb();ptr.down=false;return;}ptr.down=true;ptr.x=ptr.lx=p.x;ptr.y=ptr.ly=p.y;ptr.rel=p.y/LH;tapped=true;tapSrc='ptr';}
 function pmove(e){if(mode==='title'&&!e.touches){const p=pos(e),i=TITLE_BUTTONS.findIndex(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);if(i>=0)titleSel=i;}if(!ptr.down)return;if(e.cancelable)e.preventDefault();const p=pos(e);ptr.x=p.x;ptr.y=p.y;}
 function pup(e){if(e.cancelable)e.preventDefault();ptr.down=false;}
@@ -1024,7 +1032,15 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];con
   L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleSel=0,paused=false;
+let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0;
+function setPaused(on){paused=on;exitConfirm=false;exitChoice=0;tapped=false;ptr.down=false;for(const k in keys)keys[k]=false;}
+function pauseTap(p){
+  if(exitConfirm&&exitWait>0)return;
+  const y=exitConfirm?190:174;
+  if(p.x<LW/2-130||p.x>LW/2+130)return;
+  if(p.y>=y&&p.y<=y+30)setPaused(false);
+  else if(p.y>=y+44&&p.y<=y+74){if(exitConfirm)quitRun();else{exitConfirm=true;exitChoice=0;exitWait=15;}}
+}
 const TITLE_BUTTONS=[{x:40,y:178,w:230,h:38},{x:40,y:224,w:230,h:32},{x:40,y:264,w:230,h:30}];
 // Translucent surfaces keep the scene visible; text remains fully opaque.
 function glassPanel(x,y,w,h,accent){
@@ -1070,8 +1086,16 @@ function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,200,'#b86a72');
   txt('Spend cores in Workshop for permanent upgrades',LW/2,232,'#a4b8c6',10,'center');
   if(score>=save.best&&score>0)txt('new best!',LW/2,247,C.yellow,11,'center');
   txt(TOUCH?'tap here  main menu':'[ESC] main menu',LW/2,262,C.dim,14,'center');}
-function pauseScreen(){glassPanel(PX+40,LH/2-50,PW-80,100,'#55c5d8');txt('PAUSED',LW/2,LH/2-36,'#d2e8ef',28,'center');
-  txt(TOUCH?'tap to resume':'enter / P  resume',LW/2,LH/2+2,C.white,14,'center');txt('esc: menu / cores saved',LW/2,LH/2+24,'#a4b8c6',12,'center');}
+function pauseScreen(){
+  glassPanel(PX+40,90,PW-80,190,'#55c5d8');
+  txt(exitConfirm?'RETURN TO MAIN MENU?':'PAUSED',LW/2,108,'#d2e8ef',exitConfirm?20:28,'center');
+  if(exitConfirm){txt('Your cores will be saved.',LW/2,145,'#a4b8c6',12,'center');txt('This run will end.',LW/2,163,'#a4b8c6',12,'center');}
+  const y=exitConfirm?190:174,labels=exitConfirm?['KEEP PLAYING','RETURN TO MAIN MENU']:['RESUME','MAIN MENU'];
+  labels.forEach((label,i)=>{const hot=exitConfirm?exitChoice===i:i===0;
+    glassPanel(LW/2-130,y+i*44,260,30,hot?'#56dcf1':'#526675');
+    txt((hot?'> ':'')+label,LW/2,y+i*44+8,hot?C.white:'#a4b8c6',12,'center');});
+  if(!TOUCH)txt(exitConfirm?'UP/DOWN choose / ENTER select / ESC resume':'ESC / P resume / ENTER main menu',LW/2,264,'#a4b8c6',9,'center');
+}
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
   {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3}];
@@ -1085,16 +1109,16 @@ function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
 function clearScene(){enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
-function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();paused=false;mode='title';t=0;SFX.bossTheme(false);}
+function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
 function continueRun(){chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
 let lastT=0,acc=0;
 function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}render();requestAnimationFrame(frame);}
-function stepLogic(){blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
+function stepLogic(){if(exitWait>0)exitWait--;blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
   if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();mode='title';t=0;}}
   else if(mode==='title'){titleScreen();if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}
-  else if(mode==='play'){if(paused){playScene();pauseScreen();if(tapped)paused=false;}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}}
+  else if(mode==='play'){if(paused){playScene();pauseScreen();}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}}
   else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else if(tapSrc==='ptr'&&ptr.rel>0.70&&ptr.rel<0.80){clearScene();mode='title';t=0;}else{newRun();mode='play';t=0;}}}
   else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else{clearScene();mode='title';}}}
   SFX.music(mode==='play'&&!paused);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-06 — Prevent accidental exits from paused runs
+- Esc/P toggle pause and resume. Enter while paused opens a confirmation with Keep playing selected; exiting requires choosing Return to main menu. Escape cancels confirmation and resumes.
+- Add explicit touch buttons, ignore held confirmation keys and briefly guard touch confirmation against double taps. Clear held movement/drag input on pause changes; preserve core banking.
+
 ## 2026-09-06 — Studio branding from the master logo
 - Use the 640K Games prompt wordmark (2 logic px per cell, 4 on screen) as the boot-screen banner and the title-screen studio line, and the square icon (2x) as the HUD badge. Both are transparent PNG exports of the Logo repo SVGs, added to the asset pack; the previous text renders when they are missing.
 - Title footer credit reads "Illustrations: AI-assisted" now that several illustrations are AI-assisted, not just the menu. CREDITS.txt records the logo as © 640K Games, outside the CC licences.
