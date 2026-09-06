@@ -608,7 +608,7 @@ const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
 function newRun(){resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(STARTWAVE)level=STARTWAVE;}
-const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:9},{n:'STORM',dmg:3,rate:6}];const MAXW=4;
+const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:14},{n:'STORM',dmg:2,rate:14}];const MAXW=4;
 const spd=()=>3.7+save.engine*0.5;
 const R={0:17,1:20,2:23,3:30,4:20};
 function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,3+Math.floor(level/2));
@@ -867,8 +867,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(wpn===0)sh(0,-32,0,-8);
     else if(wpn===1){sh(-14,-20,0,-8);sh(14,-20,0,-8);}
     else if(wpn===2){sh(0,-34,0,-9);sh(-16,-20,0,-8.5);sh(16,-20,0,-8.5);}
-    else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-1.6,-8.4);sh(14,-22,1.6,-8.4);sh(-22,-14,-3.2,-7.6);sh(22,-14,3.2,-7.6);}
-    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-1.4,-9);sh(18,-22,1.4,-9);sh(-26,-12,-3.4,-8);sh(26,-12,3.4,-8);}}
+    else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.8,-8.4);sh(14,-22,0.8,-8.4);sh(-22,-14,-1.4,-7.6);sh(22,-14,1.4,-7.6);}
+    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.7,-9);sh(18,-22,0.7,-9);sh(-26,-12,-1.5,-8);sh(26,-12,1.5,-8);}}
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.x>PX&&s.x<PX+PW);
   waveT--;
   if(boss||bossWarn>0||bossDying>0){ if(boss&&!boss.mother&&!bossDying&&t%240===0&&enemies.length<3){for(let i=0;i<2;i++)enemies.push({k:0,x:PX+60+Math.random()*(PW-120),y:-30-i*40,ph:i,hp:1,t:0});} }

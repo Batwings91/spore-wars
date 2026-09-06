@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-06 — Controlled upper-tier weapon output
+- Narrow Spread/Storm lateral projectile speeds and fire both every 14 logic ticks. Storm projectiles deal 2 damage instead of 3. Theoretical combined output becomes approximately 43/51 damage per second, versus Triple at 36.
+- Preserve tiers 1–3, projectile origins/counts/forward speeds, enemy and boss stats, drops and upgrade visuals. Balance requires player validation; homing support remains a separate next step.
+
 ## 2026-09-06 — Distinct upgraded gun hardware
 - Differentiate gun tiers with progressively larger metal housings, twin rails, long lance barrels, cooling fins and upper-tier cyan charge strips. Muzzles remain at existing shot origins.
 - Presentation only: damage, rate, spread, pickups and enemy fire are unchanged. Rocket pods remain a separate planned addition.
