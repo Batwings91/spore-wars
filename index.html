@@ -25,10 +25,10 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
-const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
+const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
@@ -715,20 +715,56 @@ function drawMechArt(b){
   if(b.phase===2){ctx.globalAlpha*=0.55+Math.sin(b.t*0.15)*0.2;ctx.fillStyle='#f2b05f';for(const dx of [-1.5,1.5])ctx.fillRect(X(dx-0.5),X(-7),X(1),X(4));}
   ctx.restore();
 }
+// Source regions separate the painted chambers from the spine without extra assets.
+const MOTHER_ART={cut:960,spineX:355,spineW:350,bayX:110,bayY:960,bayW:235,bayH:248};
+function drawMothershipArt(b){
+  const art=IMG.mothership_body,a=MOTHER_ART,sx=200/art.width,sy=284/art.height;
+  ctx.save();ctx.translate(X(b.x),X(b.y));ctx.imageSmoothingEnabled=true;ctx.lineCap='round';
+  for(const bay of b.turrets){
+    const side=bay.dx<0?-1:1;ctx.beginPath();ctx.moveTo(X(side*56),X(36));ctx.bezierCurveTo(X(side*62),X(50),X(bay.dx),X(52),X(bay.dx),X(bay.dy-13));
+    for(const [w,col] of [[5,'#251523'],[3,'#714555'],[0.8,'#ad8580']]){ctx.lineWidth=X(w);ctx.strokeStyle=col;ctx.stroke();}
+  }
+  ctx.drawImage(art,0,0,art.width,a.cut,X(-100),X(-142),X(200),X(a.cut*sy));
+  ctx.drawImage(art,a.spineX,a.cut,a.spineW,art.height-a.cut,X(-100+a.spineX*sx),X(-142+a.cut*sy),X(a.spineW*sx),X((art.height-a.cut)*sy));
+  const charge=!bossDying&&b.y>=b.ty&&b.volT<=45?1-b.volT/45:0;
+  if(charge>0||b.phase===2){
+    ctx.globalAlpha*=charge>0?charge*0.55:0.16+Math.sin(b.t*0.1)*0.06;ctx.fillStyle=charge>0?'#ffc58a':'#e99a72';
+    for(const y of [-45,10,65]){ctx.beginPath();ctx.ellipse(0,X(y),X(4),X(10),0,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+function drawMothershipBay(b,bay){
+  const art=IMG.mothership_body,a=MOTHER_ART;ctx.save();ctx.translate(X(b.x+bay.dx),X(b.y+bay.dy));ctx.imageSmoothingEnabled=true;
+  if(bay.dx>0)ctx.scale(-1,1);
+  if(bay.hp<=0){
+    // Split shells and a ragged dark opening identify disabled chambers.
+    ctx.save();ctx.rotate(-0.12);ctx.drawImage(art,a.bayX,a.bayY,117,a.bayH,X(-17),X(-15),X(14),X(30));ctx.restore();
+    ctx.save();ctx.rotate(0.12);ctx.drawImage(art,a.bayX+117,a.bayY,a.bayW-117,a.bayH,X(3),X(-13),X(14),X(30));ctx.restore();
+    ctx.beginPath();for(const [i,p] of [[-6,-9],[-1,-4],[4,-10],[7,-2],[3,4],[6,10],[-3,7],[-7,2]].entries()){if(i===0)ctx.moveTo(X(p[0]),X(p[1]));else ctx.lineTo(X(p[0]),X(p[1]));}
+    ctx.closePath();ctx.fillStyle='#160f1b';ctx.fill();ctx.strokeStyle='#8a5368';ctx.lineWidth=X(1);ctx.stroke();
+  }else{
+    ctx.drawImage(art,a.bayX,a.bayY,a.bayW,a.bayH,X(-14),X(-15),X(28),X(30));
+    const opening=!bossDying&&b.y>=b.ty&&bay.ct<=30?1-bay.ct/30:0;
+    ctx.beginPath();ctx.ellipse(0,0,X(6+opening*3),X(7+opening*3),0,0,Math.PI*2);ctx.fillStyle='#211423';ctx.fill();ctx.strokeStyle='#a67778';ctx.lineWidth=X(1);ctx.stroke();
+    if(opening>0){ctx.globalAlpha*=opening*0.8;ctx.fillStyle='#efa871';ctx.beginPath();ctx.ellipse(0,X(3),X(3+opening*2),X(4),0,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
 function drawBoss(){
   if(bossWarn>0){glassPanel(PX+40,12,PW-80,32,'#ee9871');txt('INCOMING / '+(level%15===0?'MOTHERSHIP':level%15===10?'ASSAULT MECH':'BATTLESHIP'),LW/2,20,'#ffd3ad',13,'center');}
   if(!boss)return;const b=boss;
   const illustrated=!b.mother&&!b.mech&&IMG.battleship_hull;
   const mechArt=b.mech&&IMG.mech_body;
-  const im=b.mother?IMG.boss_mothership:b.mech?((b.fireFlash>0?IMG.boss_mech_fire:IMG.boss_mech)||IMG.boss_mech||IMG.boss_mech_fire):IMG.boss_battleship;if(mechArt){drawMechArt(b);}else if(illustrated){drawBattleshipHull(b);}else if(im){ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);}
+  const motherArt=b.mother&&IMG.mothership_body;
+  const im=b.mother?IMG.boss_mothership:b.mech?((b.fireFlash>0?IMG.boss_mech_fire:IMG.boss_mech)||IMG.boss_mech||IMG.boss_mech_fire):IMG.boss_battleship;if(motherArt){drawMothershipArt(b);}else if(mechArt){drawMechArt(b);}else if(illustrated){drawBattleshipHull(b);}else if(im){ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);}
   else if(b.mother){drawMothershipFallback(b);}
   else if(b.mech){drawMechFallback(b);}
   else{ctx.fillStyle='#a03030';ctx.fillRect(X(b.x)-140,X(b.y)-100,280,200);}
-  for(const tu of b.turrets){if(illustrated){drawBattleshipTurret(b,tu);continue;}if(b.mother){const x=b.x+tu.dx,y=b.y+tu.dy;bevel(x-12,y-10,24,20,true);ctx.fillStyle=tu.hp<=0?C.s0:(tu.ct<=30&&!bossDying?C.yellow:C.cyan);ctx.fillRect(X(x-8),X(y-6),X(16),X(12));continue;}if(tu.hp<=0){ctx.fillStyle='#201010';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),12,0,6.283);ctx.fill();continue;}
+  for(const tu of b.turrets){if(motherArt){drawMothershipBay(b,tu);continue;}if(illustrated){drawBattleshipTurret(b,tu);continue;}if(b.mother){const x=b.x+tu.dx,y=b.y+tu.dy;bevel(x-12,y-10,24,20,true);ctx.fillStyle=tu.hp<=0?C.s0:(tu.ct<=30&&!bossDying?C.yellow:C.cyan);ctx.fillRect(X(x-8),X(y-6),X(16),X(12));continue;}if(tu.hp<=0){ctx.fillStyle='#201010';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),12,0,6.283);ctx.fill();continue;}
     const hot=tu.ct<25;ctx.fillStyle='#3a1418';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),16,0,6.283);ctx.fill();
     ctx.fillStyle=hot?C.magenta:'#c04050';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),10,0,6.283);ctx.fill();ctx.fillStyle=C.white;ctx.fillRect(X(b.x+tu.dx)-3,X(b.y+tu.dy)-3,6,6);}
-  if(b.flash>0&&(mechArt||illustrated||im)){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6;if(mechArt)drawMechArt(b);else if(illustrated)drawBattleshipHull(b);else ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
-  if(!mechArt&&!illustrated&&b.phase===2&&!bossDying&&t%30<15){ctx.globalAlpha=0.25;ctx.fillStyle=C.red;ctx.fillRect(X(b.x)-60,X(b.y)-40,120,80);ctx.globalAlpha=1;}
+  if(b.flash>0&&(motherArt||mechArt||illustrated||im)){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6;if(motherArt)drawMothershipArt(b);else if(mechArt)drawMechArt(b);else if(illustrated)drawBattleshipHull(b);else ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
+  if(!motherArt&&!mechArt&&!illustrated&&b.phase===2&&!bossDying&&t%30<15){ctx.globalAlpha=0.25;ctx.fillStyle=C.red;ctx.fillRect(X(b.x)-60,X(b.y)-40,120,80);ctx.globalAlpha=1;}
   // Telegraph existing attacks without changing their timers.
   if(!b.mother&&!b.mech&&!bossDying&&b.y>=b.ty){ctx.save();
     if(b.volT<=30){const r=5+b.volT/3;ctx.strokeStyle=C.cyan;ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(b.x),X(b.y+70),X(r),0,Math.PI*2);ctx.stroke();}

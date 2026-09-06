@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Organic Mothership visual identity
+- Add an original living carrier with a narrow armoured spine, ribbed wings and two spore chambers. Render the chambers separately from the same image at the existing launch-bay coordinates.
+- Open chambers before scout launches, split their shells when destroyed, and brighten the spine before the existing volley. Preserve the safe-gap warning, hitboxes, attacks, health, escort cap and rewards.
+- Retain original sprite/procedural fallbacks. Encode art as quality-86 WebP with preserved alpha; exclude the separate dist/ change.
+
 ## 2026-09-06 — Infected Mech visual identity
 - Add an original pale-armoured industrial chassis invaded by alien tissue, with four articulated mechanical legs, twin aiming cannons and phase-two reactor heat.
 - Brace the legs during the existing aiming pause; align charge and recoil with the existing lock and firing timers. Retain the original normal/fire sprites and procedural fallback.

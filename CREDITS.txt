@@ -3,6 +3,13 @@ SPORE WARS — a 640K Games production
 
 Art credits
 -----------
+Organic Mothership (assets/mothership_body.webp):
+  Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
+  Art direction: 640K Games. Generated 2026-09-06; no third-party source pack used.
+  Encoded as quality-86 WebP with alpha quality 100; colour encoding is lossy.
+  Body and chamber regions are composed in Canvas; chamber opening, ruptures and charge are game code.
+  The original Skorpio-derived Mothership remains a fallback.
+
 Infected Mech body (assets/mech_body.webp):
   Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
   Art direction: 640K Games. Generated 2026-09-06; no third-party source pack used.
