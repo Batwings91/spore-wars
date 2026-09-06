@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-06 — Consistent menu keyboard navigation
+- Up/Down (or W/S) moves selection and Enter activates it across title, pause, exit confirmation, level completion, Workshop and game over. Workshop Back is selectable; unavailable Continue is omitted.
+- Pause now defaults to Resume; select Main menu to open the safe exit confirmation. Preserve Esc/P resume and direct shortcuts. Menu arrows no longer set ship movement keys.
+
+## 2026-09-06 — Boss-sector completion and Workshop breaks
+- End each five-wave boss sector with a safe reward sweep, then a frozen Level complete screen. Bank only newly earned cores; show the amount and spendable balance.
+- Offer Workshop or Next level, with no automatic advance. Checkpoint Workshop returns to the completion screen and preserves the active run; purchases retain existing effects, explained on screen.
+- Stop next-wave spawning during reward collection; clear escort/projectile hazards after boss death. Retain idempotent banking after spending, Continue and later deaths.
+
 ## 2026-09-06 — Deployable homing support rockets
 - Gun level four deploys two side launchers over 24 logic ticks. Alternate one 1-damage homing rocket every 120 ticks, with at most three active, limited turning and a 180-tick lifetime. Prefer unassigned forward enemies; target an active boss when no regular enemy qualifies.
 - Reuse existing shot collisions, rewards and boss part handling. Reset rockets on ship loss, Continue, menu exit and new runs; freeze updates with normal pause logic.
