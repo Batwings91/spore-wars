@@ -28,7 +28,7 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 - Pipeline for new sprites: crop → resize LANCZOS to target width × 4/3 → quantize to palette, no dither → 1px dark outline (`#0c0e1a`). Explosions: alpha → ordered dither to 1-bit, fire palette.
 - Sizes at 1280 render: player 123 px wide; scout 67, bomber 77, frigate 88, cruiser 101, destroyer 112, heavycruiser 128; battleship 253, mech 227, mothership 400.
 - UI: bevelled steel panels (`bevel()`), Xenon-2 style. Owner wants the menu "super slick"; a real bitmap font and hand-drawn logo are the obvious next upgrades.
-- Title presentation: `menu_hangar` illustration with a procedural fallback, live text and buttons. `TITLE_BUTTONS` supplies both draw bounds and pointer hit areas. `glassPanel()` provides translucent overlays; combat notices stay near the field edges. Gameplay HUD panels still use `bevel()`.
+- Title presentation: `menu_hangar` illustration with a procedural fallback, live text and buttons. `TITLE_BUTTONS` supplies both draw bounds and pointer hit areas. `glassPanel()` provides translucent overlays; combat notices stay near the field edges. Gameplay HUD panels use dark flat surfaces, fine separators and regular-weight labels; bomb and sound hit areas retain their original coordinates.
 
 ## Where things live (search these identifiers in index.html)
 | System | Identifiers |

@@ -21,6 +21,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.
 2b. Esc: Workshop to title; Fleet Lost to title (touch: tap the 'main menu' line). In play, Esc pauses (bombs blocked, scene frozen); Enter/P/click resumes; Esc again returns to title and the run's cores appear in the Workshop total exactly once.
 2c. Title: hover highlights the matching button; clicking its visible rectangle activates it. Clicking the hangar or gaps does not launch. Hide menu_hangar.webp to verify the procedural title and buttons still work.
+2e. HUD: verify score/best, ships, wave/boss, chain meter, all five gun levels, shields and bomb counts. Check SOUND and BOMB by keyboard and touch; labels must fit their panels.
 2d. Movement hint stays at the bottom edge; incoming boss notice stays at the top. Pause/game-over panels leave the scene visible. Clicking BOMB while paused spends nothing; it works after resuming.
 3. Play: arrows/WASD move, auto-fire on, ship banks when moving sideways, no console errors.
 4. First kill drops a `W`; pickup shows flash + slow-mo + banner.
@@ -33,7 +34,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 6b. Battleship art: three gun mounts aim towards the player and brighten before firing; destroyed mounts become scorched sockets. Below half health, the central reactor heats up. Check gun positions against incoming player shots and emitted plasma. Block battleship_hull.webp for the original sprite, then boss_battleship.png for the procedural hull.
 6c. Use ?god=1&wave=9 for the infected Mech. Its legs walk during movement and brace during the aim lock; the two muzzle cues align with the existing yellow aim lines and shot origins. Check recoil when it fires, phase-two heat and pause freezing the pose. Block mech_body.webp to restore the original normal/fire sprites, then block both boss_mech.png and boss_mech_fire.png to check the procedural fallback. Legs are decorative; collision behaviour is unchanged.
 6d. Use ?god=1&wave=14 for the organic Mothership. Check that shots can reach both spore chambers, each opens before launching a scout, and each becomes a split shell when destroyed. Both destroyed bays must stop escort launches. Spine charge must accompany the existing 45-tick volley warning and two-lane safe gap. Pause freezes the animation. Block mothership_body.webp for the original sprite, then boss_mothership.png for its procedural fallback.
-7. Game over → Enter restarts in under 2 s; `[C]` continue works once.
+7. Game over → Enter restarts in under 2 s; `[C]` continue works once. Core pickups say +1 CORE; HUD identifies run cores for upgrades. Game over shows the saved run total and available balance; Workshop explains permanent upgrades and when cores are saved. Confirm Continue adds only newly collected cores to the balance on another death.
 8. Mute toggles and persists across reload.
 9. Resize the window: canvas stays 16:9, integer-scaled where possible.
 

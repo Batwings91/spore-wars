@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-06 — Core currency explanation
+- Identify core pickups and the run total; explain saved cores and permanent Workshop upgrades on the game-over and Workshop screens. Currency values, banking, prices and upgrade effects are unchanged.
+
+## 2026-09-06 — Gameplay HUD presentation
+- Replace heavy grey gameplay bevels with dark instrument panels, fine separators, smaller regular-weight labels and a quieter studio signature. Keep every gameplay value and existing bomb/sound touch area.
+- Scope code changes to drawPanels(); no balance, input, save or timing changes.
+
 ## 2026-09-06 — Smaller illustrated assets
 - Re-encoded the menu hangar, lurker and crawler as quality-90 WebP, keeping original dimensions and exact alpha. Combined artwork shrinks from 3,510,036 to 722,142 bytes (79.4% smaller).
 - Compared original/compressed artwork side by side; verified transparency byte-for-byte and validated an in-memory release build. No game code or dist files changed.
