@@ -574,10 +574,14 @@ const SFX=(function(){
       const d=buf.getChannelData(0);let end=d.length-1;while(end>0&&Math.abs(d[end])<0.004)end--;t.buf=buf;t.loopEnd=(end+1)/buf.sampleRate;
       if(cur===k&&!t.src)play(k);}).catch(()=>{t.busy=false;});}
   function play(k){const a=ctx();const t=TR[k];if(!a||!t.buf||t.src)return;if(seq){clearInterval(seq);seq=null;}
-    t.src=a.createBufferSource();t.src.buffer=t.buf;t.src.loop=true;t.src.loopEnd=t.loopEnd;t.g=a.createGain();t.g.gain.setValueAtTime(0.0001,a.currentTime);t.g.gain.exponentialRampToValueAtTime(t.gain,a.currentTime+1.0);t.src.connect(t.g);t.g.connect(master);t.src.start();}
+    t.src=a.createBufferSource();t.src.buffer=t.buf;t.src.loop=true;t.src.loopEnd=t.loopEnd;t.g=a.createGain();t.g.gain.setValueAtTime(0.0001,a.currentTime);t.g.gain.exponentialRampToValueAtTime(mainOn?t.gain:0.0001,a.currentTime+1.0);t.src.connect(t.g);t.g.connect(master);t.src.start();}
   function stop(k){const t=TR[k];if(!t.src)return;t.src.stop();t.src.disconnect();t.g.disconnect();t.src=null;}
   function select(k){if(cur===k)return;if(cur)stop(cur);cur=k;if(!k)return;loadTrack(k);if(TR[k].buf)play(k);else if(k==='main'){step=0;melPos=0;melWait=0;if(!seq)seq=setInterval(tick,STEP*1000);}}
-  function music(on){on=on&&!document.hidden&&!audioBlocked;if(mainOn===on)return;mainOn=on;if(on){const a=ctx();if(a)musicBus.gain.value=0.5;select('main');}else{select(null);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
+  // Duck the recorded loop rather than stopping it, so it keeps its position across pause, menus and focus changes.
+  function music(on){on=on&&!document.hidden&&!audioBlocked;if(mainOn===on)return;mainOn=on;const t=TR.main;
+    const ramp=(to,secs)=>{if(!t.src||!t.g||!ac)return;const g=t.g.gain;g.cancelScheduledValues(ac.currentTime);g.setValueAtTime(Math.max(0.0001,g.value),ac.currentTime);g.exponentialRampToValueAtTime(to,ac.currentTime+secs);};
+    if(on){const a=ctx();if(a)musicBus.gain.value=0.5;if(cur!=='main')select('main');else if(t.src)ramp(t.gain,0.6);else if(!t.buf&&!seq){step=0;melPos=0;melWait=0;seq=setInterval(tick,STEP*1000);}}
+    else{ramp(0.0001,0.25);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
   // Only the most recently opened/focused game copy may produce audio.
   const AUDIO_KEY='640k.sporewars.audio-owner',audioId=Date.now()+'-'+Math.random();
   let audioChannel=null;
@@ -639,6 +643,8 @@ addEventListener('keydown',e=>{
   if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();mode='title';t=0;}
 });
 addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
+// Losing window focus pauses a live run: an alt-tabbed player should not die off-screen.
+addEventListener('blur',()=>{if(mode==='play'&&!paused)setPaused(true);});
 let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
 function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width*LW,y:(p.clientY-r.top)/r.height*LH};}
 function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>PX+PW+12&&p.y>LH-88&&p.y<LH-58&&(mode==='play'||mode==='dead')){SFX.toggleMute();return;}
@@ -930,13 +936,14 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(e.k===1){e.y+=2.8+level*0.06;}
     if(e.k===3){if(e.y<e.ty)e.y+=0.8;else e.x+=Math.sin(e.t*0.02)*1.2;e.ct--;
       if(e.ct<=0&&e.y>0){e.ct=110;for(let j=-1;j<=1;j++){const a=Math.atan2(ship.y-e.y,ship.x-e.x)+j*0.35;eshots.push({x:e.x,y:e.y+20,vx:Math.cos(a)*2.2,vy:Math.sin(a)*2.2,blue:true});}SFX.plasma();}
-      for(const tn of e.tent){const tipx=e.x+Math.sin(e.t*0.05+tn.ph)*tn.len*1.2,tipy=e.y+18+tn.len*1.6;if(Math.abs(tipx-ship.x)<14&&Math.abs(tipy-ship.y)<16){boom(tipx,tipy,false);hitShip();}}}
+      for(const tn of e.tent){const tipx=e.x+Math.sin(e.t*0.05+tn.ph)*tn.len*1.2,tipy=e.y+18+tn.len*1.6;if(ship.inv<=0&&!GOD&&Math.abs(tipx-ship.x)<14&&Math.abs(tipy-ship.y)<16){boom(tipx,tipy,false);hitShip();}}}
     if(e.k===4){e.y+=0.9;if(e.lunge>0){e.lunge--;e.x+=e.dir*5;}else{e.x+=e.dir*0.6;if(Math.abs(e.y-ship.y)<30&&Math.random()<0.03){e.lunge=22;e.dir=ship.x>e.x?1:-1;}}
       if(e.x<PX+16){e.x=PX+16;e.dir=1;}if(e.x>PX+PW-16){e.x=PX+PW-16;e.dir=-1;}}
     if(e.k===2){e.y+=0.6;e.ct--;if(e.ct<=0&&e.y>0){e.ct=90;const a=Math.atan2(ship.y-e.y,ship.x-e.x);eshots.push({x:e.x,y:e.y+8,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4});SFX.plasma();}}
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
-  for(const s of shots)for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();booms.push({x:s.x,y:s.y-4,f:0,life:8,kind:'hit',sc:1});}s.y=-99;
-      if(e.hp<=0){awardKill([10,20,50,150,60][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}}
+  // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
+  for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();booms.push({x:s.x,y:s.y-4,f:0,life:8,kind:'hit',sc:1});}s.y=-99;
+      if(e.hp<=0){awardKill([10,20,50,150,60][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
   for(const s of eshots){s.x+=s.vx;s.y+=s.vy;if(Math.abs(s.x-ship.x)<16&&Math.abs(s.y-ship.y)<20){s.y=999;hitShip();}}
   eshots=eshots.filter(s=>s.y<LH+10&&s.y>-10&&s.x>PX&&s.x<PX+PW);
