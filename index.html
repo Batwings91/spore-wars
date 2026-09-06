@@ -25,10 +25,10 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
-const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
+const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["logo_prompt","logo_icon","mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["trader_shop","logo_prompt","logo_icon","mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
@@ -276,33 +276,33 @@ const BOLT=Array.from({length:5},(_,level)=>{
 const GUN_PORTS=[[[0,-32]],[[-14,-20],[14,-20]],[[0,-34],[-16,-20],[16,-20]],
   [[0,-34],[-14,-22],[14,-22],[-22,-14],[22,-14]],
   [[-6,-34],[6,-34],[-18,-22],[18,-22],[-26,-12],[26,-12]]];
-function drawGunMounts(){
+function drawGunMounts(gun=wpn,sx=ship.x,sy=ship.y,flash=muzz){
   ctx.save();
-  for(const [ox,oy] of GUN_PORTS[wpn]){
-    const x=X(ship.x+ox),y=X(ship.y+oy);
+  for(const [ox,oy] of GUN_PORTS[gun]){
+    const x=X(sx+ox),y=X(sy+oy);
     // Larger housings and cooling fins make upgrades visible on the ship itself.
-    const width=[5,6,7,9,10][wpn],length=[24,26,32,29,36][wpn];
+    const width=[5,6,7,9,10][gun],length=[24,26,32,29,36][gun];
     ctx.beginPath();ctx.moveTo(x-width,y+8);ctx.lineTo(x-width+3,y-2);ctx.lineTo(x+width-3,y-2);
     ctx.lineTo(x+width,y+8);ctx.lineTo(x+width,y+length);ctx.lineTo(x-width,y+length);ctx.closePath();
     ctx.fillStyle='#142331';ctx.fill();ctx.strokeStyle='#8da4b0';ctx.lineWidth=1;ctx.stroke();
     ctx.fillStyle='#536e7d';ctx.fillRect(x-width+2,y+9,width*2-4,length-11);
     ctx.fillStyle='#bacfd7';ctx.fillRect(x-width+2,y+10,2,length-13);
-    if(wpn===1||wpn===4){
+    if(gun===1||gun===4){
       ctx.fillStyle='#0a1623';ctx.fillRect(x-5,y,4,18);ctx.fillRect(x+1,y,4,18);
       ctx.fillStyle='#b3f6ff';ctx.fillRect(x-4,y,2,14);ctx.fillRect(x+2,y,2,14);
     }else{
-      ctx.fillStyle='#0a1623';ctx.fillRect(x-3,y,6,wpn===2?24:18);
-      ctx.fillStyle='#b3f6ff';ctx.fillRect(x-1,y,2,wpn===2?22:14);
+      ctx.fillStyle='#0a1623';ctx.fillRect(x-3,y,6,gun===2?24:18);
+      ctx.fillStyle='#b3f6ff';ctx.fillRect(x-1,y,2,gun===2?22:14);
     }
-    if(wpn>=2)for(let i=0;i<(wpn===4?4:3);i++){
+    if(gun>=2)for(let i=0;i<(gun===4?4:3);i++){
       ctx.fillStyle=i%2?'#78909d':'#304652';ctx.fillRect(x-width-2,y+12+i*5,width*2+4,2);
     }
-    if(wpn>=3){
+    if(gun>=3){
       ctx.fillStyle='#12394a';ctx.fillRect(x-width+2,y+length-7,width*2-4,4);
-      ctx.fillStyle='#61e6f4';ctx.fillRect(x-width+3,y+length-6,(width*2-6)*(muzz>0?1:0.5),2);
+      ctx.fillStyle='#61e6f4';ctx.fillRect(x-width+3,y+length-6,(width*2-6)*(flash>0?1:0.5),2);
     }
-    if(muzz>0){
-      ctx.globalAlpha=muzz/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x+width,y-2);ctx.lineTo(x,y+3);ctx.lineTo(x-width,y-2);ctx.closePath();ctx.fill();
+    if(flash>0){
+      ctx.globalAlpha=flash/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x+width,y-2);ctx.lineTo(x,y+3);ctx.lineTo(x-width,y-2);ctx.closePath();ctx.fill();
       ctx.fillStyle='#efffff';ctx.fillRect(x-1,y-10,2,11);ctx.globalAlpha=1;
     }
   }
@@ -625,7 +625,12 @@ addEventListener('keydown',e=>{
   if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
   if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
   if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){shopFromSector=true;mode='shop';t=0;}else if(mode==='title'||mode==='dead'){shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
-  if(mode==='shop'){if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=(shopSel+3)%4;if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=(shopSel+1)%4;}
+  if(mode==='shop'){
+    if(shopSel<3)shopItem=shopSel;
+    if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=3;
+    else if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=shopItem;
+    else if(shopSel<3&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?2:1))%3;shopItem=shopSel;}
+  }
   if(mode==='sector'&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
   if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}
   if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%3;}
@@ -1022,12 +1027,50 @@ function drawCrawler(e){const cx=X(e.x),cy=X(e.y),d=e.dir;
   for(const side of[-1,1]){const ax=cx+d*18,ay=cy+side*10+a*side;ctx.fillStyle='#1c3808';ctx.fillRect(Math.min(cx,ax),ay-2,Math.abs(ax-cx),5);
     ctx.fillStyle=C.s5;ctx.fillRect(ax-2,ay-2,d>0?12:-12,4);ctx.fillRect(ax+d*8,ay-2-side*6,4,side>0?-6:6);ctx.fillRect(ax+d*8,ay-2,4,side*8);}
   seg(cx+d*6,cy,3,e.lunge>0?C.magenta:'#ff8000','#000');}
+// Shop previews and live equipment use the same renderers; these never change loadout state.
+function drawEngines(tier,sx,sy,frame=t){
+  const fl=FLAME[frame%6<3?0:1];
+  blit(fl,sx-11,sy+36,1+tier*0.1);blit(fl,sx+11,sy+36,1+tier*0.1);
+  if(!tier)return;
+  ctx.save();
+  for(const side of [-1,1]){
+    const x=X(sx+side*11),y=X(sy+22),w=5+tier;
+    const metal=ctx.createLinearGradient(x-w,0,x+w,0);
+    metal.addColorStop(0,'#233747');metal.addColorStop(0.4,'#b7cbd0');metal.addColorStop(1,'#405567');
+    ctx.fillStyle=metal;ctx.fillRect(x-w,y,w*2,25+tier*2);
+    ctx.strokeStyle='#122330';ctx.lineWidth=1;ctx.strokeRect(x-w,y,w*2,25+tier*2);
+    for(let n=0;n<tier;n++){
+      ctx.fillStyle='#20313c';ctx.fillRect(x-w-2,y+4+n*7,w*2+4,3);
+      ctx.fillStyle='#a9eff5';ctx.fillRect(x-w,y+4+n*7,w*2,1);
+    }
+    ctx.fillStyle='#152b3a';ctx.fillRect(x-w,y+21+tier*2,w*2,5);
+    ctx.fillStyle='#9ef4ff';ctx.fillRect(x-w+2,y+24+tier*2,w*2-4,3);
+  }
+  ctx.restore();
+}
+function drawShieldLayers(count,sx,sy,frame=t,hit=shieldHit){
+  if(count<=0)return;
+  const fr=Math.floor(frame/3)%8,sc=hit>0?1.15:1+Math.sin(frame*0.1)*0.03;
+  ctx.save();ctx.globalAlpha=hit>0?1:0.75+(count>1?0.15:0);
+  blit(SHF[fr],sx,sy,sc);
+  if(count>1){ctx.globalAlpha=0.5;blit(SHF[(fr+4)%8],sx,sy,sc*0.85);}
+  ctx.restore();
+}
+function drawEquipmentPreview(kind,tier,x,y){
+  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.8,0.8);
+  const base=IMG.player||SHIP;
+  ctx.drawImage(base,-base.width/2,-base.height/2);
+  drawEngines(kind==='engine'?tier:0,0,0,0);
+  drawGunMounts(kind==='weapon'?tier:0,0,0,0);
+  drawShieldLayers(kind==='shield'?tier:0,0,0,0,0);
+  ctx.restore();
+}
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
-  const fl=FLAME[t%6<3?0:1];blit(fl,ship.x-11,ship.y+36);blit(fl,ship.x+11,ship.y+36);
   const bank=keys.l?-1:keys.r?1:(ptr.down?Math.max(-1,Math.min(1,(ptr.x-ptr.lx)*0.5)):0);
   const sq=1-Math.abs(bank)*0.22;const base=IMG.player||SHIP;const w=Math.round(base.width*sq);
   ctx.drawImage(base,X(ship.x)-Math.floor(w/2),X(ship.y)-Math.floor(base.height/2),w,base.height);
-  if(shield>0){const fr=Math.floor(t/3)%8;const sc=shieldHit>0?1.15:1+Math.sin(t*0.1)*0.03;ctx.globalAlpha=shieldHit>0?1:0.75+(shield>1?0.15:0);blit(SHF[fr],ship.x,ship.y,sc);if(shield>1){ctx.globalAlpha=0.5;blit(SHF[(fr+4)%8],ship.x,ship.y,sc*0.85);}ctx.globalAlpha=1;}
+  drawEngines(save.engine,ship.x,ship.y);
+  drawShieldLayers(shield,ship.x,ship.y);
   drawGunMounts();drawRocketPods();}
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
@@ -1095,7 +1138,7 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];con
   L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0;
+let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0,shopItem=0;
 function setPaused(on){pauseSel=0;paused=on;exitConfirm=false;exitChoice=0;tapped=false;ptr.down=false;for(const k in keys)keys[k]=false;}
 function pauseTap(p){
   if(exitConfirm&&exitWait>0)return;
@@ -1180,14 +1223,40 @@ function sectorScreen(){
   if(!TOUCH)txt('UP/DOWN choose / ENTER select / Q Workshop',LW/2,272,'#a4b8c6',10,'center');
 }
 
-function shopScreen(){ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);if(IMG.menu_hangar){ctx.save();ctx.globalAlpha=0.2;ctx.drawImage(IMG.menu_hangar,0,0,W,H);ctx.restore();}txt('WORKSHOP',20,16,'#d2e8ef',24);txt(save.cores+' cores available',LW-20,20,C.cyan,14,'right');
-  txt('Spend cores on permanent upgrades for every future run.',20,46,'#a4b8c6',12);
-  SHOP.forEach((it,i)=>{const y=72+i*68,lvl=save[it.k],maxed=lvl>=it.max,c=it.cost(lvl);glassPanel(12,y-8,LW-24,60,i===shopSel?'#56dcf1':'#3d5364');const col=i===shopSel?C.white:C.text;
-    txt(it.name+'  '+'■'.repeat(lvl)+'□'.repeat(it.max-lvl),24,y,col,16);txt(it.desc,24,y+22,'#9bafbd',14);txt(maxed?'max':c+' cores',LW-24,y,i===shopSel?C.cyan:col,16,'right');});
-  txt('Collect cores in combat. Saved at game over or when leaving via Pause.',LW/2,284,'#a4b8c6',11,'center');
-  txt(shopFromSector?'Gun/shield: next run. Engine: installed immediately.':'',LW/2,306,'#a4b8c6',10,'center');
-  txt((shopSel===3?'> ':'')+'BACK [Q / ESC]',LW/2,LH-32,shopSel===3?C.cyan:C.text,14,'center');
-  if(!TOUCH)txt('UP/DOWN choose / ENTER select',LW/2,LH-13,'#a4b8c6',9,'center');}
+function shopScreen(){
+  ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);
+  if(IMG.trader_shop){ctx.save();ctx.imageSmoothingEnabled=true;const breath=1.003+Math.sin(t/70)*0.002;ctx.translate(X(145),X(140));ctx.scale(breath,breath);ctx.drawImage(IMG.trader_shop,-X(145),-X(140),W,H);ctx.restore();}
+  else{
+    // A complete counter and merchant remain when the illustration is unavailable.
+    ctx.fillStyle='#352b35';ctx.fillRect(X(48),X(178),X(178),X(115));ctx.fillStyle='#777952';
+    ctx.beginPath();ctx.ellipse(X(136),X(148),X(49),X(58),0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#111b23';ctx.fillRect(X(104),X(135),X(22),X(8));ctx.fillRect(X(148),X(130),X(22),X(8));ctx.fillRect(X(116),X(170),X(47),X(5));
+    ctx.fillStyle='#29333c';ctx.fillRect(X(20),X(265),X(250),X(34));
+  }
+  const small=(text,x,y,col,size=9,align='left')=>{ctx.font=X(size)+'px monospace';ctx.fillStyle=col;ctx.textAlign=align;ctx.textBaseline='top';ctx.fillText(text,X(x),X(y));};
+  const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
+  small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
+  small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
+  small('PERMANENT UPGRADES',292,66,'#a7b6c0',8);
+  SHOP.forEach((it,i)=>{const x=292+i*110,lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),hot=shopSel===i;
+    surface(x,82,102,116,hot);
+    const previewTier=Math.min(it.max,lvl+1);
+    drawEquipmentPreview(it.k,previewTier,x+51,120);
+    small((maxed?'OWNED':'NEXT')+' / MK '+previewTier,x+51,86,'#8ea9b7',7,'center');
+    small(['GUN MODULE','SHIELD CORE','ION ENGINE'][i],x+51,164,hot?'#e6f0f2':'#b3c2ca',9,'center');
+    small(maxed?'FULLY UPGRADED':cost+' cores',x+51,182,maxed?'#8fa2ac':'#c9b791',8,'center');
+  });
+  if(shopSel<3)shopItem=shopSel;
+  const selected=shopItem,it=SHOP[selected],lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),can=save.cores>=cost;
+  surface(292,210,322,72,false);small(it.name,304,220,'#e4e9e9',12);small('OWNED '+lvl+' / '+it.max,602,223,'#a6b7c0',8,'right');
+  const effect=selected===0?'Start future runs with '+GUN[Math.min(it.max,lvl+1)].n:selected===1?'Start future runs with '+Math.min(it.max,lvl+1)+(Math.min(it.max,lvl+1)===1?' shield':' shields'):'Engine speed +'+Math.round(Math.min(it.max,lvl+1)*0.5/3.7*100)+'% / installs now';
+  small(effect,304,242,'#bdcbd2',9);small(maxed?'All upgrades owned.':can?'Permanent upgrade. Ready to purchase.':'Collect '+(cost-save.cores)+' more cores to afford this.',304,261,can?'#9cb7b8':'#d4ad91',8);
+  surface(292,298,208,32,shopSel<3);small(maxed?'FULLY UPGRADED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
+  surface(510,298,104,32,shopSel===3);small('BACK',562,310,'#d9e1e4',9,'center');
+  small('"Quality parts. Mostly legal."',146,318,'#ddc8ac',9,'center');
+  if(!TOUCH)small('LEFT/RIGHT items / DOWN back / UP items / ENTER select',453,344,'#8b9fae',8,'center');
+}
+
 function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
@@ -1204,7 +1273,7 @@ function stepLogic(){if(exitWait>0)exitWait--;blink++;if(mode!=='play'){t++;scro
   else if(mode==='play'){if(paused){playScene();pauseScreen();}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else if(mode==='sector')sectorScreen();else deadScreen();}}
   else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
   else if(mode==='sector'){sectorScreen();if(tapped&&t>15){if(tapSrc==='key'){if(sectorSel===0){shopFromSector=true;mode='shop';t=0;}else nextSector();}else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216){shopFromSector=true;mode='shop';t=0;}else if(ptr.y>=228&&ptr.y<=260)nextSector();}}}
-  else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else leaveShop();}}
+  else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/110);if(i>=0&&i<3&&ptr.x<=292+i*110+102){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<3)buy();}}}
   SFX.music(mode==='play'&&!paused);
   tapped=false;}
 function render(){}

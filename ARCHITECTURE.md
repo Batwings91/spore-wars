@@ -49,3 +49,6 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 | Audio | `SFX` (IIFE): `pcm()`, `opl()`, `explosion()`, `TR`, `loadTrack()`, `select()`, `music()`, `bossTheme()`, `toggleMute()` |
 | Input | `keys`, `KEYMAP`, `ptr`, `tapped`, `tapSrc`, `TOUCH`, `titleSel`, `paused` |
 | Debug | `DBG`, `GOD`, `STARTWAVE` |
+
+## Trader presentation
+shopScreen draws trader_shop.webp with a procedural merchant fallback. The three existing upgrades use square tiles (x292 + 110 per item, y82..198, width102). Tiles select; Buy (x292..500, y298..330) purchases and Back (x510..614, same y) returns. drawEquipmentPreview uses the actual player sprite/fallback and shared drawGunMounts, drawShieldLayers and drawEngines renderers. Tiles show the next purchasable tier, or the owned maximum. Engine housings/exhaust are cosmetic and follow save.engine. The backdrop subtly scales around the merchant while UI remains fixed. Keyboard ordering and purchase logic are unchanged. Product copy shows permanent ownership, next effect and shortfall.

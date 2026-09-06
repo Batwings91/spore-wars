@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-06 — Match Workshop previews to fitted equipment
+
+- Workshop tiles now show the actual ship fitted with the next tier: twin/triple gun mounts, one/two shield layers and one/two/three engine cooling bands. Preview and live equipment share renderers; prices, effects and purchase timing are unchanged.
+
+## 2026-09-06 — Refined trader merchandise layout
+- Replace text-heavy rows with compact square merchandise tiles, fitted-ship previews, smaller regular-weight type and a separate detail/purchase area. Cards select; Buy confirms a purchase. Left/Right browse products; Down selects Back from any product, Up restores the previous product.
+- Give the trader backdrop a very subtle breathing-like drift, with interface elements fixed. No price or effect changes.
+
+## 2026-09-06 — Alien salvage trader presentation
+- Add an original illustrated alien salesman and salvage booth, encoded as quality-86 WebP (180,930 bytes). Retain a procedural merchant/counter fallback.
+- Present existing upgrades as product cards with icons, permanent levels, exact next benefits, price and core shortfall. Match pointer regions to cards and Back; preserve keyboard navigation and all purchase rules.
+
 ## 2026-09-06 — Consistent menu keyboard navigation
 - Up/Down (or W/S) moves selection and Enter activates it across title, pause, exit confirmation, level completion, Workshop and game over. Workshop Back is selectable; unavailable Continue is omitted.
 - Pause now defaults to Resume; select Main menu to open the safe exit confirmation. Preserve Esc/P resume and direct shortcuts. Menu arrows no longer set ship movement keys.

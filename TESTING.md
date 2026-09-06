@@ -57,3 +57,10 @@ Headless Chromium via Playwright: load page, press Enter twice, run ~40 s with `
 
 ## Menu navigation consistency
 Check Up/Down and W/S wrapping plus Enter selection on title, pause, exit confirmation, level complete, Workshop (including Back), and game over. Game over defaults to Retry and omits Continue once used. Confirm menu arrows do not move the ship after resuming; touch activates the corresponding visible rows.
+
+## Salvage Exchange
+Check illustrated merchant and all three cards at zero funds, affordable funds and maximum upgrade levels. Select tiles with arrows or touch; Enter/Buy purchases. Clicks on the merchant or tile gaps do nothing. Check all icons, small text and steady UI during the subtle backdrop motion. Back returns to the correct menu/checkpoint. Block trader_shop.webp to verify the procedural fallback. Prices/effects must match the existing SHOP and buy logic.
+
+Shop directional navigation: Left/Right cycle the three product tiles. Down from any tile selects Back; repeated Down stays there. Up restores the last product without changing its details. Enter activates the selection.
+
+Equipment previews: buy each tier and confirm NEXT advances, then OWNED stays on the maximum tier. Gun previews match Twin/Triple mounts on a new run; shield previews match one/two active layers (a hit removes a layer); engines show one/two/three cooling bands per housing and update in the current run. Verify player.png fallback, insufficient funds and maximum-tier purchases.

@@ -93,3 +93,8 @@ Studio logo (assets/logo_prompt.png, assets/logo_icon.png):
   at integer pixel scales. © 640K Games, all rights reserved. Not covered by the CC licences above.
 
 Everything else — code, sound synthesis, music, procedural art, design — © 640K Games.
+
+Alien salvage trader (assets/trader_shop.webp):
+  Original AI-assisted artwork generated with OpenAI for 640K Games, 2026-09-06.
+  No third-party source pack used. Quality-86 WebP, original dimensions, lossy colour encoding.
+  Product text, icons and controls are rendered separately by the game.
