@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-06 — Smaller illustrated assets
+- Re-encoded the menu hangar, lurker and crawler as quality-90 WebP, keeping original dimensions and exact alpha. Combined artwork shrinks from 3,510,036 to 722,142 bytes (79.4% smaller).
+- Compared original/compressed artwork side by side; verified transparency byte-for-byte and validated an in-memory release build. No game code or dist files changed.
+
 ## 2026-09-06 — Organic Mothership visual identity
 - Add an original living carrier with a narrow armoured spine, ribbed wings and two spore chambers. Render the chambers separately from the same image at the existing launch-bay coordinates.
 - Open chambers before scout launches, split their shells when destroyed, and brighten the spine before the existing volley. Preserve the safe-gap warning, hitboxes, attacks, health, escort cap and rewards.
