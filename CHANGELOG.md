@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Infected Mech visual identity
+- Add an original pale-armoured industrial chassis invaded by alien tissue, with four articulated mechanical legs, twin aiming cannons and phase-two reactor heat.
+- Brace the legs during the existing aiming pause; align charge and recoil with the existing lock and firing timers. Retain the original normal/fire sprites and procedural fallback.
+- Preserve movement, attacks, hitboxes, damage, health and rewards. Encode the new body as quality-86 WebP with preserved alpha; leave dist/ unchanged.
+
 ## 2026-09-06 — Battleship visual identity
 - Add an original painted industrial dreadnought hull with steel/ochre armour and a recessed reactor that heats in phase two. Encode as quality-86 WebP with preserved alpha.
 - Draw aiming gun emplacements, charge cues and scorched destroyed sockets at the existing turret coordinates. Retain the original sprite and procedural fallbacks; preserve all attacks, collision bounds, health, rewards and timing.
