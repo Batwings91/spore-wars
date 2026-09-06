@@ -681,7 +681,11 @@ function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,3+Math.flo
   if(kind>=3)for(let i=0;i<4;i++)enemies.push({k:0,x:base,y:-140-i*40,ph:i*0.6,hp:1,t:0});}
 // ================= BOSSES: BATTLESHIP / MECH / MOTHERSHIP =================
 function startBossWarning(){bossWarn=150;level++;eshots=[];SFX.siren();addFloat(LW/2,150,'',C.red);}
-function spawnBoss(){bossCount++;const mech=level%15===10,mother=level%15===0;const hpMax=mother?Math.round(300*(1+level*0.02)):mech?Math.round(260*(1+level*0.02)):Math.round((140+bossCount*60)*(1+level*0.02)*(bossCount===1?0.9:1));
+function spawnBoss(){bossCount++;const mech=level%15===10,mother=level%15===0;
+  // Each boss scales with its own appearance count (waves 5/20/35 -> 1/2/3), not with every boss fought so far:
+  // the old bossCount formula made the second Battleship (532 HP) tougher than the second Mothership (480 HP).
+  const nth=Math.floor((level-5)/15)+1;
+  const hpMax=mother?Math.round(300*(1+level*0.02)):mech?Math.round(260*(1+level*0.02)):Math.round((140+nth*60)*(1+level*0.02)*(nth===1?0.9:1));
   boss={mech,mother,x:PX+PW/2,y:mother?-180:-120,ty:88,hp:hpMax,hpMax,t:0,phase:1,dir:1,fireT:90,volT:200,flash:0,
     turrets:mother?[{dx:-68,dy:76,hp:24,ct:90},{dx:68,dy:76,hp:24,ct:150}]:mech?[]:[{dx:-52,dy:26,hp:12,ct:60},{dx:52,dy:26,hp:12,ct:120},{dx:0,dy:58,hp:16,ct:180}]};
   SFX.bossTheme(true);}
