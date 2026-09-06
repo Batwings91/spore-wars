@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Bomb capacity, supply and organic boss wording
+- Carry up to six bombs; show the numeric inventory out of six and report BOMB FULL when a pickup cannot add stock. Still start with one.
+- Halve ordinary random bomb drops from 4% to 2%; retain core/shield probabilities, guaranteed weapon timing and boss rewards.
+- Rename the organic boss on screen to Brood Mother; replace launch-bay instructions with spore-sac wording. Encounter behaviour and internal identifiers are unchanged.
+
 ## 2026-09-06 — Prevent accidental exits from paused runs
 - Esc/P toggle pause and resume. Enter while paused opens a confirmation with Keep playing selected; exiting requires choosing Return to main menu. Escape cancels confirmation and resumes.
 - Add explicit touch buttons, ignore held confirmation keys and briefly guard touch confirmation against double taps. Clear held movement/drag input on pause changes; preserve core banking.
