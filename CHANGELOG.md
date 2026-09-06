@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-05 — World progression presentation
+- Add painted Orbital Foundry, Infected Salvage and Spore Heart scenery for waves 1–5, 6–10 and 11 onward. Three original AI-assisted backgrounds total approximately 675 KB using quality-82 WebP encoding.
+- Fade between environments over 150 logic ticks when the existing next stage begins, with a small temporary stage heading. Reflect alternate background repeats to join edges; retain cached procedural scenery if an image fails.
+- Pause freezes scenery and fades; new runs reset the presentation and debug starts select the matching world. No encounter, balance, collision, weapon or timing changes. Leave dist/ untouched.
+
 ## 2026-09-05 — Crawler artwork
 - Add original segmented bronze/olive carapace art, six articulated hooked legs and an amber organ that brightens during the existing lunge.
 - Mirror the drawing with its travel direction; retain the procedural fallback. Movement, lunge timing, damage and collision logic are unchanged. Encode artwork as lossless WebP.

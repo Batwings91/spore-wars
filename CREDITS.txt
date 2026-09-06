@@ -3,6 +3,12 @@ SPORE WARS — a 640K Games production
 
 Art credits
 -----------
+World scenery (assets/world_foundry.webp, world_salvage.webp, world_heart.webp):
+  Original AI-assisted illustrations generated with OpenAI image generation for 640K Games.
+  Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.
+  Encoded as quality-82 WebP at the original 1024x1536 size. Not lossless.
+  Vertical reflection, scrolling and world transitions are drawn by the game code.
+
 Crawler body (assets/crawler_body.webp):
   Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
   Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.
@@ -44,7 +50,7 @@ Explosions, hit sparks, muzzle flash, smoke:
   Licence: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
   Modified: frames selected, resized, alpha dithered and palette-reduced.
 
-Background:
+Space background (retained fallback):
   "Parallax Space Scene" by LuminousDragonGames — CC0
   https://opengameart.org/content/parallax-space-scene-seamlessly-scrolls-too
   Modified: resized, palette-reduced, alpha dithered.

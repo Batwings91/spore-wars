@@ -11,6 +11,7 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 - **Entities:** `enemies[]` with `k`: 0 scout (drift), 1 bomber (dive), 2 frigate (aimed plasma), 3 lurker (procedural tentacles, from wave 6), 4 crawler (procedural hooks, from wave 9). `R[k]` = collision radii. `shots[]` (player, carries `g` gun level and `dmg`), `eshots[]` (`blue:true` = lurker/boss bow), `drops[]` (`k`: core/w/s/b), `booms[]` (strip explosions or spark particles), `floats[]`, `rings[]`.
 - **Lurker art:** `drawLurkerArt()` uses `IMG.lurker_body`, subtle breathing, shaded tendrils and a charge cue driven by `e.ct`. Tendril endpoints match the existing tip collision expression. Missing art uses the original `drawLurker()` with its original scaling.
 - **Crawler art:** `drawCrawlerArt()` uses `IMG.crawler_body`, procedural legs, and an amber lunge cue driven by `e.lunge`. The local drawing mirrors with `e.dir`. Missing art uses the original `drawCrawler()` and scale. Legs are cosmetic; existing body collision remains authoritative.
+- **World presentation:** Foundry (waves 1–5), Infected Salvage (6–10), Spore Heart (11 onward). `updateWorld()` follows the existing level counter and fades scenery over 150 logic ticks; it does not alter encounters. `resetWorld()` handles new runs and debug starts; Continue retains the current presentation. Painted `world_*` WebP backgrounds reflect alternate vertical repeats to join their edges. Three cached procedural tiles provide per-world fallbacks without consuming gameplay RNG. Scenery scroll and transitions freeze on pause. Stage names briefly appear at the upper edge, suppressed during boss notices.
 - **Guns:** `GUN[0..4]` PULSE/TWIN/TRIPLE/SPREAD/STORM with dmg 1/1/2/2/3. New gun on first kill, then every ~9 kills (`dropFor`). Dying drops one gun level.
 - **Weapon visuals:** `BOLT[0..4]` caches original white/cyan procedural projectiles at startup. `GUN_PORTS` and `drawGunMounts()` draw 1/2/3/5/6 mounts matching existing shot origins. Enemy plasma uses its separate sprites/fallbacks. Legacy bolt PNGs remain packaged but are no longer drawn.
 - **Megabomb:** `fireBomb()` — X/B/Shift or tap the BOMB panel. 6 dmg to all enemies, clears bullets, 25 to boss hull + 8 to turrets. Max 3, start with 1. Gold `B` capsule adds one.
@@ -38,7 +39,7 @@ All game code is one IIFE in `index.html`. No framework, no build step for dev.
 | Pickups/economy | `drops`, `dropFor()`, `pickupEvent()`, `save`, `persist()`, `SHOP`, `buy()` |
 | Megabomb | `fireBomb()`, `bombs`, `bombFx` |
 | Effects | `booms`, `boom()`, `floats`, `addFloat()`, `rings`, `shake`, `flash`, `slow` |
-| Background | `drawField()` → `layer()` (px_* parallax), `STARS`, `BG` (procedural fallback) |
+| Background | `WORLDS`, `WORLD_TILES`, `drawWorld()`, `updateWorld()`, `resetWorld()`, `drawWorldNotice()`; original px_* / `BG` retained as fallback |
 | HUD/UI | `drawPanels()`, `bevel()`, `keycap()`, `txt()`, `titleScreen()`, `deadScreen()`, `shopScreen()`, `bootScreen()` |
 | Audio | `SFX` (IIFE): `pcm()`, `opl()`, `explosion()`, `TR`, `loadTrack()`, `select()`, `music()`, `bossTheme()`, `toggleMute()` |
 | Input | `keys`, `KEYMAP`, `ptr`, `tapped`, `tapSrc`, `TOUCH`, `titleSel`, `paused` |
