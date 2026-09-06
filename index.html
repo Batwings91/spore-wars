@@ -309,6 +309,48 @@ function drawGunMounts(){
   ctx.restore();
 }
 
+// Small original player-only missile; cached at startup like the main bolts.
+const ROCKET=(()=>{const c=document.createElement('canvas');c.width=20;c.height=40;const g=c.getContext('2d');
+  g.fillStyle='#173348';g.beginPath();g.moveTo(10,1);g.lineTo(15,10);g.lineTo(15,23);g.lineTo(19,30);g.lineTo(1,30);g.lineTo(5,23);g.lineTo(5,10);g.closePath();g.fill();
+  g.fillStyle='#819aa7';g.fillRect(6,11,8,17);g.fillStyle='#eaffff';g.fillRect(7,9,3,18);
+  g.fillStyle='#54e5ff';g.fillRect(6,14,8,3);g.fillRect(8,29,4,9);return c;})();
+let podOpen=0,rocketT=120,rocketSide=-1,rocketFlash=0;
+function resetRockets(){podOpen=0;rocketT=120;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
+function rocketTarget(x,y){
+  const candidates=enemies.filter(e=>e.hp>0&&e.y>0&&e.y<y&&e.x>PX&&e.x<PX+PW);
+  if(!candidates.length)return boss&&!bossDying&&boss.hp>0&&boss.y>=boss.ty&&boss.y<y?boss:null;
+  let best=null,rank=Infinity;
+  for(const e of candidates){const reserved=shots.some(s=>s.rocket&&s.y>0&&s.target===e);const r=Math.hypot(e.x-x,e.y-y)+(reserved?1000:0);if(r<rank){best=e;rank=r;}}
+  return best;
+}
+function updateRockets(){
+  if(rocketFlash>0)rocketFlash--;
+  podOpen=Math.max(0,Math.min(24,podOpen+(wpn>=3?1:-1)));
+  if(wpn<3)rocketT=120;
+  else if(podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&s.y>0).length<3){
+    const x=ship.x+rocketSide*40,target=rocketTarget(x,ship.y);
+    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=120;rocketFlash=8;}
+  }
+  for(const s of shots){if(!s.rocket||s.y<-50)continue;
+    if(--s.life<=0){s.y=-99;continue;}
+    if(!s.target||s.target.hp<=0||!(enemies.includes(s.target)||(s.target===boss&&!bossDying))||s.target.y<0||s.target.y>LH){
+      s.target=s.retargeted?null:rocketTarget(s.x,s.y);s.retargeted=true;
+    }
+    let angle=Math.atan2(s.vy,s.vx);
+    if(s.target){const desired=Math.atan2(s.target.y-s.y,s.target.x-s.x);const delta=Math.atan2(Math.sin(desired-angle),Math.cos(desired-angle));angle+=Math.max(-0.055,Math.min(0.055,delta));}
+    const speed=Math.min(4.2,Math.hypot(s.vx,s.vy)+0.06);s.vx=Math.cos(angle)*speed;s.vy=Math.sin(angle)*speed;
+  }
+}
+function drawRocketPods(){if(podOpen<=0)return;ctx.save();
+  for(const side of [-1,1]){const x=ship.x+side*(25+15*podOpen/24),y=ship.y;
+    ctx.fillStyle='#6a8392';ctx.fillRect(X(Math.min(ship.x+side*24,x)),X(y+4),X(Math.abs(x-ship.x-side*24)),X(4));
+    ctx.fillStyle='#142331';ctx.fillRect(X(x-6),X(y-8),X(12),X(23));ctx.strokeStyle='#91a8b5';ctx.lineWidth=1;ctx.strokeRect(X(x-6),X(y-8),X(12),X(23));
+    ctx.fillStyle='#617b8b';ctx.fillRect(X(x-4),X(y+2),X(8),X(11));ctx.fillStyle='#080e18';ctx.fillRect(X(x-3),X(y-7),X(6),X(7));
+    ctx.fillStyle='#83efff';ctx.fillRect(X(x-2),X(y-6),X(4),X(2));
+    if(rocketFlash>0&&side===-rocketSide){ctx.fillStyle='#eaffff';ctx.fillRect(X(x-2),X(y-13),X(4),X(6));}
+  }ctx.restore();
+}
+
 const PLASMA=[sprite(['..mm..','.mMMm.','mMWWMm','mMWWMm','.mMMm.','..mm..'],{m:'#a020a0',M:C.magenta,W:C.white}),
               sprite(['..mm..','.mMMm.','mMMMMm','mMMWMm','.mMMm.','..mm..'],{m:'#a020a0',M:C.magenta,W:C.white})];
 // capsule pickups: metal shell, coloured glass, letter drawn on top
@@ -606,7 +648,7 @@ let bankedCores=0;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(){resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+function newRun(){resetRockets();resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(STARTWAVE)level=STARTWAVE;}
 const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:14},{n:'STORM',dmg:2,rate:14}];const MAXW=4;
 const spd=()=>3.7+save.engine*0.5;
@@ -839,7 +881,7 @@ function drawMothershipFallback(b){
 }
 function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,kind:big?'exp_big':'exp_small'});for(let i=0;i<(big?10:4);i++)booms.push({x,y,vx:(Math.random()-0.5)*(big?6:4),vy:(Math.random()-0.5)*(big?6:4),life:12+Math.random()*12});}
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();return;}
-  chain=0;chainT=0;lives--;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  resetRockets();chain=0;chainT=0;lives--;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;
@@ -869,7 +911,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     else if(wpn===2){sh(0,-34,0,-9);sh(-16,-20,0,-8.5);sh(16,-20,0,-8.5);}
     else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.8,-8.4);sh(14,-22,0.8,-8.4);sh(-22,-14,-1.4,-7.6);sh(22,-14,1.4,-7.6);}
     else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.7,-9);sh(18,-22,0.7,-9);sh(-26,-12,-1.5,-8);sh(26,-12,1.5,-8);}}
-  for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.x>PX&&s.x<PX+PW);
+  updateRockets();
+  for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.y<LH+20&&s.x>PX&&s.x<PX+PW);
   waveT--;
   if(boss||bossWarn>0||bossDying>0){ if(boss&&!boss.mother&&!bossDying&&t%240===0&&enemies.length<3){for(let i=0;i<2;i++)enemies.push({k:0,x:PX+60+Math.random()*(PW-120),y:-30-i*40,ph:i,hp:1,t:0});} }
   else if(enemies.length===0&&waveT<=0){if((level+1)%5===0){startBossWarning();}else{spawnWave();waveT=level<4?120:90;}}
@@ -982,7 +1025,7 @@ function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/
   const sq=1-Math.abs(bank)*0.22;const base=IMG.player||SHIP;const w=Math.round(base.width*sq);
   ctx.drawImage(base,X(ship.x)-Math.floor(w/2),X(ship.y)-Math.floor(base.height/2),w,base.height);
   if(shield>0){const fr=Math.floor(t/3)%8;const sc=shieldHit>0?1.15:1+Math.sin(t*0.1)*0.03;ctx.globalAlpha=shieldHit>0?1:0.75+(shield>1?0.15:0);blit(SHF[fr],ship.x,ship.y,sc);if(shield>1){ctx.globalAlpha=0.5;blit(SHF[(fr+4)%8],ship.x,ship.y,sc*0.85);}ctx.globalAlpha=1;}
-  drawGunMounts();}
+  drawGunMounts();drawRocketPods();}
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
   if(WORLD_TILES[worldStage])drawWorld();else{
@@ -1005,7 +1048,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     if(e.flash>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.fillStyle=C.white;ctx.fillRect(X(e.x)-X(R[e.k]),X(e.y)-X(R[e.k]),X(R[e.k]*2),X(R[e.k]*2));ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
   }
   drawBoss();
-  for(const s of shots){ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(Math.atan2(s.vy,s.vx)+Math.PI/2);const b=BOLT[s.g];ctx.drawImage(b,-b.width/2,-12);ctx.restore();}
+  for(const s of shots){ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(Math.atan2(s.vy,s.vx)+Math.PI/2);const b=s.rocket?ROCKET:BOLT[s.g];ctx.drawImage(b,-b.width/2,-12);ctx.restore();}
   for(const s of eshots){const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
   for(const b of booms){if(b.vx===undefined){const st=STRIP[b.kind||'exp_small'];const tot=b.kind==='hit'?8:24;const prog=(tot-b.life)/tot;if(!(st&&strip(b.kind,prog*st.n,b.x,b.y,b.kind==='exp_big'?1.1:b.kind==='exp_ring'?2.4:1.4))){const fr=Math.floor((24-b.life)/4);if(fr<6)blit(BOOMF[fr],b.x,b.y,b.sc);}}
     else{const f=b.life/24;ctx.fillStyle=f>0.6?C.white:f>0.35?C.yellow:f>0.15?C.orange:C.red;const sz=f>0.5?9:6;ctx.fillRect(X(b.x),X(b.y),sz,sz);}}
@@ -1125,9 +1168,9 @@ function shopScreen(){ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);if(IMG.menu_
 function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
-function clearScene(){enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
+function clearScene(){resetRockets();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
 function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
-function continueRun(){chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
+function continueRun(){resetRockets();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
 let lastT=0,acc=0;

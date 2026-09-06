@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Deployable homing support rockets
+- Gun level four deploys two side launchers over 24 logic ticks. Alternate one 1-damage homing rocket every 120 ticks, with at most three active, limited turning and a 180-tick lifetime. Prefer unassigned forward enemies; target an active boss when no regular enemy qualifies.
+- Reuse existing shot collisions, rewards and boss part handling. Reset rockets on ship loss, Continue, menu exit and new runs; freeze updates with normal pause logic.
+- First playable art is original procedural metal pods and a cached white/cyan missile; no external assets added. Main-gun balance is unchanged.
+
 ## 2026-09-06 — Controlled upper-tier weapon output
 - Narrow Spread/Storm lateral projectile speeds and fire both every 14 logic ticks. Storm projectiles deal 2 damage instead of 3. Theoretical combined output becomes approximately 43/51 damage per second, versus Triple at 36.
 - Preserve tiers 1–3, projectile origins/counts/forward speeds, enemy and boss stats, drops and upgrade visuals. Balance requires player validation; homing support remains a separate next step.
