@@ -1132,16 +1132,17 @@ function drawPanels(){
   box(rx,168,rw,44,'BOMBS',bombs+' / 6',C.G);if(!TOUCH)key('X',rx+rw-15,171);
   if(IMG.logo_icon)ctx.drawImage(IMG.logo_icon,X(rx+rw/2)-32,X(LH-46),64,64);else label('640K GAMES',rx+rw/2,LH-30,'center');
   panel(rx,LH-88,rw,30);txt(SFX.isMuted()?'SOUND OFF':'SOUND ON',rx+rw/2-(TOUCH?0:5),LH-78,SFX.isMuted()?'#91a7b5':C.cyan,9,'center');if(!TOUCH)key('M',rx+rw-15,LH-79);if(TOUCH)label('TAP TO USE',rx+rw/2,216,'center');ctx.restore();}
-function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=shake?Math.round((Math.random()-0.5)*shake):0;if(shake>0)shake-=1;
+function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=shake?Math.round((Math.random()-0.5)*shake):0;
   ctx.save();ctx.translate(sx,sy);drawField();ctx.restore();drawPanels();
   drawWorldNotice();
-  if(flash>0){ctx.fillStyle='rgba(255,255,255,'+(flash/12)+')';ctx.fillRect(X(PX),0,X(PW),H);flash--;}
+  if(flash>0){ctx.fillStyle='rgba(255,255,255,'+(flash/12)+')';ctx.fillRect(X(PX),0,X(PW),H);}
   if(evt>0&&mode==='play'){ctx.save();ctx.globalAlpha=Math.min(1,evt/12);glassPanel(PX+50,48,PW-100,25,evtCol);txt(evtText,LW/2,54,evtCol,12,'center');ctx.restore();}
   if(hint>0&&mode==='play'&&!paused){glassPanel(PX+32,LH-30,PW-64,23,'#55c5d8');txt(TOUCH?'DRAG TO MOVE / AUTO-FIRE':'ARROWS / WASD TO MOVE / AUTO-FIRE',LW/2,LH-24,'#d2e8ef',11,'center');}}
-function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];const line=(n,s,c)=>{if(t>n)L.push([s,c||DOS.grey]);if(t===n+1&&s)SFX.boot();};
-  line(0,'Starting DOS...');line(30,'');line(40,'HIMEM is testing extended memory...done.');line(80,'640K Sound System v1.0 installed. AdLib compatible.');
-  line(110,'');line(120,'C:\\>cd games\\spore');line(150,'C:\\GAMES\\SPORE>spore.exe');line(180,'');line(185,'<logo>');line(195,'SPORE WARS  (c) 1991 '+BRAND);
-  line(200,'VGA detected. 256 colours. 590K conventional memory free.');line(230,'');
+const BOOT_LINES=[[0,'Starting DOS...'],[30,''],[40,'HIMEM is testing extended memory...done.'],[80,'640K Sound System v1.0 installed. AdLib compatible.'],
+  [110,''],[120,'C:\\>cd games\\spore'],[150,'C:\\GAMES\\SPORE>spore.exe'],[180,''],[185,'<logo>'],[195,'SPORE WARS  (c) 1991 '+BRAND],
+  [200,'VGA detected. 256 colours. 590K conventional memory free.'],[230,'']];
+function bootBeep(){for(const [n,s] of BOOT_LINES)if(t===n+1&&s)SFX.boot();}
+function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=BOOT_LINES.filter(([n])=>t>n).map(([,s])=>[s,DOS.grey]);
   L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
@@ -1273,17 +1274,26 @@ function continueRun(){resetRockets();chain=0;chainT=0;usedContinue=true;mode='p
 
 newRun();
 let lastT=0,acc=0;
-function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}render();requestAnimationFrame(frame);}
+function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}if(steps>0)render();requestAnimationFrame(frame);}
 function stepLogic(){if(exitWait>0)exitWait--;blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
-  if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();mode='title';t=0;}}
-  else if(mode==='title'){titleScreen();if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}
-  else if(mode==='play'){if(paused){playScene();pauseScreen();}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else if(mode==='sector')sectorScreen();else deadScreen();}}
-  else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
-  else if(mode==='sector'){sectorScreen();if(tapped&&t>15){if(tapSrc==='key'){if(sectorSel===0){shopFromSector=true;mode='shop';t=0;}else nextSector();}else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216){shopFromSector=true;mode='shop';t=0;}else if(ptr.y>=228&&ptr.y<=260)nextSector();}}}
-  else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/110);if(i>=0&&i<3&&ptr.x<=292+i*110+102){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<3)buy();}}}
+  if(shake>0)shake--;if(flash>0)flash--;
+  if(mode==='boot'){bootBeep();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();mode='title';t=0;}}
+  else if(mode==='title'){if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}
+  else if(mode==='play'){if(!paused){if(slow>0){slow--;if(blink%2===0)update();}else update();}}
+  else if(mode==='dead'){if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
+  else if(mode==='sector'){if(tapped&&t>15){if(tapSrc==='key'){if(sectorSel===0){shopFromSector=true;mode='shop';t=0;}else nextSector();}else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216){shopFromSector=true;mode='shop';t=0;}else if(ptr.y>=228&&ptr.y<=260)nextSector();}}}
+  else if(mode==='shop'){if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/110);if(i>=0&&i<3&&ptr.x<=292+i*110+102){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<3)buy();}}}
   SFX.music(mode==='play'&&!paused);
   tapped=false;}
-function render(){}
+// Draw exactly once per animation frame. Catch-up logic steps no longer multiply the render cost, which used to
+// triple the drawing work on a device that was already falling behind.
+function render(){
+  if(mode==='boot')bootScreen();
+  else if(mode==='title')titleScreen();
+  else if(mode==='play'){playScene();if(paused)pauseScreen();}
+  else if(mode==='dead')deadScreen();
+  else if(mode==='sector')sectorScreen();
+  else if(mode==='shop')shopScreen();}
 requestAnimationFrame(frame);
 })();
 </script>
