@@ -5,6 +5,10 @@
 - Title footer credit reads "Illustrations: AI-assisted" now that several illustrations are AI-assisted, not just the menu. CREDITS.txt records the logo as © 640K Games, outside the CC licences.
 - No gameplay, input, audio, save, balance or dist/ changes; a stale render-size comment corrected.
 
+## 2026-09-06 — Coordinate audio between game tabs
+- Opening/focusing a game copy silences other updated copies on the same origin using BroadcastChannel and a storage-event fallback. Silenced copies cannot restart audio on their next frame.
+- Mute the entire audio output and suspend its context on blur/hide; close on page exit. Explicit focus or input restores ownership without changing the saved mute preference.
+
 ## 2026-09-06 — Stop music outside active play
 - Start music only during active gameplay; stop it on pause, game over and menus. Stop/disconnect the recorded loop immediately and silence the synth music bus.
 - Stop music and suspend audio when hidden; close the audio context on page exit/refresh. Late track decoding cannot restart a stopped loop.

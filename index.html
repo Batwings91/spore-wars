@@ -426,7 +426,8 @@ function txt(s,x,y,col,size,align){ctx.font='bold '+Math.round((size||14)*K)+'px
 const SFX=(function(){
   let ac=null,master=null,musicBus=null,pcmBus=null,muted=false,seq=null;
   try{muted=localStorage.getItem('640k.mute')==='1';}catch(e){}
-  function ctx(){if(document.hidden)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=muted?0:0.6;master.connect(ac.destination);
+  let audioBlocked=false;
+  function ctx(){if(document.hidden||audioBlocked)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=muted?0:0.6;master.connect(ac.destination);
       musicBus=ac.createGain();musicBus.gain.value=0.5;musicBus.connect(master);
       pcmBus=ac.createGain();pcmBus.gain.value=0.8;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;pcmBus.connect(lp);lp.connect(master);}
     if(ac.state==='suspended')ac.resume();return ac;}
@@ -517,9 +518,26 @@ const SFX=(function(){
     t.src=a.createBufferSource();t.src.buffer=t.buf;t.src.loop=true;t.src.loopEnd=t.loopEnd;t.g=a.createGain();t.g.gain.setValueAtTime(0.0001,a.currentTime);t.g.gain.exponentialRampToValueAtTime(t.gain,a.currentTime+1.0);t.src.connect(t.g);t.g.connect(master);t.src.start();}
   function stop(k){const t=TR[k];if(!t.src)return;t.src.stop();t.src.disconnect();t.g.disconnect();t.src=null;}
   function select(k){if(cur===k)return;if(cur)stop(cur);cur=k;if(!k)return;loadTrack(k);if(TR[k].buf)play(k);else if(k==='main'){step=0;melPos=0;melWait=0;if(!seq)seq=setInterval(tick,STEP*1000);}}
-  function music(on){on=on&&!document.hidden;if(mainOn===on)return;mainOn=on;if(on){const a=ctx();if(a)musicBus.gain.value=0.5;select('main');}else{select(null);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){music(false);if(ac&&ac.state==='running')ac.suspend();}});
-  addEventListener('pagehide',()=>{music(false);if(ac){ac.close();ac=null;}});
+  function music(on){on=on&&!document.hidden&&!audioBlocked;if(mainOn===on)return;mainOn=on;if(on){const a=ctx();if(a)musicBus.gain.value=0.5;select('main');}else{select(null);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
+  // Only the most recently opened/focused game copy may produce audio.
+  const AUDIO_KEY='640k.sporewars.audio-owner',audioId=Date.now()+'-'+Math.random();
+  let audioChannel=null;
+  function silenceAudio(){music(false);if(master)master.gain.value=0;if(ac&&ac.state==='running')ac.suspend().catch(()=>{});}
+  function takeAudio(){if(document.hidden)return;audioBlocked=false;if(master)master.gain.value=muted?0:0.6;
+    if(audioChannel)audioChannel.postMessage(audioId);
+    try{localStorage.setItem(AUDIO_KEY,audioId);}catch(e){}
+  }
+  function otherAudio(id){if(typeof id!=='string'||id===audioId)return;audioBlocked=true;silenceAudio();}
+  try{audioChannel=new BroadcastChannel(AUDIO_KEY);audioChannel.onmessage=e=>otherAudio(e.data);}catch(e){}
+  addEventListener('storage',e=>{if(e.key===AUDIO_KEY&&e.newValue)otherAudio(e.newValue);});
+  addEventListener('focus',takeAudio);
+  addEventListener('blur',()=>{audioBlocked=true;silenceAudio();});
+  // A click/key also reacquires audio when another visible window took ownership.
+  for(const event of ['pointerdown','keydown'])addEventListener(event,()=>{if(audioBlocked)takeAudio();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){audioBlocked=true;silenceAudio();}else takeAudio();});
+  addEventListener('pagehide',()=>{audioBlocked=true;silenceAudio();if(ac){ac.close().catch(()=>{});ac=null;}});
+  addEventListener('pageshow',takeAudio);
+  takeAudio();
   function bossTheme(on){/* boss track removed: main theme plays throughout */}
   function loadBoss(){loadTrack('main');}
   function toggleMute(){muted=!muted;if(master)master.gain.value=muted?0:0.6;try{localStorage.setItem('640k.mute',muted?'1':'0');}catch(e){}return muted;}
