@@ -37,6 +37,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 7. Game over → Enter restarts in under 2 s; `[C]` continue works once. Core pickups say +1 CORE; HUD identifies run cores for upgrades. Game over shows the saved run total and available balance; Workshop explains permanent upgrades and when cores are saved. Confirm Continue adds only newly collected cores to the balance on another death.
 8. Mute toggles and persists across reload. Music starts on Launch, stops on pause/game over/menu, and restarts on resume/retry/Continue. Hide the tab: audio stops; return to active play: music resumes. Refresh during music: boot/menu stay silent. Test with the music fetch delayed or blocked: pausing before decode completes must not restart music; synth fallback must also stop.
 9. Resize the window: canvas stays 16:9, integer-scaled where possible.
+10. Branding: the boot screen prints the `C:\>640K GAMES_` banner before the (c) line, the title shows the same wordmark top-left, and the HUD bottom-right shows the square icon. Block assets/logo_prompt.png and logo_icon.png: all three fall back to text and the game still boots.
 
 ## Browser/device matrix
 - Desktop: Chrome, Safari, Firefox (music is AAC; Firefox uses OS decoder — verify).

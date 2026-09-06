@@ -88,4 +88,8 @@ Main theme: "Fly" (Techno Space) by Alexandr Zhelanov — CC-BY 3.0
   https://opengameart.org/content/techno-space  ·  https://soundcloud.com/alexandr-zhelanov
   Converted to AAC; otherwise unmodified.
 
+Studio logo (assets/logo_prompt.png, assets/logo_icon.png):
+  The 640K Games prompt wordmark and icon, exported from the studio's master SVG artwork
+  at integer pixel scales. © 640K Games, all rights reserved. Not covered by the CC licences above.
+
 Everything else — code, sound synthesis, music, procedural art, design — © 640K Games.

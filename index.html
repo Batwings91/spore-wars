@@ -16,7 +16,7 @@
 (function(){
 'use strict';
 const BRAND='640K GAMES';
-// Logic runs in a 640x360 space; rendering is 960x540 (K=1.5). Sprites are drawn native at 960.
+// Logic runs in a 640x360 space; rendering is 1280x720 (K=2). Sprites are drawn native at 1280.
 const LW=640,LH=360,PX=100,PW=440,K=2,W=LW*K,H=LH*K;
 const X=v=>Math.round(v*K);
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
@@ -28,7 +28,7 @@ const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py in
 const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["logo_prompt","logo_icon","mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
@@ -991,7 +991,7 @@ function drawPanels(){
   box(rx,116,rw,44,'RUN CORES',String(cores),C.cyan);
   ctx.font=Math.round(7*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.fillText('For upgrades',X(rx+8),X(151));
   box(rx,168,rw,44,'BOMB');if(!TOUCH)key('X',rx+rw-15,171);for(let i=0;i<3;i++){ctx.globalAlpha=i<bombs?1:0.2;ctx.fillStyle=C.G;ctx.fillRect(X(rx+8+i*18),X(186),X(12),X(16));ctx.fillStyle=C.white;ctx.fillRect(X(rx+11+i*18),X(183),X(6),X(3));ctx.globalAlpha=1;}
-  label('640K GAMES',rx+rw/2,LH-30,'center');
+  if(IMG.logo_icon)ctx.drawImage(IMG.logo_icon,X(rx+rw/2)-32,X(LH-46),64,64);else label('640K GAMES',rx+rw/2,LH-30,'center');
   panel(rx,LH-88,rw,30);txt(SFX.isMuted()?'SOUND OFF':'SOUND ON',rx+rw/2-(TOUCH?0:5),LH-78,SFX.isMuted()?'#91a7b5':C.cyan,9,'center');if(!TOUCH)key('M',rx+rw-15,LH-79);if(TOUCH)label('TAP TO USE',rx+rw/2,216,'center');ctx.restore();}
 function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=shake?Math.round((Math.random()-0.5)*shake):0;if(shake>0)shake-=1;
   ctx.save();ctx.translate(sx,sy);drawField();ctx.restore();drawPanels();
@@ -1001,9 +1001,9 @@ function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=s
   if(hint>0&&mode==='play'&&!paused){glassPanel(PX+32,LH-30,PW-64,23,'#55c5d8');txt(TOUCH?'DRAG TO MOVE / AUTO-FIRE':'ARROWS / WASD TO MOVE / AUTO-FIRE',LW/2,LH-24,'#d2e8ef',11,'center');}}
 function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=[];const line=(n,s,c)=>{if(t>n)L.push([s,c||DOS.grey]);if(t===n+1&&s)SFX.boot();};
   line(0,'Starting DOS...');line(30,'');line(40,'HIMEM is testing extended memory...done.');line(80,'640K Sound System v1.0 installed. AdLib compatible.');
-  line(110,'');line(120,'C:\\>cd games\\spore');line(150,'C:\\GAMES\\SPORE>spore.exe');line(180,'');line(185,'SPORE WARS  (c) 1991 '+BRAND);
+  line(110,'');line(120,'C:\\>cd games\\spore');line(150,'C:\\GAMES\\SPORE>spore.exe');line(180,'');line(185,'<logo>');line(195,'SPORE WARS  (c) 1991 '+BRAND);
   line(200,'VGA detected. 256 colours. 590K conventional memory free.');line(230,'');
-  L.forEach((l,i)=>txt(l[0],16,16+i*20,l[1],16));
+  L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
 let titleSel=0,paused=false;
@@ -1025,7 +1025,7 @@ function titleScreen(){
   }
   const shade=ctx.createLinearGradient(0,0,X(360),0);shade.addColorStop(0,'rgba(3,8,16,0.45)');shade.addColorStop(1,'rgba(3,8,16,0)');
   ctx.fillStyle=shade;ctx.fillRect(0,0,X(360),H);
-  txt(BRAND,40,25,'#94acb9',11);
+  if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(40)-16,X(18),388,60);else txt(BRAND,40,25,'#94acb9',11);
   ctx.fillStyle='#39c7df';ctx.fillRect(X(40),X(49),X(28),X(2));
   txt('SPORE',42,66,'#102331',48);txt('SPORE',40,64,'#dbe8eb',48);
   txt('WARS',42,112,'#102331',48);txt('WARS',40,110,'#dbe8eb',48);
@@ -1041,7 +1041,7 @@ function titleScreen(){
   txt(TOUCH?'Drag to move / tap BOMB to clear fire':'ARROWS / WASD  move    X  bomb    P  pause',40,313,'#93a9b8',10);
   ctx.save();ctx.font=X(7)+'px monospace';ctx.fillStyle='#788a98';ctx.textAlign='left';ctx.textBaseline='top';
   ctx.fillText('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',X(40),X(336));
-  ctx.fillText('Music: Alexandr Zhelanov / Menu: AI-assisted',X(40),X(348));ctx.restore();
+  ctx.fillText('Music: Alexandr Zhelanov / Illustrations: AI-assisted',X(40),X(348));ctx.restore();
 }
 
 function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,200,'#b86a72');

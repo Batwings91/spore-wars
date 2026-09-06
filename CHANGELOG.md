@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Studio branding from the master logo
+- Use the 640K Games prompt wordmark (2 logic px per cell, 4 on screen) as the boot-screen banner and the title-screen studio line, and the square icon (2x) as the HUD badge. Both are transparent PNG exports of the Logo repo SVGs, added to the asset pack; the previous text renders when they are missing.
+- Title footer credit reads "Illustrations: AI-assisted" now that several illustrations are AI-assisted, not just the menu. CREDITS.txt records the logo as © 640K Games, outside the CC licences.
+- No gameplay, input, audio, save, balance or dist/ changes; a stale render-size comment corrected.
+
 ## 2026-09-06 — Stop music outside active play
 - Start music only during active gameplay; stop it on pause, game over and menus. Stop/disconnect the recorded loop immediately and silence the synth music bus.
 - Stop music and suspend audio when hidden; close the audio context on page exit/refresh. Late track decoding cannot restart a stopped loop.
