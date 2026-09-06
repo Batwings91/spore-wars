@@ -46,8 +46,11 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 - iPhone (owner has an iPhone 13, Safari): touch drag, panel taps, audio starts only after first tap (iOS rule).
 - High-refresh display (120/144 Hz): game speed must match a 60 Hz display (fixed timestep). Quick check: time 10 waves on each.
 
-## Automated check used by Claude
-Headless Chromium via Playwright: load page, press Enter twice, run ~40 s with `?god=1&wave=4`, capture screenshots, assert no `pageerror`/console errors. Re-create with any headless browser if needed.
+## Automated smoke test
+```
+node tools/smoke.js
+```
+Needs Node 22+ and a Chrome/Edge install (no npm packages), with the dev build served on port 8000. It drives headless Chrome over the DevTools protocol through boot → title → menu arrows → mute → play → pause → resume → quit via the confirmation → Workshop → Esc, then dies at `?wave=4` and returns to the title. Screenshots land in `tools/smoke-out/` (gitignored); exit code 1 on any page error, rAF starvation, or if the ship never dies. `URL=http://localhost:8000/dist/spore-wars.html node tools/smoke.js` tests the release build. Run it before every gameplay commit; look at the screenshots, not just the exit code.
 
 ## Release checklist
 1. `python3 tools/build.py` (or `node tools/build.js` — same bytes) → `dist/spore-wars.html`; check size (target < 8 MB for Poki; currently ~4.8 MB).

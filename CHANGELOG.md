@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-06 — Review fixes: collisions, audio, render loop, Battleship scaling
+- A shot now hits one enemy per tick and spent shots skip the enemy loop; before, a spent shot (y=-99) could kill a scout still queued above the screen at y=-104, and a live shot hit every overlapping enemy at once.
+- Lurker tentacle tips no longer explode (and play the boom) every tick while the ship is invulnerable.
+- Music is ducked, not stopped, when leaving active play: pause, menus and focus changes resume the track at the same position. A late track decode starts silent if music is off. Losing window focus now pauses a live run.
+- Drawing moved out of `stepLogic()` into `render()`, once per animation frame: catch-up steps on a slow device no longer triple the draw cost. `shake`/`flash` decay per logic step; the boot beep fires from `bootBeep()`.
+- Balance: the Battleship's health scales with its own appearance count (waves 5/20/35), not with every boss fought. First fight unchanged at 198; second fight 364 instead of 532, which had been tougher than the second Brood Mother (480).
+- Add `tools/smoke.js`, a headless Chrome regression run with no npm dependencies (see TESTING.md).
+
 ## 2026-09-06 — Match Workshop previews to fitted equipment
 
 - Workshop tiles now show the actual ship fitted with the next tier: twin/triple gun mounts, one/two shield layers and one/two/three engine cooling bands. Preview and live equipment share renderers; prices, effects and purchase timing are unchanged.
