@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-06 — Distinct upgraded gun hardware
+- Differentiate gun tiers with progressively larger metal housings, twin rails, long lance barrels, cooling fins and upper-tier cyan charge strips. Muzzles remain at existing shot origins.
+- Presentation only: damage, rate, spread, pickups and enemy fire are unchanged. Rocket pods remain a separate planned addition.
+
 ## 2026-09-06 — Bomb capacity, supply and organic boss wording
 - Carry up to six bombs; show the numeric inventory out of six and report BOMB FULL when a pickup cannot add stock. Still start with one.
 - Halve ordinary random bomb drops from 4% to 2%; retain core/shield probabilities, guaranteed weapon timing and boss rewards.

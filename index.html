@@ -280,12 +280,29 @@ function drawGunMounts(){
   ctx.save();
   for(const [ox,oy] of GUN_PORTS[wpn]){
     const x=X(ship.x+ox),y=X(ship.y+oy);
-    ctx.fillStyle='#142331';ctx.fillRect(x-5,y-2,10,24);
-    ctx.fillStyle='#536e7d';ctx.fillRect(x-3,y,6,19);
-    ctx.fillStyle='#bacfd7';ctx.fillRect(x-3,y,2,17);
-    ctx.fillStyle='#61e6f4';ctx.fillRect(x-2,y,4,5);
+    // Larger housings and cooling fins make upgrades visible on the ship itself.
+    const width=[5,6,7,9,10][wpn],length=[24,26,32,29,36][wpn];
+    ctx.beginPath();ctx.moveTo(x-width,y+8);ctx.lineTo(x-width+3,y-2);ctx.lineTo(x+width-3,y-2);
+    ctx.lineTo(x+width,y+8);ctx.lineTo(x+width,y+length);ctx.lineTo(x-width,y+length);ctx.closePath();
+    ctx.fillStyle='#142331';ctx.fill();ctx.strokeStyle='#8da4b0';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='#536e7d';ctx.fillRect(x-width+2,y+9,width*2-4,length-11);
+    ctx.fillStyle='#bacfd7';ctx.fillRect(x-width+2,y+10,2,length-13);
+    if(wpn===1||wpn===4){
+      ctx.fillStyle='#0a1623';ctx.fillRect(x-5,y,4,18);ctx.fillRect(x+1,y,4,18);
+      ctx.fillStyle='#b3f6ff';ctx.fillRect(x-4,y,2,14);ctx.fillRect(x+2,y,2,14);
+    }else{
+      ctx.fillStyle='#0a1623';ctx.fillRect(x-3,y,6,wpn===2?24:18);
+      ctx.fillStyle='#b3f6ff';ctx.fillRect(x-1,y,2,wpn===2?22:14);
+    }
+    if(wpn>=2)for(let i=0;i<(wpn===4?4:3);i++){
+      ctx.fillStyle=i%2?'#78909d':'#304652';ctx.fillRect(x-width-2,y+12+i*5,width*2+4,2);
+    }
+    if(wpn>=3){
+      ctx.fillStyle='#12394a';ctx.fillRect(x-width+2,y+length-7,width*2-4,4);
+      ctx.fillStyle='#61e6f4';ctx.fillRect(x-width+3,y+length-6,(width*2-6)*(muzz>0?1:0.5),2);
+    }
     if(muzz>0){
-      ctx.globalAlpha=muzz/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x+5,y-2);ctx.lineTo(x,y+3);ctx.lineTo(x-5,y-2);ctx.closePath();ctx.fill();
+      ctx.globalAlpha=muzz/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x+width,y-2);ctx.lineTo(x,y+3);ctx.lineTo(x-width,y-2);ctx.closePath();ctx.fill();
       ctx.fillStyle='#efffff';ctx.fillRect(x-1,y-10,2,11);ctx.globalAlpha=1;
     }
   }
