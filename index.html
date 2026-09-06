@@ -25,10 +25,10 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
-const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
+const ASSET_EXT={menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){const singles=["battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
@@ -644,18 +644,57 @@ function updateMothership(b){
     b.salvo=(b.salvo||0)+1;b.volT=b.phase===2?160:210;SFX.plasma();}
 }
 function bombBoss(){if(!boss||bossDying)return;boss.hp-=25;boss.flash=6;for(const tu of boss.turrets){const wasAlive=tu.hp>0;tu.hp-=8;if(wasAlive&&tu.hp<=0){boom(boss.x+tu.dx,boss.y+tu.dy,false);awardKill(150,boss.x+tu.dx,boss.y+tu.dy);}}}
+const BATTLESHIP_MOUNT=(()=>{
+  const o=document.createElement('canvas');o.width=o.height=X(28);const g=o.getContext('2d');g.scale(K,K);g.translate(14,14);
+  const metal=g.createRadialGradient(-5,-6,1,0,0,15);metal.addColorStop(0,'#a6a89c');metal.addColorStop(0.5,'#58636a');metal.addColorStop(1,'#202a33');
+  g.beginPath();for(let i=0;i<8;i++){const a=(i+0.5)*Math.PI/4;if(i===0)g.moveTo(Math.cos(a)*12,Math.sin(a)*12);else g.lineTo(Math.cos(a)*12,Math.sin(a)*12);}
+  g.closePath();g.fillStyle=metal;g.fill();g.strokeStyle='#171f27';g.lineWidth=1.2;g.stroke();
+  g.beginPath();g.arc(0,0,8.5,0,Math.PI*2);g.fillStyle='#263039';g.fill();g.strokeStyle='#788087';g.lineWidth=0.7;g.stroke();
+  for(const x of [-7,7])for(const y of [-7,7]){g.fillStyle='#17212a';g.fillRect(x-1,y-1,2,2);g.fillStyle='#acaa9b';g.fillRect(x-1,y-1,1,0.5);}
+  return o;
+})();
+function drawBattleshipHull(b){
+  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(IMG.battleship_hull,X(b.x-80),X(b.y-60),X(160),X(120));
+  // Heat in the recessed reactor replaces the flat phase-two rectangle.
+  ctx.globalAlpha*=b.phase===2?0.65+Math.sin(b.t*0.12)*0.2:0.35;
+  ctx.fillStyle=b.phase===2?'#ed8059':'#89553e';
+  for(let j=0;j<3;j++)ctx.fillRect(X(b.x-4),X(b.y-7+j*5),X(8),X(1.5));
+  ctx.restore();
+}
+function drawBattleshipTurret(b,tu){
+  const x=b.x+tu.dx,y=b.y+tu.dy;ctx.save();ctx.translate(X(x),X(y));
+  ctx.drawImage(BATTLESHIP_MOUNT,X(-14),X(-14));
+  if(tu.hp<=0){
+    ctx.fillStyle='#080d12';ctx.beginPath();ctx.ellipse(0,0,X(8),X(7),0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#73503b';ctx.lineWidth=X(1.5);ctx.beginPath();ctx.moveTo(X(-8),X(-6));ctx.lineTo(X(-3),X(-3));ctx.lineTo(X(-5),X(4));ctx.moveTo(X(8),X(6));ctx.lineTo(X(4),X(2));ctx.stroke();
+  }else{
+    ctx.rotate(Math.atan2(ship.y-y,ship.x-x)-Math.PI/2);
+    ctx.fillStyle='#414e57';ctx.fillRect(X(-7),X(-9),X(14),X(12));
+    ctx.fillStyle='#929a98';ctx.fillRect(X(-7),X(-9),X(14),X(0.7));
+    ctx.fillStyle='#25313a';ctx.fillRect(X(5),X(-8),X(2),X(10));
+    ctx.fillStyle='#202a32';ctx.fillRect(X(-4),X(-11),X(8),X(12));
+    ctx.fillStyle='#849098';ctx.fillRect(X(-4),X(-11),X(1),X(10));ctx.fillRect(X(3),X(-11),X(1),X(10));
+    // The emitter is centred on the existing projectile origin, not the barrel tip.
+    const charge=!bossDying&&b.y>=b.ty&&tu.ct<25?1-tu.ct/25:0;
+    ctx.fillStyle=charge>0?'#ef8ca7':'#793e50';ctx.fillRect(X(-3),X(-1),X(6),X(2));
+    if(charge>0){ctx.globalAlpha=charge*0.65;ctx.fillStyle='#ffb8bd';ctx.beginPath();ctx.arc(0,0,X(3+charge*2),0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
 function drawBoss(){
   if(bossWarn>0){glassPanel(PX+40,12,PW-80,32,'#ee9871');txt('INCOMING / '+(level%15===0?'MOTHERSHIP':level%15===10?'ASSAULT MECH':'BATTLESHIP'),LW/2,20,'#ffd3ad',13,'center');}
   if(!boss)return;const b=boss;
-  const im=b.mother?IMG.boss_mothership:b.mech?((b.fireFlash>0?IMG.boss_mech_fire:IMG.boss_mech)||IMG.boss_mech||IMG.boss_mech_fire):IMG.boss_battleship;if(im){ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);}
+  const illustrated=!b.mother&&!b.mech&&IMG.battleship_hull;
+  const im=b.mother?IMG.boss_mothership:b.mech?((b.fireFlash>0?IMG.boss_mech_fire:IMG.boss_mech)||IMG.boss_mech||IMG.boss_mech_fire):IMG.boss_battleship;if(illustrated){drawBattleshipHull(b);}else if(im){ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);}
   else if(b.mother){drawMothershipFallback(b);}
   else if(b.mech){drawMechFallback(b);}
   else{ctx.fillStyle='#a03030';ctx.fillRect(X(b.x)-140,X(b.y)-100,280,200);}
-  for(const tu of b.turrets){if(b.mother){const x=b.x+tu.dx,y=b.y+tu.dy;bevel(x-12,y-10,24,20,true);ctx.fillStyle=tu.hp<=0?C.s0:(tu.ct<=30&&!bossDying?C.yellow:C.cyan);ctx.fillRect(X(x-8),X(y-6),X(16),X(12));continue;}if(tu.hp<=0){ctx.fillStyle='#201010';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),12,0,6.283);ctx.fill();continue;}
+  for(const tu of b.turrets){if(illustrated){drawBattleshipTurret(b,tu);continue;}if(b.mother){const x=b.x+tu.dx,y=b.y+tu.dy;bevel(x-12,y-10,24,20,true);ctx.fillStyle=tu.hp<=0?C.s0:(tu.ct<=30&&!bossDying?C.yellow:C.cyan);ctx.fillRect(X(x-8),X(y-6),X(16),X(12));continue;}if(tu.hp<=0){ctx.fillStyle='#201010';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),12,0,6.283);ctx.fill();continue;}
     const hot=tu.ct<25;ctx.fillStyle='#3a1418';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),16,0,6.283);ctx.fill();
     ctx.fillStyle=hot?C.magenta:'#c04050';ctx.beginPath();ctx.arc(X(b.x+tu.dx),X(b.y+tu.dy),10,0,6.283);ctx.fill();ctx.fillStyle=C.white;ctx.fillRect(X(b.x+tu.dx)-3,X(b.y+tu.dy)-3,6,6);}
-  if(b.flash>0&&im){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6;ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
-  if(b.phase===2&&!bossDying&&t%30<15){ctx.globalAlpha=0.25;ctx.fillStyle=C.red;ctx.fillRect(X(b.x)-60,X(b.y)-40,120,80);ctx.globalAlpha=1;}
+  if(b.flash>0&&(illustrated||im)){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6;if(illustrated)drawBattleshipHull(b);else ctx.drawImage(im,X(b.x)-im.width/2,X(b.y)-im.height/2);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
+  if(!illustrated&&b.phase===2&&!bossDying&&t%30<15){ctx.globalAlpha=0.25;ctx.fillStyle=C.red;ctx.fillRect(X(b.x)-60,X(b.y)-40,120,80);ctx.globalAlpha=1;}
   // Telegraph existing attacks without changing their timers.
   if(!b.mother&&!b.mech&&!bossDying&&b.y>=b.ty){ctx.save();
     if(b.volT<=30){const r=5+b.volT/3;ctx.strokeStyle=C.cyan;ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(b.x),X(b.y+70),X(r),0,Math.PI*2);ctx.stroke();}

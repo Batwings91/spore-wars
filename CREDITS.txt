@@ -3,6 +3,13 @@ SPORE WARS — a 640K Games production
 
 Art credits
 -----------
+Battleship hull (assets/battleship_hull.webp):
+  Original AI-assisted illustration generated with OpenAI image generation for 640K Games.
+  Art direction: 640K Games. Generated 2026-09-06; no third-party source pack used.
+  Encoded as quality-86 WebP with alpha quality 100 at original dimensions; colour encoding is lossy.
+  Turret aiming, charge, destroyed sockets and reactor heat are drawn by the game code.
+  The original Skorpio-derived Battleship sprite remains a fallback.
+
 World scenery (assets/world_foundry.webp, world_salvage.webp, world_heart.webp):
   Original AI-assisted illustrations generated with OpenAI image generation for 640K Games.
   Art direction: 640K Games. Generated 2026-09-05; no third-party source pack used.

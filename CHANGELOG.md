@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Battleship visual identity
+- Add an original painted industrial dreadnought hull with steel/ochre armour and a recessed reactor that heats in phase two. Encode as quality-86 WebP with preserved alpha.
+- Draw aiming gun emplacements, charge cues and scorched destroyed sockets at the existing turret coordinates. Retain the original sprite and procedural fallbacks; preserve all attacks, collision bounds, health, rewards and timing.
+- Leave other bosses and dist/ unchanged.
+
 ## 2026-09-05 — World progression presentation
 - Add painted Orbital Foundry, Infected Salvage and Spore Heart scenery for waves 1–5, 6–10 and 11 onward. Three original AI-assisted backgrounds total approximately 675 KB using quality-82 WebP encoding.
 - Fade between environments over 150 logic ticks when the existing next stage begins, with a small temporary stage heading. Reflect alternate background repeats to join edges; retain cached procedural scenery if an image fails.

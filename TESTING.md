@@ -30,6 +30,7 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 4e. World scenery: normal start = Orbital Foundry; ?god=1&wave=5 = Infected Salvage; ?god=1&wave=10 = Spore Heart. Clear bosses 5 and 10: the next wave blends into its environment over 2.5 s and briefly names the stage at the upper edge. Pause during the blend: scenery and fade freeze. Continue retains the world; a fresh normal run returns to Foundry. Waves after 15 remain organic. Block each world_*.webp to inspect its procedural fallback. Watch a full scrolling repeat for gaps or seams; scenery is decorative and must not change collisions or obscure enemy fire.
 5. `X` fires megabomb (screen flash, ring, bullets cleared). BOMB panel tap works on touch.
 6. `?wave=4`: warning banner + siren, Battleship enters, health bar, turrets die individually (+150), phase 2 at 50%, death sequence, drops W/S/B + cores, waves resume.
+6b. Battleship art: three gun mounts aim towards the player and brighten before firing; destroyed mounts become scorched sockets. Below half health, the central reactor heats up. Check gun positions against incoming player shots and emitted plasma. Block battleship_hull.webp for the original sprite, then boss_battleship.png for the procedural hull. Check waves 10/15 retain their existing boss art and cues.
 7. Game over → Enter restarts in under 2 s; `[C]` continue works once.
 8. Mute toggles and persists across reload.
 9. Resize the window: canvas stays 16:9, integer-scaled where possible.
