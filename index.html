@@ -1054,7 +1054,7 @@ function pauseScreen(){glassPanel(PX+40,LH/2-50,PW-80,100,'#55c5d8');txt('PAUSED
   txt(TOUCH?'tap to resume':'enter / P  resume',LW/2,LH/2+2,C.white,14,'center');txt('esc: menu / cores saved',LW/2,LH/2+24,'#a4b8c6',12,'center');}
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
-  {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>50+l*70,max:3}];
+  {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3}];
 function shopScreen(){ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);if(IMG.menu_hangar){ctx.save();ctx.globalAlpha=0.2;ctx.drawImage(IMG.menu_hangar,0,0,W,H);ctx.restore();}txt('WORKSHOP',20,16,'#d2e8ef',24);txt(save.cores+' cores available',LW-20,20,C.cyan,14,'right');
   txt('Spend cores on permanent upgrades for every future run.',20,46,'#a4b8c6',12);
   SHOP.forEach((it,i)=>{const y=72+i*68,lvl=save[it.k],maxed=lvl>=it.max,c=it.cost(lvl);glassPanel(12,y-8,LW-24,60,i===shopSel?'#56dcf1':'#3d5364');const col=i===shopSel?C.white:C.text;

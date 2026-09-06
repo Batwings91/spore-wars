@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-06 — Earlier first Workshop upgrade
+- Lower the first Engine tune from 50 to 20 cores, targeting roughly two well-collected first-boss runs. Later engine tiers remain 120/190 cores; weapon/shield prices, drop rates and upgrade effects are unchanged.
+
 ## 2026-09-06 — Core currency explanation
 - Identify core pickups and the run total; explain saved cores and permanent Workshop upgrades on the game-over and Workshop screens. Currency values, banking, prices and upgrade effects are unchanged.
 
