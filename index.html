@@ -426,7 +426,7 @@ function txt(s,x,y,col,size,align){ctx.font='bold '+Math.round((size||14)*K)+'px
 const SFX=(function(){
   let ac=null,master=null,musicBus=null,pcmBus=null,muted=false,seq=null;
   try{muted=localStorage.getItem('640k.mute')==='1';}catch(e){}
-  function ctx(){if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=muted?0:0.6;master.connect(ac.destination);
+  function ctx(){if(document.hidden)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=muted?0:0.6;master.connect(ac.destination);
       musicBus=ac.createGain();musicBus.gain.value=0.5;musicBus.connect(master);
       pcmBus=ac.createGain();pcmBus.gain.value=0.8;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;pcmBus.connect(lp);lp.connect(master);}
     if(ac.state==='suspended')ac.resume();return ac;}
@@ -515,9 +515,11 @@ const SFX=(function(){
       if(cur===k&&!t.src)play(k);}).catch(()=>{t.busy=false;});}
   function play(k){const a=ctx();const t=TR[k];if(!a||!t.buf||t.src)return;if(seq){clearInterval(seq);seq=null;}
     t.src=a.createBufferSource();t.src.buffer=t.buf;t.src.loop=true;t.src.loopEnd=t.loopEnd;t.g=a.createGain();t.g.gain.setValueAtTime(0.0001,a.currentTime);t.g.gain.exponentialRampToValueAtTime(t.gain,a.currentTime+1.0);t.src.connect(t.g);t.g.connect(master);t.src.start();}
-  function stop(k){const a=ctx();const t=TR[k];if(!t.src)return;const src=t.src,g=t.g;t.src=null;g.gain.setValueAtTime(Math.max(0.0001,g.gain.value),a.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+1.0);src.stop(a.currentTime+1.05);}
+  function stop(k){const t=TR[k];if(!t.src)return;t.src.stop();t.src.disconnect();t.g.disconnect();t.src=null;}
   function select(k){if(cur===k)return;if(cur)stop(cur);cur=k;if(!k)return;loadTrack(k);if(TR[k].buf)play(k);else if(k==='main'){step=0;melPos=0;melWait=0;if(!seq)seq=setInterval(tick,STEP*1000);}}
-  function music(on){mainOn=on;if(on)select('main');else{select(null);if(seq){clearInterval(seq);seq=null;}}}
+  function music(on){on=on&&!document.hidden;if(mainOn===on)return;mainOn=on;if(on){const a=ctx();if(a)musicBus.gain.value=0.5;select('main');}else{select(null);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){music(false);if(ac&&ac.state==='running')ac.suspend();}});
+  addEventListener('pagehide',()=>{music(false);if(ac){ac.close();ac=null;}});
   function bossTheme(on){/* boss track removed: main theme plays throughout */}
   function loadBoss(){loadTrack('main');}
   function toggleMute(){muted=!muted;if(master)master.gain.value=muted?0:0.6;try{localStorage.setItem('640k.mute',muted?'1':'0');}catch(e){}return muted;}
@@ -543,7 +545,7 @@ addEventListener('keydown',e=>{
   // Esc: leave any menu; in play it pauses first, a second press quits (cores banked in quitRun).
   if(e.code==='Escape'&&!e.repeat){if(mode==='dead'||mode==='shop'){clearScene();mode='title';t=0;}else if(mode==='play'){if(paused)quitRun();else paused=true;}}
   if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)continueRun();
-  if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.music(true);mode='title';t=0;}
+  if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();mode='title';t=0;}
 });
 addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
 let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
@@ -1072,11 +1074,12 @@ newRun();
 let lastT=0,acc=0;
 function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}render();requestAnimationFrame(frame);}
 function stepLogic(){blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
-  if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();SFX.music(true);mode='title';t=0;}}
+  if(mode==='boot'){bootScreen();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();mode='title';t=0;}}
   else if(mode==='title'){titleScreen();if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}
   else if(mode==='play'){if(paused){playScene();pauseScreen();if(tapped)paused=false;}else{if(slow>0){slow--;if(blink%2===0)update();}else update();if(mode==='play')playScene();else deadScreen();}}
   else if(mode==='dead'){deadScreen();if(tapped){if(tapSrc==='ptr'&&ptr.rel>0.48&&ptr.rel<0.58&&!usedContinue)continueRun();else if(tapSrc==='ptr'&&ptr.rel>0.70&&ptr.rel<0.80){clearScene();mode='title';t=0;}else{newRun();mode='play';t=0;}}}
   else if(mode==='shop'){shopScreen();if(tapped){if(tapSrc==='key')buy();else if(ptr.rel<0.85){const row=Math.floor((ptr.rel*LH-64)/68);if(row>=0&&row<3){if(shopSel===row)buy();else shopSel=row;}}else{clearScene();mode='title';}}}
+  SFX.music(mode==='play'&&!paused);
   tapped=false;}
 function render(){}
 requestAnimationFrame(frame);

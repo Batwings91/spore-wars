@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-06 — Stop music outside active play
+- Start music only during active gameplay; stop it on pause, game over and menus. Stop/disconnect the recorded loop immediately and silence the synth music bus.
+- Stop music and suspend audio when hidden; close the audio context on page exit/refresh. Late track decoding cannot restart a stopped loop.
+
 ## 2026-09-06 — Earlier first Workshop upgrade
 - Lower the first Engine tune from 50 to 20 cores, targeting roughly two well-collected first-boss runs. Later engine tiers remain 120/190 cores; weapon/shield prices, drop rates and upgrade effects are unchanged.
 
