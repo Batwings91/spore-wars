@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-07 — Boss victory transition
+- Harden smoke-test readiness and assert play/pause/resume states; allow an alternate debugging port for isolated runs.
+- Announce level completion during the existing salvage sweep, then fade/slide in the results panel and count up earned cores. No reward, boss timing or balance changes.
+- Early Enter/tap/Q finishes the tally without choosing an action. Returning from Workshop shows completed results immediately and never repeats banking.
+
 ## 2026-09-07 — Bitmap text and overlay presentation
 - Extend the studio Logo 5x7 alphabet into a complete printable ASCII font with lowercase; render all game text through cached bitmap strips, removing system-font variation.
 - Lighten translucent panels and use consistent selected rows on pause, exit confirmation, game over and level completion. Touch targets, menu actions and gameplay remain unchanged.

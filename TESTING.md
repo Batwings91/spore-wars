@@ -76,3 +76,8 @@ Check three hull segments on launch. A shield hit spends only a shield. Unshield
 
 ## Bitmap text and overlays
 Inspect boot, title, HUD, floating scores, boss labels, pause/confirmation, game over, sector complete and Workshop. Check uppercase/lowercase, punctuation, score alignment, long instructions and quiet credits; no system font should be used. Verify selected rows match arrows/Enter/touch and all prior click rectangles. Check desktop and landscape phone readability, full and empty hull/shields, maximum score width and illustration fallbacks.
+
+## Victory presentation
+Defeat each boss: LEVEL COMPLETE appears during the existing 200-tick salvage sweep. Pause freezes the announcement; completion fades in over 30 ticks and the banked-core display counts up over 60. Early Enter/tap/Q finishes the tally only, then a second deliberate input can choose Workshop/Next level. Returning from Workshop shows the completed tally without banking again. Check zero/new cores, keyboard and touch, and no automatic next-level launch.
+
+Smoke driver: waits for the actual boot asset gate and checks play/pause/resume states. Set SMOKE_PORT to a free debugging port when running an isolated second test.

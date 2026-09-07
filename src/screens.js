@@ -38,7 +38,8 @@ function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=s
   ctx.save();ctx.translate(sx,sy);drawField();ctx.restore();drawPanels();
   drawWorldNotice();
   if(flash>0){ctx.fillStyle='rgba(255,255,255,'+(flash/12)+')';ctx.fillRect(X(PX),0,X(PW),H);}
-  if(evt>0&&mode==='play'){ctx.save();ctx.globalAlpha=Math.min(1,evt/12);glassPanel(PX+50,48,PW-100,25,evtCol);txt(evtText,LW/2,54,evtCol,12,'center');ctx.restore();}
+  if(evt>0&&mode==='play'&&!sectorPending){ctx.save();ctx.globalAlpha=Math.min(1,evt/12);glassPanel(PX+50,48,PW-100,25,evtCol);txt(evtText,LW/2,54,evtCol,12,'center');ctx.restore();}
+  if(sectorPending&&!paused)drawVictorySweep();
   if(hint>0&&mode==='play'&&!paused){glassPanel(PX+32,LH-30,PW-64,23,'#55c5d8');txt(TOUCH?'DRAG TO MOVE / AUTO-FIRE':'ARROWS / WASD TO MOVE / AUTO-FIRE',LW/2,LH-24,'#d2e8ef',11,'center');}}
 const BOOT_LINES=[[0,'Starting DOS...'],[30,''],[40,'HIMEM is testing extended memory...done.'],[80,'640K Sound System v1.0 installed. AdLib compatible.'],
   [110,''],[120,'C:\\>cd games\\spore'],[150,'C:\\GAMES\\SPORE>spore.exe'],[180,''],[185,'<logo>'],[195,'SPORE WARS  (c) 1991 '+BRAND],
@@ -121,21 +122,37 @@ function pauseScreen(){
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
   {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3}];
+// Presentation follows the existing 200-tick reward sweep; it never awards cores.
+function drawVictorySweep(){
+  const age=200-waveT,fade=Math.min(1,age/24,Math.max(0,waveT/24));
+  ctx.save();ctx.globalAlpha=fade;
+  const y=92+Math.max(0,1-age/30)*10;
+  glassPanel(PX+44,y-12,PW-88,76,'#d6b36c');
+  txt('LEVEL '+Math.floor(level/5)+' COMPLETE',LW/2,y,'#f0d59c',24,'center');
+  txt('Salvage secured. Take a breath.',LW/2,y+29,'#c3d3d9',10,'center');
+  const w=PW-128;ctx.fillStyle='#283842';ctx.fillRect(X(PX+64),X(y+48),X(w),X(2));
+  ctx.fillStyle='#d6b36c';ctx.fillRect(X(PX+64),X(y+48),X(w*Math.min(1,age/200)),X(2));
+  ctx.restore();
+}
 function completeSector(){
   if(!sectorPending)return;
   sectorBanked=cores-bankedCores;save.cores+=sectorBanked;bankedCores=cores;
   if(score>save.best)save.best=score;persist();sectorPending=false;mode='sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();
 }
 function nextSector(){shopFromSector=false;mode='play';t=0;waveT=60;tapped=false;ptr.down=false;}
-function leaveShop(){if(shopFromSector){mode='sector';t=0;tapped=false;}else{clearScene();mode='title';t=0;}}
+function leaveShop(){if(shopFromSector){mode='sector';t=60;tapped=false;}else{clearScene();mode='title';t=0;}}
 function sectorScreen(){
-  playScene();glassPanel(PX+30,78,PW-60,210,'#55c5d8');
+  playScene();ctx.save();const reveal=Math.min(1,t/30);ctx.globalAlpha=reveal;ctx.translate(0,X((1-reveal)*10));glassPanel(PX+30,78,PW-60,210,'#d6b36c');
   txt('LEVEL '+Math.floor(level/5)+' COMPLETE!',LW/2,96,'#d2e8ef',24,'center');
-  txt('+'+sectorBanked+' cores banked',LW/2,133,C.cyan,14,'center');
+  txt('+'+Math.floor(sectorBanked*Math.min(1,t/60))+' cores banked',LW/2,133,C.cyan,14,'center');
   txt(save.cores+' cores available for upgrades',LW/2,154,'#a4b8c6',12,'center');
+  ctx.globalAlpha=reveal*(t<60?0.35:1);
   for(const [i,label] of ['VISIT WORKSHOP','NEXT LEVEL'].entries()){
     menuChoice(label,LW/2-130,184+i*44,260,32,i===sectorSel,13);}
-  if(!TOUCH)txt('UP/DOWN choose / ENTER select / Q Workshop',LW/2,272,'#a4b8c6',10,'center');
+  ctx.globalAlpha=reveal;
+  if(t<60)txt(TOUCH?'Tap to finish tally':'ENTER to finish tally',LW/2,272,'#a4b8c6',10,'center');
+  else if(!TOUCH)txt('UP/DOWN choose / ENTER select / Q Workshop',LW/2,272,'#a4b8c6',10,'center');
+  ctx.restore();
 }
 
 function shopScreen(){

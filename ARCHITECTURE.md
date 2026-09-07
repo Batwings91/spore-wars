@@ -74,3 +74,6 @@ ship.hull starts at MAX_HULL (3). hitShip consumes shields before hull, grants 4
 
 ## Bitmap text
 UI_GLYPHS in scene.js extends the studio Logo 5x7 font to printable ASCII. txt caches up to 128 coloured text strips, scales them without smoothing and handles left/centre/right alignment. Screen labels and merchandise copy use this renderer too. menuChoice draws existing option rectangles without changing input bounds.
+
+## Victory presentation
+drawVictorySweep uses 200-waveT during sectorPending. sectorScreen uses its mode timer for a 30-tick reveal and 60-tick cosmetic core tally; real banking still happens once in completeSector. Early Enter/tap/Q completes the reveal without activating an option. Workshop return starts at t=60 to avoid replaying the tally.

@@ -6,7 +6,7 @@
 // Flow: boot -> title -> menu arrows -> mute toggle -> play -> pause -> resume -> quit via confirmation -> workshop
 // -> Esc; then ?wave=4 without god mode until the fleet is lost -> Esc back to title.
 const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');
-const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=9333;
+const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=Number(process.env.SMOKE_PORT)||9333;
 const CANDIDATES=[process.env.CHROME,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean);
 const EXE=CANDIDATES.find(p=>fs.existsSync(p));if(!EXE){console.error('No Chrome/Edge found; set CHROME=<path>');process.exit(2);}
@@ -38,6 +38,10 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   // plus the boot screen's own 60-tick minimum.
   const go=async url=>{await send('Page.navigate',{url});let last=-1,stable=0;
     for(let i=0;i<80;i++){await sleep(500);const n=await evalJs("performance.getEntriesByType('resource').length");if(n===last&&i>=2)stable++;else stable=0;last=n;if(stable>=2)break;}
+    let ready=false;
+    for(let i=0;i<120;i++){ready=await evalJs("typeof assetsReady!=='undefined'&&(assetsReady||assetsFailed)&&typeof t!=='undefined'&&t>60");if(ready)break;await sleep(250);}
+    if(!ready)throw new Error('Boot assets did not settle within 30 seconds');
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
     await sleep(1500);};
 
   await go(BASE);
@@ -47,9 +51,9 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   await key('Enter');await sleep(900);await shot('02-title');
   await key('ArrowDown');await sleep(300);await shot('03-title-workshop-selected');
   await key('ArrowDown');await key('Enter');await sleep(300);await shot('04-title-sound-off');await key('Enter');await sleep(200);
-  await key('ArrowUp');await key('ArrowUp');await key('Enter');await sleep(1500);await shot('05-play');
-  await key('Escape');await sleep(400);await shot('06-paused');
-  await key('Enter');await sleep(600);await shot('07-resumed');
+  await key('ArrowUp');await key('ArrowUp');await key('Enter');await sleep(1500);if(await evalJs('mode')!=='play')throw new Error('Launch did not reach play');await shot('05-play');
+  await key('Escape');await sleep(400);if(!await evalJs('paused'))throw new Error('Escape did not pause');await shot('06-paused');
+  await key('Enter');await sleep(600);if(await evalJs('paused'))throw new Error('Enter did not resume');await shot('07-resumed');
   await key('KeyP');await sleep(300);await key('KeyP');await sleep(300);
   // Quit through the confirmation: pause, select Main menu, confirm Return to main menu.
   await key('Escape');await key('ArrowDown');await key('Enter');await sleep(300);await shot('08-exit-confirm');
