@@ -4,12 +4,12 @@
 // clear the run's transient state on every return to the title so nothing bleeds through.
 function clearScene(){resetRockets();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
 function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
-function continueRun(){resetRockets();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
+function continueRun(){resetRockets();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=ship.hullDisplay=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
 let lastT=0,acc=0;
 function frame(now){const STEP=1000/60;const dt=lastT?Math.min(50,now-lastT):STEP;lastT=now;acc+=dt;let steps=0;while(acc>=STEP&&steps<3){acc-=STEP;steps++;stepLogic();}if(steps>0)render();requestAnimationFrame(frame);}
-function stepLogic(){if(exitWait>0)exitWait--;blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
+function stepLogic(){if(!paused)ship.hullDisplay+=Math.max(-0.08,Math.min(0.08,ship.hull-ship.hullDisplay));if(exitWait>0)exitWait--;blink++;if(mode!=='play'){t++;scroll=(scroll+0.9)%TH;}
   if(shake>0)shake--;if(flash>0)flash--;
   if(mode==='boot'){bootBeep();if(tapped&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();SFX.preload();mode='title';t=0;}}
   else if(mode==='title'){if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1)mode='shop';else if(i===2)SFX.toggleMute();else if(i===0){newRun();mode='play';t=0;}}}

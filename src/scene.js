@@ -4,7 +4,7 @@ const PLASMA=[sprite(['..mm..','.mMMm.','mMWWMm','mMWWMm','.mMMm.','..mm..'],{m:
               sprite(['..mm..','.mMMm.','mMMMMm','mMMWMm','.mMMm.','..mm..'],{m:'#a020a0',M:C.magenta,W:C.white})];
 // capsule pickups: metal shell, coloured glass, letter drawn on top
 function capsule(col,colD){return sprite(mirror(['....111','..11222','.122333','.123ccc','1223ccc','1223ccc','1223ccc','1223ccc','1223ccc','.123ccc','.122333','..11222','....111']),{1:C.s1,2:C.s3,3:C.s5,c:col});}
-const CAP_W=capsule(C.orange),CAP_S=capsule(C.cyan),CAP_B=capsule(C.G);
+const CAP_W=capsule(C.orange),CAP_S=capsule(C.cyan),CAP_B=capsule(C.G),CAP_H=capsule('#79e69b');
 // shield: 8 frames of a rotating dithered energy ring, 110px
 const SHF=[];(function(){const R=52;for(let f=0;f<8;f++){const o=document.createElement('canvas');o.width=o.height=R*2+4;const g=o.getContext('2d');const a0=f/8*Math.PI*2;
   for(let y=0;y<o.height;y++)for(let x=0;x<o.width;x++){const dx=x-R-2,dy=y-R-2,d=Math.hypot(dx,dy);if(d>R||d<R-14)continue;

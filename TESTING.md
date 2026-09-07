@@ -87,3 +87,6 @@ Play a normal run: three groups per opening wave, alternate lanes, dives in wave
 
 ## Later-sector pacing
 Play through from the first boss or use ?god=1&wave=5 / ?god=1&wave=10 to inspect formations (debug starts use the saved starting gun, not a carried run loadout). Verify four groups per non-boss wave, single lurker introductions, crawlers in wave 9, and biological enemies throughout waves 11–14. No more than two lurkers should coexist. Pause freezes group timers; Continue retains completed-group tracking; Workshop/checkpoint return waits for Next level. ?wave=9 and ?wave=14 still enter their boss warning immediately. Check that waves 1–4 and 16+ retain their previous formations and enemy stats.
+
+## Repairs and continuous hull meter
+Check full green (100%), damaged amber (67%) and critical red (33%), plus an empty bar at final death. Damage/repair animates the fill; pause freezes it. Green + / REPAIR pickups heal exactly one point; full hull never overfills or adds lives. Verify core, bomb and shield drop thresholds and guaranteed weapon drops are unchanged; repair drops occur only while damaged. Existing repair drops collected at full health show HULL FULL. Confirm repair collection during boss salvage sweep, reset on new ship/new run/Continue, and unchanged saved cores.

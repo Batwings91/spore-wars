@@ -15,8 +15,12 @@ function drawPanels(){
   box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
   box(12,284,PX-24,64,'HULL');
-  for(let i=0;i<MAX_HULL;i++){ctx.fillStyle=i<ship.hull?(ship.hull===1?'#ed8474':'#78d7b0'):'#243542';ctx.fillRect(X(20+i*22),X(307),X(16),X(12));}
-  txt(ship.hull===0?'DESTROYED':ship.hull===1?'CRITICAL':'SHIP HEALTH',PX/2,330,ship.hull===1?'#ed8474':'#91a7b5',7,'center');
+  const health=Math.max(0,Math.min(1,ship.hullDisplay/MAX_HULL));
+  ctx.fillStyle='#243542';ctx.fillRect(X(20),X(307),X(PX-40),X(12));
+  ctx.fillStyle='hsl('+Math.round(Math.max(0,(health-1/3)*180))+',65%,60%)';ctx.fillRect(X(20),X(307),X((PX-40)*health),X(12));
+  ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(X(20),X(307),X((PX-40)*health),X(2));
+  const percent=Math.round(ship.hull/MAX_HULL*100);
+  txt(ship.hull===0?'DESTROYED':percent+(ship.hull===1?'% CRITICAL':'% HEALTH'),PX/2,330,ship.hull===1?'#ed8474':'#91a7b5',7,'center');
   const rx=PX+PW+12,rw=LW-PX-PW-24;
   box(rx,12,rw,44,'GUN',GUN[wpn].n,C.cyan);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?C.cyan:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(18),X(4),X(8));}
   box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(18),X(18));ctx.globalAlpha=1;}

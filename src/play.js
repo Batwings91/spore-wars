@@ -4,7 +4,7 @@ function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,ki
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();return;}
   ship.hull--;
   if(ship.hull>0){ship.inv=40;shake=6;flash=3;SFX.hit();addFloat(ship.x,ship.y-40,ship.hull===1?'HULL CRITICAL':'HULL DAMAGED',C.red);return;}
-  resetRockets();chain=0;chainT=0;lives--;ship.hull=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  resetRockets();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;
@@ -13,6 +13,7 @@ function dropFor(e){kills++;
   if(r<0.30)return 'core';
   if(r<0.32)return 'b';
   if(r<(early?0.38:0.34))return 's';
+  if(ship.hull<MAX_HULL&&r<(early?0.42:0.38))return 'h';
   return null;}
 function addFloat(x,y,txt,col,big){floats.push({x,y,txt,col,life:60,big});}
 function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;rings.push({x:ship.x,y:ship.y,r:10,col,life:30});
@@ -61,6 +62,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   for(const d of drops){if(sectorPending){const dx=ship.x-d.x,dy=ship.y-d.y,len=Math.hypot(dx,dy)||1;d.x+=dx/len*7;d.y+=dy/len*7;}else d.y+=1.4;if(Math.hypot(d.x-ship.x,d.y-ship.y)<34||(sectorPending&&waveT<=0)){d.y=999;
       if(d.k==='core'){cores++;score+=5;SFX.core();addFloat(d.x,d.y,'+1 CORE',C.cyan);}
       if(d.k==='w'){if(wpn<MAXW){wpn++;pickupEvent('GUN '+(wpn+1)+'/5 / '+GUN[wpn].n,C.cyan);}else{score+=100;pickupEvent('GUN MAX / +100 SCORE',C.cyan);}SFX.power();}
+      if(d.k==='h'&&lives>0){const full=ship.hull>=MAX_HULL;ship.hull=Math.min(MAX_HULL,ship.hull+1);pickupEvent(full?'HULL FULL':'HULL REPAIRED', '#79e69b');SFX.power();}
       if(d.k==='s'){shield=Math.min(2,shield+1);pickupEvent('SHIELD',C.cyan);SFX.shield();}
       if(d.k==='b'){const full=bombs>=6;bombs=Math.min(6,bombs+1);pickupEvent(full?'BOMB FULL':'BOMB +1',C.G);SFX.power();}}}
   drops=drops.filter(d=>d.y<LH+12);
@@ -201,6 +203,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
   }
   for(const d of drops){const bob=Math.sin(t*0.15+d.y)*2,p=1+Math.sin(t*0.2+d.x)*0.08;
     if(d.k==='core'){if(!img('icon_core',d.x,d.y,0.7*p)){blit(CORE,d.x,d.y,1.4*p);}}
+    else if(d.k==='h'){blit(CAP_H,d.x,d.y+bob,2*p);txt('+',d.x,d.y+bob-4,'#f0fff2',10,'center');txt('REPAIR',d.x,d.y+bob+17,'#79e69b',8,'center');}
     else{const nm=d.k==='w'?'icon_w':d.k==='b'?'icon_b':'icon_s';if(!img(nm,d.x,d.y+bob,p)){const cap=d.k==='w'?CAP_W:d.k==='b'?CAP_B:CAP_S;blit(cap,d.x,d.y+bob,2);}txt(d.k.toUpperCase(),d.x+0.5,d.y+bob-7,C.s0,13,'center');txt(d.k.toUpperCase(),d.x,d.y+bob-8,C.white,13,'center');}}
   for(const e of enemies){
     if(e.k===0){if(!img('scout',e.x,e.y,1+Math.sin(e.t*0.15)*0.04)){const p=1.5+Math.sin(e.t*0.15)*0.12;blit(E1,e.x,e.y,p);}}

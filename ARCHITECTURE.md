@@ -83,3 +83,6 @@ AUTHORED_WAVES in game.js authors three groups for each of waves 1–4. spawnFor
 
 ## Later authored sectors
 AUTHORED_WAVES also defines four groups per wave for 6–9 and 11–14. Groups are 270 ticks apart (150 after the last), wait for at most two remaining enemies, and cannot spawn more than two active lurkers. Wave 9 introduces crawlers; 11–14 use biological enemies throughout. Boss entries are null. Formation state survives Continue, resets per new wave/run, and debug starts bypass the specified wave’s groups. Waves 16+ retain procedural spawning and 90-tick pacing.
+
+## Hull repairs and meter
+Repair drops use k=h and the procedural green CAP_H with a plus and REPAIR label. They occupy a 4% slice of otherwise empty random drops only while hull is damaged; guaranteed weapon drops still take priority. Collection adds one hull, capped at MAX_HULL, with HULL FULL feedback when already repaired. ship.hullDisplay eases towards actual hull by at most 0.08 per fixed step when unpaused; lifecycle resets snap it to actual hull. Only the display interpolates: damage remains three hits.

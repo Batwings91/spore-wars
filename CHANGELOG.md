@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-07 — Hull repair pickups and continuous health bar
+- Add green REPAIR capsules: non-guaranteed enemy drops have a 4% repair chance while hull is damaged, taken from previously empty drops. Each repairs one hull point, capped at full health; core/bomb/shield chances and guaranteed weapons are unchanged.
+- Replace hull squares with a smoothly animated green/amber/red bar and health percentage. Keep three-hit hull damage; pause freezes the meter, while new ships/new runs/Continue reset it.
+
 ## 2026-09-07 — Author the infected and biological sectors
 - Extend the formation table through waves 6–9 and 11–14, with four groups per wave: single lurkers among mechanical enemies, crawler introductions before the Mech, then biological formations before the Brood Mother. Cap active lurkers at two.
 - Use 4.5-second group intervals and a 2.5-second minimum after the final group. Seeded tracking benchmarks reach boss warnings at 64.0/64.4 seconds; the opening remains 40.5 seconds. Preserve enemy/boss stats, drop rules, boss shortcuts and wave 16+ spawning.
