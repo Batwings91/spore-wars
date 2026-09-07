@@ -73,3 +73,6 @@ Check LIVES and shield protection at zero, one and two charges. The taller bomb 
 
 ## Hull health
 Check three hull segments on launch. A shield hit spends only a shield. Unshielded hits reduce hull 3 → 2 → 1; another loses one life and restores hull for the replacement ship. Only ship loss drops weapon level/resets rockets. Repeated collisions during 40-tick protection and god mode do not damage hull. Final death shows empty hull; Continue/new run restores it. Checkpoints and Workshop visits preserve damage. Confirm core banking remains once per earned core.
+
+## Bitmap text and overlays
+Inspect boot, title, HUD, floating scores, boss labels, pause/confirmation, game over, sector complete and Workshop. Check uppercase/lowercase, punctuation, score alignment, long instructions and quiet credits; no system font should be used. Verify selected rows match arrows/Enter/touch and all prior click rectangles. Check desktop and landscape phone readability, full and empty hull/shields, maximum score width and illustration fallbacks.

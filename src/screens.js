@@ -4,10 +4,10 @@ function drawPanels(){
   ctx.save();
   ctx.fillStyle='#09121d';ctx.fillRect(0,0,X(PX),H);ctx.fillRect(X(PX+PW),0,X(LW-PX-PW),H);
   ctx.fillStyle='#263f4e';ctx.fillRect(X(PX-1),0,X(1),H);ctx.fillRect(X(PX+PW),0,X(1),H);
-  const label=(s,x,y,align)=>{ctx.font=Math.round(9*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.textAlign=align||'left';ctx.textBaseline='top';ctx.fillText(s,X(x),X(y));};
+  const label=(s,x,y,align)=>txt(s,x,y,'#91a7b5',9,align);
   const panel=(x,y,w,h)=>{ctx.fillStyle='#0e1c29';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.fillStyle='#294251';ctx.fillRect(X(x),X(y),X(w),X(0.5));};
   const key=(s,x,y)=>{ctx.strokeStyle='#49616f';ctx.lineWidth=1;ctx.strokeRect(X(x),X(y),X(10),X(11));label(s,x+5,y+1,'center');};
-  const box=(x,y,w,h,label,val,col)=>{panel(x,y,w,h);ctx.font=Math.round(9*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(label,X(x+8),X(y+6));if(val!==undefined)txt(val,x+8,y+21,col,15);};
+  const box=(x,y,w,h,label,val,col)=>{panel(x,y,w,h);txt(label,x+8,y+6,'#91a7b5',9);if(val!==undefined)txt(val,x+8,y+21,col,15);};
   box(12,12,PX-24,44,'SCORE',String(score).padStart(6,'0'),C.yellow);
   box(12,64,PX-24,44,'BEST',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
   box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(139),24,22);
@@ -16,13 +16,13 @@ function drawPanels(){
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
   box(12,284,PX-24,64,'HULL');
   for(let i=0;i<MAX_HULL;i++){ctx.fillStyle=i<ship.hull?(ship.hull===1?'#ed8474':'#78d7b0'):'#243542';ctx.fillRect(X(20+i*22),X(307),X(16),X(12));}
-  ctx.font=X(7)+'px monospace';ctx.fillStyle=ship.hull===1?'#ed8474':'#91a7b5';ctx.textAlign='center';ctx.fillText(ship.hull===0?'DESTROYED':ship.hull===1?'CRITICAL':'SHIP HEALTH',X(PX/2),X(330));
+  txt(ship.hull===0?'DESTROYED':ship.hull===1?'CRITICAL':'SHIP HEALTH',PX/2,330,ship.hull===1?'#ed8474':'#91a7b5',7,'center');
   const rx=PX+PW+12,rw=LW-PX-PW-24;
   box(rx,12,rw,44,'GUN',GUN[wpn].n,C.cyan);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?C.cyan:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(18),X(4),X(8));}
   box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(18),X(18));ctx.globalAlpha=1;}
-  ctx.font=X(7)+'px monospace';ctx.fillStyle=shield?'#91cbd3':'#e5a08e';ctx.textAlign='center';ctx.fillText(shield+' '+(shield===1?'hit protected':'hits protected'),X(rx+rw/2),X(99));
+  txt(shield+' '+(shield===1?'hit left':'hits left'),rx+rw/2,99,shield?'#91cbd3':'#e5a08e',7,'center');
   box(rx,116,rw,44,'RUN CORES',String(cores),C.cyan);
-  ctx.font=Math.round(7*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.fillText('For upgrades',X(rx+8),X(151));
+  txt('Upgrades',rx+8,151,'#91a7b5',7);
   box(rx,168,rw,80,'BOMBS');if(!TOUCH)key('X',rx+rw-15,171);
   for(let i=0;i<6;i++){
     const bx=rx+16+(i%3)*22,by=197+Math.floor(i/3)*26;
@@ -60,9 +60,9 @@ function pauseTap(p){
 const TITLE_BUTTONS=[{x:40,y:178,w:230,h:38},{x:40,y:224,w:230,h:32},{x:40,y:264,w:230,h:30}];
 // Translucent surfaces keep the scene visible; text remains fully opaque.
 function glassPanel(x,y,w,h,accent){
-  ctx.save();ctx.fillStyle='rgba(5,12,22,0.55)';ctx.fillRect(X(x),X(y),X(w),X(h));
+  ctx.save();ctx.fillStyle='rgba(5,12,22,0.48)';ctx.fillRect(X(x),X(y),X(w),X(h));
   ctx.strokeStyle=accent||'#435765';ctx.lineWidth=X(0.5);ctx.strokeRect(X(x)+0.5,X(y)+0.5,X(w)-1,X(h)-1);
-  ctx.fillStyle=accent||'#597481';ctx.fillRect(X(x),X(y),X(2),X(h));ctx.restore();
+  ctx.fillStyle=accent||'#597481';ctx.fillRect(X(x+12),X(y),X(Math.min(28,w-24)),X(1));ctx.restore();
 }
 function titleScreen(){
   ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);
@@ -89,18 +89,23 @@ function titleScreen(){
     if(!TOUCH)txt(i===0?'ENTER':i===1?'Q':'M',b.x+b.w-10,b.y+12,'#7e9aa9',9,'right');
   });
   txt(TOUCH?'Drag to move / tap BOMB to clear fire':'ARROWS / WASD  move    X  bomb    P  pause',40,313,'#93a9b8',10);
-  ctx.save();ctx.font=X(7)+'px monospace';ctx.fillStyle='#788a98';ctx.textAlign='left';ctx.textBaseline='top';
-  ctx.fillText('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',X(40),X(336));
-  ctx.fillText('Music: Alexandr Zhelanov / Illustrated by 640k games.',X(40),X(348));ctx.restore();
+  txt('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',40,336,'#788a98',7);
+  txt('Music: Alexandr Zhelanov / Illustrated by 640k games.',40,348,'#788a98',7);
 }
 
+// These rectangles match the existing keyboard and touch option bounds.
+function menuChoice(label,x,y,w,h,selected,size=12){
+  ctx.save();ctx.fillStyle=selected?'rgba(31,109,128,0.45)':'rgba(8,19,29,0.3)';ctx.fillRect(X(x),X(y),X(w),X(h));
+  if(selected){ctx.strokeStyle='#85deeb';ctx.lineWidth=1;ctx.strokeRect(X(x)+0.5,X(y)+0.5,X(w)-1,X(h)-1);ctx.fillStyle='#85deeb';ctx.fillRect(X(x),X(y+6),X(2),X(h-12));}
+  txt(label,x+w/2,y+(h-7*Math.max(2,Math.round(size*K/10))/K)/2,selected?'#eefbff':'#a4b8c6',size,'center');ctx.restore();
+}
 function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RETRY','CONTINUE','WORKSHOP','MAIN MENU'];}
 function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action==='CONTINUE')continueRun();else if(action==='WORKSHOP'){shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
 function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,210,'#b86a72');
   if(score>=save.best&&score>0)txt('NEW BEST!',PX+PW-32,85,C.yellow,9,'right');
   txt('FLEET LOST',LW/2,96,C.red,28,'center');txt('score '+score+' / wave '+level,LW/2,132,C.white,14,'center');
   txt(cores+' run cores saved / '+save.cores+' available',LW/2,153,C.cyan,11,'center');
-  deadOptions().forEach((label,i)=>txt((deadSel===i?'> ':'')+label,LW/2,178+i*23,deadSel===i?C.white:'#a4b8c6',14,'center'));
+  deadOptions().forEach((label,i)=>menuChoice(label,LW/2-130,176+i*23,260,22,deadSel===i,12));
   txt(TOUCH?'Tap an option':'UP/DOWN choose / ENTER select',LW/2,274,'#a4b8c6',9,'center');}
 
 function pauseScreen(){
@@ -110,8 +115,7 @@ function pauseScreen(){
   else txt('Shields absorb hits. Empty hull costs a life.',LW/2,145,'#a4b8c6',10,'center');
   const y=exitConfirm?190:174,labels=exitConfirm?['KEEP PLAYING','RETURN TO MAIN MENU']:['RESUME','MAIN MENU'];
   labels.forEach((label,i)=>{const hot=exitConfirm?exitChoice===i:pauseSel===i;
-    glassPanel(LW/2-130,y+i*44,260,30,hot?'#56dcf1':'#526675');
-    txt((hot?'> ':'')+label,LW/2,y+i*44+8,hot?C.white:'#a4b8c6',12,'center');});
+    menuChoice(label,LW/2-130,y+i*44,260,30,hot);});
   if(!TOUCH)txt(exitConfirm?'UP/DOWN choose / ENTER select / ESC resume':'UP/DOWN choose / ENTER select / ESC resume',LW/2,264,'#a4b8c6',9,'center');
 }
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
@@ -130,7 +134,7 @@ function sectorScreen(){
   txt('+'+sectorBanked+' cores banked',LW/2,133,C.cyan,14,'center');
   txt(save.cores+' cores available for upgrades',LW/2,154,'#a4b8c6',12,'center');
   for(const [i,label] of ['VISIT WORKSHOP','NEXT LEVEL'].entries()){
-    glassPanel(LW/2-130,184+i*44,260,32,i===sectorSel?'#55c5d8':'#526675');txt((i===sectorSel?'> ':'')+label,LW/2,194+i*44,C.white,13,'center');}
+    menuChoice(label,LW/2-130,184+i*44,260,32,i===sectorSel,13);}
   if(!TOUCH)txt('UP/DOWN choose / ENTER select / Q Workshop',LW/2,272,'#a4b8c6',10,'center');
 }
 
@@ -144,7 +148,7 @@ function shopScreen(){
     ctx.fillStyle='#111b23';ctx.fillRect(X(104),X(135),X(22),X(8));ctx.fillRect(X(148),X(130),X(22),X(8));ctx.fillRect(X(116),X(170),X(47),X(5));
     ctx.fillStyle='#29333c';ctx.fillRect(X(20),X(265),X(250),X(34));
   }
-  const small=(text,x,y,col,size=9,align='left')=>{ctx.font=X(size)+'px monospace';ctx.fillStyle=col;ctx.textAlign=align;ctx.textBaseline='top';ctx.fillText(text,X(x),X(y));};
+  const small=(text,x,y,col,size=9,align='left')=>txt(text,x,y,col,size,align);
   const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');

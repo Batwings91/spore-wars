@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-07 — Bitmap text and overlay presentation
+- Extend the studio Logo 5x7 alphabet into a complete printable ASCII font with lowercase; render all game text through cached bitmap strips, removing system-font variation.
+- Lighten translucent panels and use consistent selected rows on pause, exit confirmation, game over and level completion. Touch targets, menu actions and gameplay remain unchanged.
+
 ## 2026-09-07 — Ship hull health
 - Add three hull segments per ship. Shields absorb hits first; unshielded hits remove one segment with 40 ticks of protection. Only hull depletion loses a life and reduces the weapon level.
 - Fresh ships, new runs and Continue restore hull; checkpoints and Workshop visits preserve damage. Add a HULL meter and increase spacing below LIVES.

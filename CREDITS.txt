@@ -108,3 +108,5 @@ Alien salvage trader (assets/trader_shop.webp):
 
 Everything else — code, sound synthesis, procedural art, design — © 640K Games.
 (The music is Alexandr Zhelanov's under CC-BY 3.0, credited above; it is not ours.)
+
+Game UI bitmap alphabet: extended from the 640K Games Logo repository’s original 5x7 letterforms, with added lowercase, numerals and punctuation. Original studio artwork, © 640K Games.

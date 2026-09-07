@@ -71,3 +71,6 @@ shopScreen draws trader_shop.webp with a procedural merchant fallback. The three
 
 ## Player hull
 ship.hull starts at MAX_HULL (3). hitShip consumes shields before hull, grants 40 logic ticks of protection after nonfatal hull damage, and uses the existing ship-loss path only at zero hull. Remaining lives spawn with full hull; final death retains zero. New runs and Continue restore hull; sector/Workshop transitions preserve it. Hull is run state and is not persisted in the upgrade save.
+
+## Bitmap text
+UI_GLYPHS in scene.js extends the studio Logo 5x7 font to printable ASCII. txt caches up to 128 coloured text strips, scales them without smoothing and handles left/centre/right alignment. Screen labels and merchandise copy use this renderer too. menuChoice draws existing option rectangles without changing input bounds.
