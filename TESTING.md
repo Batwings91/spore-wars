@@ -6,7 +6,7 @@ cd spore-wars
 python3 -m http.server 8000
 # open http://localhost:8000/index.html
 ```
-Do **not** open `index.html` by double-clicking: `file://` blocks the music fetch (images still load). `dist/spore-wars.html` can be double-clicked because everything is inlined.
+Do **not** open `index.html` by double-clicking: `file://` blocks the music fetch (images still load). The same applies to `dist/index.html`, whose illustrations and music are separate files: serve `dist/` over http (`node tools/serve.js` then `http://localhost:8000/dist/index.html`).
 
 ## Query-string shortcuts (dev and dist)
 | Param | Effect |
@@ -50,11 +50,11 @@ Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['
 ```
 node tools/smoke.js
 ```
-Needs Node 22+ and a Chrome/Edge install (no npm packages), with the dev build served on port 8000. It drives headless Chrome over the DevTools protocol through boot → title → menu arrows → mute → play → pause → resume → quit via the confirmation → Workshop → Esc, then dies at `?wave=4` and returns to the title. Screenshots land in `tools/smoke-out/` (gitignored); exit code 1 on any page error, rAF starvation, or if the ship never dies. `URL=http://localhost:8000/dist/spore-wars.html node tools/smoke.js` tests the release build. Run it before every gameplay commit; look at the screenshots, not just the exit code.
+Needs Node 22+ and a Chrome/Edge install (no npm packages), with the dev build served on port 8000. It drives headless Chrome over the DevTools protocol through boot → title → menu arrows → mute → play → pause → resume → quit via the confirmation → Workshop → Esc, then dies at `?wave=4` and returns to the title. Screenshots land in `tools/smoke-out/` (gitignored); exit code 1 on any page error, rAF starvation, or if the ship never dies. `URL=http://localhost:8000/dist/index.html node tools/smoke.js` tests the release build. Run it before every gameplay commit; look at the screenshots, not just the exit code.
 
 ## Release checklist
-1. `python3 tools/build.py` (or `node tools/build.js` — same bytes) → `dist/spore-wars.html`; check size (target < 8 MB for Poki; currently ~4.8 MB).
-2. Open dist by double-click: assets and music load, no errors.
+1. `node tools/build.js` (or `python3 tools/build.py` — same bytes) → `dist/index.html` + `dist/assets/`. The build prints the initial-download size (target < 8 MB for Poki; ~2.5 MB) and the deferred size.
+2. Serve `dist/` over http and run `URL=http://localhost:8000/dist/index.html node tools/smoke.js`: illustrations, music, no errors. Zip the dist/ folder with index.html at the root.
 3. CREDITS.txt reflects every asset in `assets/`.
 4. Commit with a version tag.
 

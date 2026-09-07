@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-06 — Release build under 8 MB, fractional scaling, credits disclosure
+- dist/ is now a folder: index.html with the PNG sprites inlined (~2.5 MB initial download) plus dist/assets/ holding the WebP illustrations and the music, loaded after boot. Core sprites gate the boot screen; illustrations use their fallbacks until they arrive. dist/ is no longer committed (built at release). build.js/build.py updated identically; tools/serve.js added for machines without Python.
+- Removed assets/nebula_bg.png (208 KB, referenced by nothing).
+- Canvas scales fractionally below 2× so a 1080p window fills; integer steps from 2× up.
+- CREDITS.txt: upfront AI-generated content disclosure; the closing line no longer claims the music.
+
 ## 2026-09-06 — Review fixes: collisions, audio, render loop, Battleship scaling
 - A shot now hits one enemy per tick and spent shots skip the enemy loop; before, a spent shot (y=-99) could kill a scout still queued above the screen at y=-104, and a live shot hit every overlapping enemy at once.
 - Lurker tentacle tips no longer explode (and play the boom) every tick while the ship is invulnerable.

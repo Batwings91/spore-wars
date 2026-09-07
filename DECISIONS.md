@@ -16,3 +16,5 @@ Format: **Decision** — reason. Date. Add new ones at the bottom; don't delete 
 12. **Bosses every 5th wave; Battleship first; Mech and Mothership next; then rotate.** Gives runs shape; boss deaths are the natural rewarded-ad moment. 2026-09-05.
 13. **Procedural fallbacks retained for every asset.** Game must never break on a missing image; also useful when testing without assets. 2026-09-04.
 14. **Debug via URL params (`?god=1`, `?wave=N`), not in-game menus.** Zero UI cost, harmless if a player finds them; strip or gate before Poki if required. 2026-09-05.
+15. **dist/ is built at release time and not committed; illustrations and music load after boot as separate files.** The single-file bundle reached 8.1 MB (over Poki's ~8 MB initial-load guidance) once the WebP illustrations arrived, and committing a 5–8 MB blob per change bloated the repo. Core sprites gate the boot screen; illustrations fall back until loaded. Supersedes #7's "single file". 2026-09-06.
+16. **Fractional canvas scaling below 2×, integer steps above.** Integer-only scaling left 1080p players with a 1280×720 island and could not fill portal iframes. Refines #5's trade-off note. 2026-09-06.

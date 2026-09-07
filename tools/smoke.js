@@ -37,7 +37,7 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   // Navigate, then wait until resource loading has settled (the boot screen ignores keys until assets are in),
   // plus the boot screen's own 60-tick minimum.
   const go=async url=>{await send('Page.navigate',{url});let last=-1,stable=0;
-    for(let i=0;i<80;i++){await sleep(500);const n=await evalJs("performance.getEntriesByType('resource').length");if(n===last&&n>=40)stable++;else stable=0;last=n;if(stable>=2)break;}
+    for(let i=0;i<80;i++){await sleep(500);const n=await evalJs("performance.getEntriesByType('resource').length");if(n===last&&i>=2)stable++;else stable=0;last=n;if(stable>=2)break;}
     await sleep(1500);};
 
   await go(BASE);

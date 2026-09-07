@@ -13,15 +13,17 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 ```
 index.html          dev build — loads ./assets/ PNG/WebP images and fly.m4a. Serve over http (see below); file:// won't fetch the music.
 assets/             final game sprites (already palette-reduced/outlined), music
-tools/build.py      inlines assets into a single file → dist/spore-wars.html (this is what we upload to portals)
-tools/build.js      identical Node port of build.py — use whichever runtime the machine has
-dist/               release artefact (regenerate with build.py; don't hand-edit)
+tools/build.js      release build → dist/ (build.py is the identical Python version; use whichever runtime the machine has)
+tools/serve.js      dev server on port 8000 (or python3 -m http.server 8000)
+tools/smoke.js      headless regression run; see TESTING.md
+dist/               release artefact, NOT committed (gitignored): dist/index.html with the PNG sprites inlined plus dist/assets/ (WebP
+                    illustrations + music, loaded after boot). Build at release time and zip the folder with index.html at the root.
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)
 CREDITS.txt         licence/attribution for every third-party asset. Keep it accurate; it ships with the game.
 (logo)              the 640K Games logo lives outside this repo in `../Logo` (its own git repo; gen.js is the source). Copy exports into assets/ as needed. © 640K Games, not CC.
 CHANGELOG.md        one entry per session
 ```
-Run locally: `python3 -m http.server 8000` in the project folder, open `http://localhost:8000/index.html`.
+Run locally: `node tools/serve.js` (or `python3 -m http.server 8000`) in the project folder, open `http://localhost:8000/index.html`.
 Debug URL params: `?god=1` (invulnerable), `?wave=4` (start at wave N; bosses arrive when `(level+1)%5===0`, so `?wave=4` gives an immediate boss).
 
 ## Architecture
@@ -46,7 +48,7 @@ Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop
 3. Score multiplier chain; DOS-style high-score initials + local table; pause (P); faster game-over→retry.
 4. Rewarded-ad hooks: continue, double cores. Keep as clearly-labelled stubs until an SDK is chosen (CrazyGames SDK first, Poki SDK later).
 5. Portrait layout for phones.
-6. itch.io page (cover, GIF, description with credits/links) → CrazyGames Basic Launch → Poki submission (check current official developer docs before each; verify size limits — dist is ~4.8 MB, Poki guidance was <8 MB initial load).
+6. itch.io page (cover, GIF, description with credits/links) → CrazyGames Basic Launch → Poki submission (check current official developer docs before each; verify size limits — dist/index.html is the initial download (~2.5 MB); the ~4.5 MB of illustrations and music load after boot. Poki guidance was <8 MB initial load).
 7. Later ideas: enemy ladder (cruiser/destroyer/heavycruiser unused so far), Tyrian ground/wall tiles for a surface stage, Human fleet as second faction, better logo/font, CC0 SFX pack from OGA if synth SFX not good enough.
 
 ## Working agreement between assistants
@@ -54,4 +56,4 @@ Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop
 - Prefer small, reviewable changes over rewrites. Keep the single-IIFE structure unless the owner agrees to a refactor.
 - Don't rebalance and refactor in the same commit.
 - Never regress: the procedural fallbacks, touch controls, mute persistence, and the debug params must keep working.
-- Rebuild dist/ (`python3 tools/build.py` or `node tools/build.js`) before any release/upload.
+- Build dist/ (`node tools/build.js` or `python3 tools/build.py`) at release time only; it is not committed.

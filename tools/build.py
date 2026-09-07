@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Inline every file in assets/ into index.html and write dist/spore-wars.html (single-file release build)."""
-import base64,json,os,re
+"""Release build -> dist/. PNG sprites are inlined into dist/index.html; WebP illustrations and the music are copied to
+dist/assets/ and load after boot. Upload the dist/ folder as one zip with index.html at the root. Same output as build.js."""
+import base64,json,os,re,shutil
 root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+assets=os.path.join(root,'assets');dist=os.path.join(root,'dist');dist_assets=os.path.join(dist,'assets')
 src=open(os.path.join(root,'index.html'),encoding='utf8').read()
-data={}
-for f in sorted(os.listdir(os.path.join(root,'assets'))):
-    name,ext=os.path.splitext(f)
-    if ext in ('.png','.webp'):
-        data[name]='data:image/'+ext[1:]+';base64,'+base64.b64encode(open(os.path.join(root,'assets',f),'rb').read()).decode()
-music='data:audio/mp4;base64,'+base64.b64encode(open(os.path.join(root,'assets','fly.m4a'),'rb').read()).decode()
+shutil.rmtree(dist,ignore_errors=True);os.makedirs(dist_assets)
+data={};copied=0;copied_bytes=0
+for f in sorted(os.listdir(assets)):
+    name,ext=os.path.splitext(f);full=os.path.join(assets,f)
+    if ext=='.png':
+        data[name]='data:image/png;base64,'+base64.b64encode(open(full,'rb').read()).decode()
+    else:
+        shutil.copyfile(full,os.path.join(dist_assets,f));copied+=1;copied_bytes+=os.path.getsize(full)
 out=re.sub(r"const ASSET_DATA=\{.*?\};[^\n]*\n","const ASSET_DATA="+json.dumps(data)+";\n",src,count=1,flags=re.S)
-out=re.sub(r"const MAIN_TRACK='[^']*';","const MAIN_TRACK='"+music+"';",out,count=1)
-os.makedirs(os.path.join(root,'dist'),exist_ok=True)
-open(os.path.join(root,'dist','spore-wars.html'),'w',encoding='utf8').write(out)
-print('wrote dist/spore-wars.html',len(out)//1024,'KB')
+open(os.path.join(dist,'index.html'),'w',encoding='utf8').write(out)
+print('wrote dist/index.html',len(out.encode('utf8'))//1024,'KB (initial download); dist/assets/',copied,'files',copied_bytes//1024,'KB loaded after boot')

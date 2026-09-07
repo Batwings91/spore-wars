@@ -26,15 +26,22 @@ function fit(){const s=Math.min(innerWidth/W,innerHeight/H);const sc=s<2?s:Math.
 addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
-const ASSET_DATA={}; // dev build: assets load from ./assets/ (tools/build.py inlines them for dist)
+const ASSET_DATA={}; // dev: everything loads from ./assets/. dist: tools/build.js inlines the PNG sprites here; the WebP illustrations and the music stay as files in dist/assets/.
 const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/fly.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
-(function(){const singles=["trader_shop","logo_prompt","logo_icon","mothership_body","mech_body","battleship_hull","world_foundry","world_salvage","world_heart","crawler_body","lurker_body","menu_hangar","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+(function(){
+  // Core sprites gate the boot screen. The large WebP illustrations (ASSET_EXT) load in the background: every
+  // draw site falls back until they arrive, and keeping them out of the inline bundle holds the initial download
+  // under the portals' size guidance.
+  const singles=["logo_prompt","logo_icon","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
+  const deferred=Object.keys(ASSET_EXT);
   const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
-  for(const n of singles){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));}
-  for(const n in strips){const im=new Image();im.onload=()=>{STRIP[n]={img:im,n:strips[n],w:im.width/strips[n],h:im.height};done();};im.onerror=()=>{assetsFailed=true;done();};im.src=ASSET_DATA[n]||('assets/'+n+'.png');}
+  const load=(n,onload,gate)=>{const im=new Image();im.onload=()=>{onload(im);if(gate)done();};im.onerror=()=>{if(gate){assetsFailed=true;done();}};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));};
+  for(const n of singles)load(n,im=>{IMG[n]=im;},true);
+  for(const n in strips)load(n,im=>{STRIP[n]={img:im,n:strips[n],w:im.width/strips[n],h:im.height};},true);
+  for(const n of deferred)load(n,im=>{IMG[n]=im;},false);
 })();
 function img(name,x,y,sc,alpha){const im=IMG[name];if(!im)return false;sc=sc||1;if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.drawImage(im,X(x)-Math.round(im.width*sc/2),X(y)-Math.round(im.height*sc/2),Math.round(im.width*sc),Math.round(im.height*sc));if(alpha!==undefined)ctx.globalAlpha=1;return true;}
 function strip(name,frame,x,y,sc){const st=STRIP[name];if(!st)return false;sc=sc||1;const f=Math.max(0,Math.min(st.n-1,Math.floor(frame)));ctx.drawImage(st.img,f*st.w,0,st.w,st.h,X(x)-Math.round(st.w*sc/2),X(y)-Math.round(st.h*sc/2),Math.round(st.w*sc),Math.round(st.h*sc));return true;}
