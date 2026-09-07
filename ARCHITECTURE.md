@@ -77,3 +77,6 @@ UI_GLYPHS in scene.js extends the studio Logo 5x7 font to printable ASCII. txt c
 
 ## Victory presentation
 drawVictorySweep uses 200-waveT during sectorPending. sectorScreen uses its mode timer for a 30-tick reveal and 60-tick cosmetic core tally; real banking still happens once in completeSector. Early Enter/tap/Q completes the reveal without activating an option. Workshop return starts at t=60 to avoid replaying the tally.
+
+## Opening pacing
+OPENING_WAVES in game.js authors three groups for each of waves 1–4. spawnOpeningGroup sets a 240-tick interval (120 after the last); another group waits for at most two remaining enemies. Opening wave advancement waits for all groups and a clear field. openingGroup resets on normal newRun; debug starts initialise it to 3 so ?wave=4 still enters the boss warning immediately. Later waves retain the original 90-tick pacing.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-07 — Authored opening formations
+- Give waves 1–4 three small formations each: tracking scouts, lane changes, diving bombers, then aimed-fire frigates. Space groups four seconds apart, with a two-second minimum after the last group and a clear-field requirement before advancing.
+- 23 enemies before the first boss; seeded tracking benchmark reaches its warning at 40.5 seconds versus 8.8–10.1 previously. Enemy stats, drop probabilities, boss stats and later-wave pacing are unchanged. Debug wave starts bypass opening formation tracking.
+
 ## 2026-09-07 — Boss victory transition
 - Harden smoke-test readiness and assert play/pause/resume states; allow an alternate debugging port for isolated runs.
 - Announce level completion during the existing salvage sweep, then fade/slide in the results panel and count up earned cores. No reward, boss timing or balance changes.

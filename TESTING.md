@@ -81,3 +81,6 @@ Inspect boot, title, HUD, floating scores, boss labels, pause/confirmation, game
 Defeat each boss: LEVEL COMPLETE appears during the existing 200-tick salvage sweep. Pause freezes the announcement; completion fades in over 30 ticks and the banked-core display counts up over 60. Early Enter/tap/Q finishes the tally only, then a second deliberate input can choose Workshop/Next level. Returning from Workshop shows the completed tally without banking again. Check zero/new cores, keyboard and touch, and no automatic next-level launch.
 
 Smoke driver: waits for the actual boot asset gate and checks play/pause/resume states. Set SMOKE_PORT to a free debugging port when running an isolated second test.
+
+## Opening formations
+Play a normal run: three groups per opening wave, alternate lanes, dives in wave 3 and frigates in wave 4; no early wave advance or boss warning. Track a full clear of 23 enemies; do not expect a fixed real-player completion time. Check pause freezes group timing, Continue clears existing enemies without replaying completed groups, new run resets, and ?wave=4 still gives the immediate boss. Wave 6 retains its existing lurker formation. Seeded ideal tracking benchmark: warning around 40.5 seconds; this is a timing check, not a human difficulty assessment.

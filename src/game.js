@@ -2,19 +2,37 @@
 // Run state, kill chain, newRun, guns, wave spawning.
 let mode='boot',t=0,blink=0,shopSel=0,scroll=0,lastW=0;
 let boss=null,bossWarn=0,bossDying=0,bossCount=0;let muzz=0,shieldHit=0,floats=[],evt=0,evtText='',evtCol='#fff',rings=[],bombs=0,bombFx=0,slow=0;let ship,shots,eshots,enemies,drops,booms,score,lives,cores,wpn,shield,usedContinue,shake,flash,waveT,level,fireT,hint,kills;
+let openingGroup=0;
 let bankedCores=0,sectorPending=false,sectorBanked=0,shopFromSector=false;
 const MAX_HULL=3;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(){sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+function newRun(){openingGroup=STARTWAVE?3:0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(STARTWAVE)level=STARTWAVE;}
 const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:14},{n:'STORM',dmg:2,rate:14}];const MAXW=4;
 const spd=()=>3.7+save.engine*0.5;
 const R={0:17,1:20,2:23,3:30,4:20};
-function spawnWave(){level++;if(level>1)SFX.wave();const n=Math.min(8,3+Math.floor(level/2));
-  // Opening: scouts, scouts, diving bombers, aimed-fire frigates, then the boss.
-  let kind=level<=4?[0,0,1,2][level-1]:(level%4===3?2:(level%3===0?1:0));
+// Three authored beats per opening wave: learn tracking, lane changes, dives, then aimed fire.
+// Entries are [enemy kind, count, horizontal fraction of the playfield].
+const OPENING_WAVES=[
+  [[0,2,0.5],[0,2,0.28],[0,2,0.72]],
+  [[0,2,0.25],[0,2,0.75],[0,2,0.5]],
+  [[0,2,0.5],[1,2,0.3],[1,2,0.7]],
+  [[2,1,0.5],[1,2,0.5],[2,2,0.5]]
+];
+function spawnOpeningGroup(){
+  const [kind,count,lane]=OPENING_WAVES[level-1][openingGroup++];
+  for(let i=0;i<count;i++){
+    const x=PX+PW*lane+(kind===2?(i-(count-1)/2)*110:0);
+    if(kind===0)enemies.push({k:0,x,y:-24-i*80,ph:i*0.6,hp:1,t:0});
+    else if(kind===1)enemies.push({k:1,x:x+(i?24:-24),y:-24-i*90,hp:1,t:0});
+    else enemies.push({k:2,x,y:-24-i*30,hp:3,t:0,ct:60+i*20});
+  }
+  waveT=openingGroup<3?240:120;
+}
+function spawnWave(){level++;if(level>1)SFX.wave();if(level>=1&&level<=4){openingGroup=0;spawnOpeningGroup();return;}waveT=90;const n=Math.min(8,3+Math.floor(level/2));
+  let kind=level%4===3?2:(level%3===0?1:0);
   if(level>=6&&level%3===0)kind=3;if(level>=9&&level%4===1)kind=4;
   const base=level===1?PX+PW/2:PX+56+Math.random()*(PW-112);
   for(let i=0;i<n;i++){
