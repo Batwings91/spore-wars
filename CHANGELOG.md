@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-07 — Ship hull health
+- Add three hull segments per ship. Shields absorb hits first; unshielded hits remove one segment with 40 ticks of protection. Only hull depletion loses a life and reduces the weapon level.
+- Fresh ships, new runs and Continue restore hull; checkpoints and Workshop visits preserve damage. Add a HULL meter and increase spacing below LIVES.
+
+## 2026-09-07 — HUD clarity
+- Rename SHIPS to LIVES and show how many hits the shield protects against; pause explains that an unshielded hit costs a life. Existing damage and pause controls are unchanged.
+- Replace the numeric bomb count with six lit/empty bomb silhouettes in a taller panel; extend its touch target to match.
+- Title illustration credit now reads “Illustrated by 640k games.”; third-party credits remain intact.
+
 ## 2026-09-06 — Split index.html into src/*.js
 - The game script is now eleven files under src/ (core, sprites, weapons, scene, audio, input, game, bosses, play, screens, main), loaded by index.html in that order. Each is a contiguous slice of the old IIFE body: no code reordered or changed. build.js/build.py inline them for dist/. Verified headless on both the dev build and the built dist.
 

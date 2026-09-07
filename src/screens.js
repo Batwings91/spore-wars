@@ -10,19 +10,30 @@ function drawPanels(){
   const box=(x,y,w,h,label,val,col)=>{panel(x,y,w,h);ctx.font=Math.round(9*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(label,X(x+8),X(y+6));if(val!==undefined)txt(val,x+8,y+21,col,15);};
   box(12,12,PX-24,44,'SCORE',String(score).padStart(6,'0'),C.yellow);
   box(12,64,PX-24,44,'BEST',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
-  box(12,116,PX-24,44,'SHIPS');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(131),24,22);
+  box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(139),24,22);
   box(12,168,PX-24,44,'WAVE',boss||bossWarn?'BOSS':String(level),boss||bossWarn?C.red:C.text);
   box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
-  label('3 kills: +1x',PX/2,284,'center');
+  box(12,284,PX-24,64,'HULL');
+  for(let i=0;i<MAX_HULL;i++){ctx.fillStyle=i<ship.hull?(ship.hull===1?'#ed8474':'#78d7b0'):'#243542';ctx.fillRect(X(20+i*22),X(307),X(16),X(12));}
+  ctx.font=X(7)+'px monospace';ctx.fillStyle=ship.hull===1?'#ed8474':'#91a7b5';ctx.textAlign='center';ctx.fillText(ship.hull===0?'DESTROYED':ship.hull===1?'CRITICAL':'SHIP HEALTH',X(PX/2),X(330));
   const rx=PX+PW+12,rw=LW-PX-PW-24;
   box(rx,12,rw,44,'GUN',GUN[wpn].n,C.cyan);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?C.cyan:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(18),X(4),X(8));}
-  box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(24),X(24));ctx.globalAlpha=1;}
+  box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(18),X(18));ctx.globalAlpha=1;}
+  ctx.font=X(7)+'px monospace';ctx.fillStyle=shield?'#91cbd3':'#e5a08e';ctx.textAlign='center';ctx.fillText(shield+' '+(shield===1?'hit protected':'hits protected'),X(rx+rw/2),X(99));
   box(rx,116,rw,44,'RUN CORES',String(cores),C.cyan);
   ctx.font=Math.round(7*K)+'px monospace';ctx.fillStyle='#91a7b5';ctx.fillText('For upgrades',X(rx+8),X(151));
-  box(rx,168,rw,44,'BOMBS',bombs+' / 6',C.G);if(!TOUCH)key('X',rx+rw-15,171);
+  box(rx,168,rw,80,'BOMBS');if(!TOUCH)key('X',rx+rw-15,171);
+  for(let i=0;i<6;i++){
+    const bx=rx+16+(i%3)*22,by=197+Math.floor(i/3)*26;
+    ctx.save();ctx.globalAlpha=i<bombs?1:0.2;
+    ctx.fillStyle='#8a642e';ctx.fillRect(X(bx-6),X(by+3),X(12),X(6));
+    ctx.fillStyle=i<bombs?'#e1b96c':'#70808a';ctx.beginPath();ctx.ellipse(X(bx),X(by),X(4.5),X(9),0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff0c1';ctx.fillRect(X(bx-2),X(by-5),X(1.5),X(8));
+    ctx.fillStyle='#493a28';ctx.fillRect(X(bx-4),X(by+3),X(8),X(2));ctx.restore();
+  }
   if(IMG.logo_icon)ctx.drawImage(IMG.logo_icon,X(rx+rw/2)-32,X(LH-46),64,64);else label('640K GAMES',rx+rw/2,LH-30,'center');
-  panel(rx,LH-88,rw,30);txt(SFX.isMuted()?'SOUND OFF':'SOUND ON',rx+rw/2-(TOUCH?0:5),LH-78,SFX.isMuted()?'#91a7b5':C.cyan,9,'center');if(!TOUCH)key('M',rx+rw-15,LH-79);if(TOUCH)label('TAP TO USE',rx+rw/2,216,'center');ctx.restore();}
+  panel(rx,LH-88,rw,30);txt(SFX.isMuted()?'SOUND OFF':'SOUND ON',rx+rw/2-(TOUCH?0:5),LH-78,SFX.isMuted()?'#91a7b5':C.cyan,9,'center');if(!TOUCH)key('M',rx+rw-15,LH-79);if(TOUCH)label('TAP TO USE',rx+rw/2,254,'center');ctx.restore();}
 function playScene(){const sx=shake?Math.round((Math.random()-0.5)*shake):0,sy=shake?Math.round((Math.random()-0.5)*shake):0;
   ctx.save();ctx.translate(sx,sy);drawField();ctx.restore();drawPanels();
   drawWorldNotice();
@@ -80,7 +91,7 @@ function titleScreen(){
   txt(TOUCH?'Drag to move / tap BOMB to clear fire':'ARROWS / WASD  move    X  bomb    P  pause',40,313,'#93a9b8',10);
   ctx.save();ctx.font=X(7)+'px monospace';ctx.fillStyle='#788a98';ctx.textAlign='left';ctx.textBaseline='top';
   ctx.fillText('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',X(40),X(336));
-  ctx.fillText('Music: Alexandr Zhelanov / Illustrations: AI-assisted',X(40),X(348));ctx.restore();
+  ctx.fillText('Music: Alexandr Zhelanov / Illustrated by 640k games.',X(40),X(348));ctx.restore();
 }
 
 function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RETRY','CONTINUE','WORKSHOP','MAIN MENU'];}
@@ -96,6 +107,7 @@ function pauseScreen(){
   glassPanel(PX+40,90,PW-80,190,'#55c5d8');
   txt(exitConfirm?'RETURN TO MAIN MENU?':'PAUSED',LW/2,108,'#d2e8ef',exitConfirm?20:28,'center');
   if(exitConfirm){txt('Your cores will be saved.',LW/2,145,'#a4b8c6',12,'center');txt('This run will end.',LW/2,163,'#a4b8c6',12,'center');}
+  else txt('Shields absorb hits. Empty hull costs a life.',LW/2,145,'#a4b8c6',10,'center');
   const y=exitConfirm?190:174,labels=exitConfirm?['KEEP PLAYING','RETURN TO MAIN MENU']:['RESUME','MAIN MENU'];
   labels.forEach((label,i)=>{const hot=exitConfirm?exitChoice===i:pauseSel===i;
     glassPanel(LW/2-130,y+i*44,260,30,hot?'#56dcf1':'#526675');

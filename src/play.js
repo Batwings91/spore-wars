@@ -2,7 +2,9 @@
 // Gameplay update(): collisions, drops, pickups, bombs; enemy/ship drawing and drawField().
 function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,kind:big?'exp_big':'exp_small'});for(let i=0;i<(big?10:4);i++)booms.push({x,y,vx:(Math.random()-0.5)*(big?6:4),vy:(Math.random()-0.5)*(big?6:4),life:12+Math.random()*12});}
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();return;}
-  resetRockets();chain=0;chainT=0;lives--;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  ship.hull--;
+  if(ship.hull>0){ship.inv=40;shake=6;flash=3;SFX.hit();addFloat(ship.x,ship.y-40,ship.hull===1?'HULL CRITICAL':'HULL DAMAGED',C.red);return;}
+  resetRockets();chain=0;chainT=0;lives--;ship.hull=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;

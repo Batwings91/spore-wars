@@ -68,3 +68,6 @@ Dev needs no build step. `tools/build.js` inlines the files into `dist/index.htm
 
 ## Trader presentation
 shopScreen draws trader_shop.webp with a procedural merchant fallback. The three existing upgrades use square tiles (x292 + 110 per item, y82..198, width102). Tiles select; Buy (x292..500, y298..330) purchases and Back (x510..614, same y) returns. drawEquipmentPreview uses the actual player sprite/fallback and shared drawGunMounts, drawShieldLayers and drawEngines renderers. Tiles show the next purchasable tier, or the owned maximum. Engine housings/exhaust are cosmetic and follow save.engine. The backdrop subtly scales around the merchant while UI remains fixed. Keyboard ordering and purchase logic are unchanged. Product copy shows permanent ownership, next effect and shortfall.
+
+## Player hull
+ship.hull starts at MAX_HULL (3). hitShip consumes shields before hull, grants 40 logic ticks of protection after nonfatal hull damage, and uses the existing ship-loss path only at zero hull. Remaining lives spawn with full hull; final death retains zero. New runs and Continue restore hull; sector/Workshop transitions preserve it. Hull is run state and is not persisted in the upgrade save.

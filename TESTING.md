@@ -67,3 +67,9 @@ Check illustrated merchant and all three cards at zero funds, affordable funds a
 Shop directional navigation: Left/Right cycle the three product tiles. Down from any tile selects Back; repeated Down stays there. Up restores the last product without changing its details. Enter activates the selection.
 
 Equipment previews: buy each tier and confirm NEXT advances, then OWNED stays on the maximum tier. Gun previews match Twin/Triple mounts on a new run; shield previews match one/two active layers (a hit removes a layer); engines show one/two/three cooling bands per housing and update in the current run. Verify player.png fallback, insufficient funds and maximum-tier purchases.
+
+## HUD clarity
+Check LIVES and shield protection at zero, one and two charges. The taller bomb panel has six slots in two rows: only available bombs are lit, including zero and full capacity. Tap its lower row to fire; paused taps must spend nothing. Pause defaults to Resume; Enter resumes, Down selects Main menu, Enter opens confirmation, and Esc resumes without exiting. Title illustration credit stays small and third-party attribution remains visible.
+
+## Hull health
+Check three hull segments on launch. A shield hit spends only a shield. Unshielded hits reduce hull 3 → 2 → 1; another loses one life and restores hull for the replacement ship. Only ship loss drops weapon level/resets rockets. Repeated collisions during 40-tick protection and god mode do not damage hull. Final death shows empty hull; Continue/new run restores it. Checkpoints and Workshop visits preserve damage. Confirm core banking remains once per earned core.

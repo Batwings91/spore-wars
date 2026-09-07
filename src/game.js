@@ -3,10 +3,11 @@
 let mode='boot',t=0,blink=0,shopSel=0,scroll=0,lastW=0;
 let boss=null,bossWarn=0,bossDying=0,bossCount=0;let muzz=0,shieldHit=0,floats=[],evt=0,evtText='',evtCol='#fff',rings=[],bombs=0,bombFx=0,slow=0;let ship,shots,eshots,enemies,drops,booms,score,lives,cores,wpn,shield,usedContinue,shake,flash,waveT,level,fireT,hint,kills;
 let bankedCores=0,sectorPending=false,sectorBanked=0,shopFromSector=false;
+const MAX_HULL=3;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(){sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+function newRun(){sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld();chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(STARTWAVE)level=STARTWAVE;}
 const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:14},{n:'STORM',dmg:2,rate:14}];const MAXW=4;
 const spd=()=>3.7+save.engine*0.5;
