@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-07 — Author the infected and biological sectors
+- Extend the formation table through waves 6–9 and 11–14, with four groups per wave: single lurkers among mechanical enemies, crawler introductions before the Mech, then biological formations before the Brood Mother. Cap active lurkers at two.
+- Use 4.5-second group intervals and a 2.5-second minimum after the final group. Seeded tracking benchmarks reach boss warnings at 64.0/64.4 seconds; the opening remains 40.5 seconds. Preserve enemy/boss stats, drop rules, boss shortcuts and wave 16+ spawning.
+
 ## 2026-09-07 — Authored opening formations
 - Give waves 1–4 three small formations each: tracking scouts, lane changes, diving bombers, then aimed-fire frigates. Space groups four seconds apart, with a two-second minimum after the last group and a clear-field requirement before advancing.
 - 23 enemies before the first boss; seeded tracking benchmark reaches its warning at 40.5 seconds versus 8.8–10.1 previously. Enemy stats, drop probabilities, boss stats and later-wave pacing are unchanged. Debug wave starts bypass opening formation tracking.

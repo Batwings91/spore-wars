@@ -38,9 +38,9 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.y<LH+20&&s.x>PX&&s.x<PX+PW);
   waveT--;
   if(boss||bossWarn>0||bossDying>0){ if(boss&&!boss.mother&&!bossDying&&t%240===0&&enemies.length<3){for(let i=0;i<2;i++)enemies.push({k:0,x:PX+60+Math.random()*(PW-120),y:-30-i*40,ph:i,hp:1,t:0});} }
-  else if(!sectorPending&&level>=1&&level<=4&&openingGroup<3){if(waveT<=0&&enemies.length<=2)spawnOpeningGroup();}
+  else if(!sectorPending&&AUTHORED_WAVES[level-1]&&formationGroup<AUTHORED_WAVES[level-1].length){if(waveT<=0&&enemies.length<=2)spawnFormationGroup();}
   else if(!sectorPending&&enemies.length===0&&waveT<=0){if((level+1)%5===0){startBossWarning();}else{spawnWave();}}
-  else if(!sectorPending&&level>4&&waveT<=0&&enemies.length<4&&(level+1)%5!==0){spawnWave();}
+  else if(!sectorPending&&!AUTHORED_WAVES[level-1]&&waveT<=0&&enemies.length<4&&(level+1)%5!==0){spawnWave();}
   updateBoss();updateWorld();
   for(const e of enemies){e.t++;
     if(e.k===0){e.y+=1.1+level*0.04;e.x+=Math.sin(e.t*0.05+e.ph)*1.8;}
