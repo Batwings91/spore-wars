@@ -1,6 +1,22 @@
 # Architecture
 
-All game code is one IIFE in `index.html`. No framework, no build step for dev.
+No framework, no bundler. The game code is plain classic scripts in `src/`, loaded by `index.html` in this fixed order (each file is a contiguous slice of the old single IIFE, so top-level initialisers only depend on earlier files; top-level `let`/`const` are shared across the scripts just as they were inside the IIFE):
+
+| File | Contents |
+|---|---|
+| `src/core.js` | Canvas, scaling, asset loading, debug params, palette and the pixel-sprite helpers. |
+| `src/sprites.js` | Procedural fallback sprites: player ship, flames, the three basic enemies, explosion frames. |
+| `src/weapons.js` | Player bolts, gun mounts, and the gun-level-four homing rockets. |
+| `src/scene.js` | Enemy plasma, pickups, shield ring, core icon, background tile, stars, the three worlds, and the bevel/keycap/txt primitives. |
+| `src/audio.js` | SFX: synthesised 8-bit effects, OPL-style fallback music, streamed main track, mute, tab audio ownership. |
+| `src/input.js` | Save data, keyboard, pointer/touch handlers, pause-on-blur. |
+| `src/game.js` | Run state, kill chain, newRun, guns, wave spawning. |
+| `src/bosses.js` | Battleship, Mech and Brood Mother: update, bombs, illustrated and fallback drawing, health bar. |
+| `src/play.js` | Gameplay update(): collisions, drops, pickups, bombs; enemy/ship drawing and drawField(). |
+| `src/screens.js` | HUD panels, play scene, boot, title, pause, game over, sector complete and Workshop screens. |
+| `src/main.js` | Run transitions (clearScene/quitRun/continueRun), the fixed-step loop, stepLogic() and render(). |
+
+Dev needs no build step. `tools/build.js` inlines the files into `dist/index.html` for release. Add new code to the file whose topic fits; add a new file only by appending a `<script src>` tag after the files it depends on.
 
 ## Systems
 - **Resolution:** logic runs in a 640×360 space (`LW,LH`), rendered at 1280×720 (`K=2`, `X(v)` converts). Playfield is `PX..PX+PW` (100..540 logic) with bevelled HUD panels either side. 16:9 is mandatory for Poki/CrazyGames. Portrait/phone-upright layout is a wanted future feature.

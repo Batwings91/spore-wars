@@ -1,0 +1,50 @@
+'use strict';
+// Save data, keyboard, pointer/touch handlers, pause-on-blur.
+const KEY='640k.sporewars.v3';let save={cores:0,best:0,weapon:0,shield:0,engine:0};
+try{const s=localStorage.getItem(KEY);if(s)save=Object.assign(save,JSON.parse(s));}catch(e){}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
+
+const keys={};let tapped=false,tapSrc='key';
+const KEYMAP={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',KeyA:'l',KeyD:'r',KeyW:'u',KeyS:'d'};
+addEventListener('keydown',e=>{
+  if(e.code==='KeyM'&&!e.repeat){SFX.toggleMute();}
+  if(mode==='play'){
+    if(e.code==='Escape'||e.code==='KeyP'){e.preventDefault();if(!e.repeat)setPaused(!paused);return;}
+    if(paused){
+      e.preventDefault();if(e.repeat)return;
+      if(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'){if(exitConfirm)exitChoice=1-exitChoice;else pauseSel=1-pauseSel;}
+      else if(e.code==='Enter'){if(!exitConfirm){if(pauseSel===0)setPaused(false);else{exitConfirm=true;exitChoice=0;exitWait=15;}}else if(exitChoice===1)quitRun();else setPaused(false);}
+      else if(e.code==='Space')setPaused(false);
+      return;
+    }
+  }
+  if(KEYMAP[e.code]){if(mode==='play')keys[KEYMAP[e.code]]=true;e.preventDefault();}
+  if(e.code==='Space'){if(!e.repeat){tapped=true;tapSrc='key';}e.preventDefault();}
+  if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
+  if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
+  if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){shopFromSector=true;mode='shop';t=0;}else if(mode==='title'||mode==='dead'){shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
+  if(mode==='shop'){
+    if(shopSel<3)shopItem=shopSel;
+    if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=3;
+    else if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=shopItem;
+    else if(shopSel<3&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?2:1))%3;shopItem=shopSel;}
+  }
+  if(mode==='sector'&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
+  if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}
+  if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+2)%3;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%3;}
+  if(e.code==='Escape'&&!e.repeat){if(mode==='shop')leaveShop();else if(mode==='dead'){clearScene();mode='title';t=0;}}
+  if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)continueRun();
+  if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();mode='title';t=0;}
+});
+addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
+// Losing window focus pauses a live run: an alt-tabbed player should not die off-screen.
+addEventListener('blur',()=>{if(mode==='play'&&!paused)setPaused(true);});
+let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
+function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width*LW,y:(p.clientY-r.top)/r.height*LH};}
+function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>PX+PW+12&&p.y>LH-88&&p.y<LH-58&&(mode==='play'||mode==='dead')){SFX.toggleMute();return;}
+  if(mode==='play'&&paused){pauseTap(p);return;}
+  if(mode==='play'&&p.x>PX+PW+12&&p.y>168&&p.y<212){fireBomb();ptr.down=false;return;}ptr.down=true;ptr.x=ptr.lx=p.x;ptr.y=ptr.ly=p.y;ptr.rel=p.y/LH;tapped=true;tapSrc='ptr';}
+function pmove(e){if(mode==='title'&&!e.touches){const p=pos(e),i=TITLE_BUTTONS.findIndex(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);if(i>=0)titleSel=i;}if(!ptr.down)return;if(e.cancelable)e.preventDefault();const p=pos(e);ptr.x=p.x;ptr.y=p.y;}
+function pup(e){if(e.cancelable)e.preventDefault();ptr.down=false;}
+addEventListener('mousedown',pdown);addEventListener('mousemove',pmove);addEventListener('mouseup',pup);
+addEventListener('touchstart',pdown,{passive:false});addEventListener('touchmove',pmove,{passive:false});addEventListener('touchend',pup,{passive:false});

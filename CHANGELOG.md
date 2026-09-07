@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-06 — Split index.html into src/*.js
+- The game script is now eleven files under src/ (core, sprites, weapons, scene, audio, input, game, bosses, play, screens, main), loaded by index.html in that order. Each is a contiguous slice of the old IIFE body: no code reordered or changed. build.js/build.py inline them for dist/. Verified headless on both the dev build and the built dist.
+
 ## 2026-09-06 — Release build under 8 MB, fractional scaling, credits disclosure
 - dist/ is now a folder: index.html with the PNG sprites inlined (~2.5 MB initial download) plus dist/assets/ holding the WebP illustrations and the music, loaded after boot. Core sprites gate the boot screen; illustrations use their fallbacks until they arrive. dist/ is no longer committed (built at release). build.js/build.py updated identically; tools/serve.js added for machines without Python.
 - Removed assets/nebula_bg.png (208 KB, referenced by nothing).

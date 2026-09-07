@@ -2,7 +2,7 @@
 // Headless smoke test over raw Chrome DevTools Protocol. No npm dependencies: needs Node 22+ (global fetch/WebSocket)
 // and a Chrome/Edge install. Serve the project first (any static server on port 8000), then:
 //   node tools/smoke.js            -> runs the flow, writes screenshots to tools/smoke-out/, exits 1 on page errors
-//   URL=http://localhost:8000/dist/spore-wars.html node tools/smoke.js   (test the release build instead)
+//   URL=http://localhost:8000/dist/index.html node tools/smoke.js   (test the release build instead)
 // Flow: boot -> title -> menu arrows -> mute toggle -> play -> pause -> resume -> quit via confirmation -> workshop
 // -> Esc; then ?wave=4 without god mode until the fleet is lost -> Esc back to title.
 const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');

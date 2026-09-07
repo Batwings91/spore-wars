@@ -11,7 +11,8 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 
 ## Layout
 ```
-index.html          dev build — loads ./assets/ PNG/WebP images and fly.m4a. Serve over http (see below); file:// won't fetch the music.
+index.html          dev build — loads src/*.js in order plus ./assets/. Serve over http (see below); file:// won't fetch the music.
+src/                the game code, one topic per file (core, sprites, weapons, scene, audio, input, game, bosses, play, screens, main); see ARCHITECTURE.md
 assets/             final game sprites (already palette-reduced/outlined), music
 tools/build.js      release build → dist/ (build.py is the identical Python version; use whichever runtime the machine has)
 tools/serve.js      dev server on port 8000 (or python3 -m http.server 8000)
@@ -53,7 +54,7 @@ Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop
 
 ## Working agreement between assistants
 - One assistant edits at a time; commit with a clear message before handing over. Read the diff of the other's last commit before continuing.
-- Prefer small, reviewable changes over rewrites. Keep the single-IIFE structure unless the owner agrees to a refactor.
+- Prefer small, reviewable changes over rewrites. Keep the src/ file layout and load order (ARCHITECTURE.md); no framework or bundler.
 - Don't rebalance and refactor in the same commit.
 - Never regress: the procedural fallbacks, touch controls, mute persistence, and the debug params must keep working.
 - Build dist/ (`node tools/build.js` or `python3 tools/build.py`) at release time only; it is not committed.
