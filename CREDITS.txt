@@ -1,6 +1,15 @@
 SPORE WARS — a 640K Games production
 ====================================
 
+AI-generated content disclosure
+-------------------------------
+Some illustrations are AI-assisted: generated with OpenAI image generation under 640K Games' art
+direction, then edited, encoded and composed by 640K Games. Each is listed individually below
+(the three world backdrops, the Mothership, Mech and Battleship bodies, the crawler and lurker
+bodies, the title hangar and the salvage trader). Everything else - sprites derived from the
+credited packs, the studio logo, procedural art, code and sound synthesis - is human-made.
+Declare this on store pages that ask (itch.io has an AI-generation disclosure field).
+
 Art credits
 -----------
 Organic Mothership (assets/mothership_body.webp):
@@ -92,9 +101,10 @@ Studio logo (assets/logo_prompt.png, assets/logo_icon.png):
   The 640K Games prompt wordmark and icon, exported from the studio's master SVG artwork
   at integer pixel scales. © 640K Games, all rights reserved. Not covered by the CC licences above.
 
-Everything else — code, sound synthesis, music, procedural art, design — © 640K Games.
-
 Alien salvage trader (assets/trader_shop.webp):
   Original AI-assisted artwork generated with OpenAI for 640K Games, 2026-09-06.
   No third-party source pack used. Quality-86 WebP, original dimensions, lossy colour encoding.
   Product text, icons and controls are rendered separately by the game.
+
+Everything else — code, sound synthesis, procedural art, design — © 640K Games.
+(The music is Alexandr Zhelanov's under CC-BY 3.0, credited above; it is not ours.)
