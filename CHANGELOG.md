@@ -1,7 +1,13 @@
 # Changelog
 
+## 2026-09-08 — Review fixes for the terrain/audio update
+- Ground sentries no longer vanish when a boss warning starts: spawning is suppressed and live units fall silent and scroll off. Sentries cannot be shot before they are on screen. Fallback sentry gradients are cached.
+- Title TEST buttons are audible with that channel switched off; music keeps playing through sector travel.
+- Removed the unreachable procedural drawLurker(); title audio rows no longer overlap the hangar art.
+- Docs: restored missing spaces around numbers in TESTING/ARCHITECTURE; DECISIONS #18 records the music change.
+
 ## 2026-09-08 — More salvage and escalating ground encounters
-- Increased ordinary core drops to45% and added one core per destroyed ground enemy.
+- Increased ordinary core drops to 45% and added one core per destroyed ground enemy.
 - Added harmless, scrolling wrecks; increased ground density through each stage.
 
 ## 2026-09-08 — Clearer support rocket animation
