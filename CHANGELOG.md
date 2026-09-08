@@ -276,3 +276,32 @@ Removed thin weapon support rails and pod outlines. Added SIEGE as the fifth upg
 
 ## Earlier side support and ground aftermath
 Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
+
+## Painted Spore Wilds
+Replaced level 3 provisional scenery with the approved painted Spore Wilds: mushroom fans, roots and amber pods around a dark central clearing. Deferred WebP loading, existing reflection scroll and procedural fallback retained; no gameplay changes.
+
+## Painted Seeder
+Added a painted Seeder with amber incubation sacs, violet chitin and a restrained paired-organ charge glow. Existing movement, attack cadence, HP, collisions and rewards are unchanged; procedural fallback retained.
+
+## Enemy hit feedback
+Removed rectangular airborne/ground hit flashes. Brief additive redraws follow the actual rendered artwork, including procedural parts, without Canvas filters (mobile Safari compatible). Small warm sparks or pink/amber spore puffs mark the collision point; bosses use the same impact effects and a gentler existing silhouette flash. Verify alpha boundaries, no tint leaking into scenery/player/UI, fallback art, rapid fire, pause and performance. Damage and collision logic remain unchanged.
+
+## Painted Seed Matriarch
+Added painted petal-armoured Seed Matriarch, subtle breathing and seed-organ glow. Preserved attacks/HP/hit area and procedural fallback. Campaign bosses now use their own hit-highlight silhouette rather than a legacy mech overlay; removed their rectangular phase overlay.
+
+## Painted Living Labyrinth
+Living Labyrinth (waves 16–20) uses deferred world_labyrinth.webp: ivory chitin ribs over dark wine tissue with a quiet central flight lane. Existing procedural scenery and reflected scrolling remain; encounters and balance are unchanged.
+
+## Painted Needle
+Kind 7 now uses deferred needle_body.webp: narrow ivory armour over wine-coloured segments, with the existing pulse and a charge glow. Original procedural fallback, movement, single shot, HP and collision radius remain unchanged.
+
+## Painted Tendril Warden
+Kind-3 boss uses deferred warden_body.webp within the existing compact boss bounds, with subtle breathing and amber charge/phase glow. Procedural fallback and safe-lane warning remain. No attack, HP, collision or reward changes.
+
+## Painted Brood Heart
+Final level (waves 21–25) uses deferred world_brood.webp: vascular folds, amber incubators and a quiet membrane flight lane. Reflected scrolling and procedural fallback remain unchanged, with no encounter or balance changes. Legacy world_heart asset is retained.
+
+## Painted Colony
+Kind 8 uses deferred colony_body.webp: five fused amber spore sacs, ivory ridges and a lower firing mouth. Existing pulse, charge timing and procedural fallback remain. No movement, HP, collision or attack changes.
+
+Final visual review: boss hull impacts use the shared impact effect; Seeder and Matriarch charge glows preserve inherited hit-flash opacity.

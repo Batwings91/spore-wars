@@ -127,3 +127,27 @@ GUN/MAXW/BOLT/GUN_PORTS now cover six states; SIEGE index 5 uses unchanged centr
 
 ## Earlier side support and ground aftermath
 Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
+
+## Painted Spore Wilds
+Spore Wilds (world index 2, waves 11–15) now uses deferred world_wilds.webp. WORLD_TILES[2] remains the fallback; the existing reflected image scrolling path is unchanged.
+
+## Painted Seeder
+drawCampaignCreature uses deferred seeder_body.webp for kind 6 with the existing pulse; its procedural branch remains the fallback. Charge glow follows ct<45 and the existing eligible firing y range.
+
+## Painted Seed Matriarch
+Seed Matriarch uses deferred matriarch_body.webp within existing compact boss bounds. drawCampaignBoss accepts notice=false for hit redraws so telegraph text is not drawn twice. Campaign boss flashes redraw their own body; phase effects no longer overlay a rectangle.
+
+## Painted Living Labyrinth
+Living Labyrinth (waves 16–20) uses deferred world_labyrinth.webp: ivory chitin ribs over dark wine tissue with a quiet central flight lane. Existing procedural scenery and reflected scrolling remain; encounters and balance are unchanged.
+
+## Painted Needle
+Kind 7 now uses deferred needle_body.webp: narrow ivory armour over wine-coloured segments, with the existing pulse and a charge glow. Original procedural fallback, movement, single shot, HP and collision radius remain unchanged.
+
+## Painted Tendril Warden
+Kind-3 boss uses deferred warden_body.webp within the existing compact boss bounds, with subtle breathing and amber charge/phase glow. Procedural fallback and safe-lane warning remain. No attack, HP, collision or reward changes.
+
+## Painted Brood Heart
+Final level (waves 21–25) uses deferred world_brood.webp: vascular folds, amber incubators and a quiet membrane flight lane. Reflected scrolling and procedural fallback remain unchanged, with no encounter or balance changes. Legacy world_heart asset is retained.
+
+## Painted Colony
+Kind 8 uses deferred colony_body.webp: five fused amber spore sacs, ivory ridges and a lower firing mouth. Existing pulse, charge timing and procedural fallback remain. No movement, HP, collision or attack changes.

@@ -38,7 +38,10 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
     for(let i=0;i<120;i++){ready=await evalJs("typeof assetsReady!=='undefined'&&(assetsReady||assetsFailed)&&typeof t!=='undefined'&&t>60");if(ready)break;await sleep(250);}
     if(!ready)throw new Error('Boot assets did not settle within 30 seconds');
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
-    await sleep(1500);};
+    await sleep(1500);
+    // Art checks require deferred illustrations, which do not gate the game boot.
+    let artReady=false;for(let i=0;i<120;i++){artReady=await evalJs("Object.keys(ASSET_EXT).every(k=>IMG[k])");if(artReady)break;await sleep(250);}
+    if(!artReady)throw Error('Deferred artwork did not load within 30 seconds');};
 
 
 
@@ -58,5 +61,28 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   await shot('campaign-victory');
   await check("const w=level;for(let i=0;i<200;i++)stepLogic();if(level!==w||mode!=='victory')throw Error('end must wait');chooseSector(0);if(mode!=='play'||level!==0||worldStage!==0||campaignLoop!==1||bankedCores!==0)throw Error('hard replay reset');spawnWave();if(enemies[0].hp!==2)throw Error('harder HP');mode='victory';chooseSector(1);if(mode!=='title')throw Error('victory menu');newRun();if(campaignLoop)throw Error('normal launch resets challenge');");
   await go(BASE+'?wave=24');await evalJs('requestAnimationFrame=()=>0');await sleep(100);await check("newRun();mode='play';stepLogic();if(level!==25||!bossWarn||worldStage!==4)throw Error('debug finale');newRun(1);if(level!==0||worldStage!==0)throw Error('debug harder replay must start at beginning');");
+
+  await check("newRun();mode='play';level=11;worldStage=worldFrom=2;worldFade=0;worldNotice=0;ship.inv=0;hint=0;const art=IMG.world_wilds;if(!art||WORLDS[2].asset!=='world_wilds')throw Error('Wilds image');const h=Math.round(art.height*X(PW)/art.width);worldScroll=h-1;render()");await shot('wilds-seam-before');
+  await check("worldScroll++;render()");await shot('wilds-seam');
+  await check("worldScroll++;render();const before=worldScroll;paused=true;stepLogic();if(worldScroll!==before)throw Error('paused scroll');paused=false;const art=IMG.world_wilds;delete IMG.world_wilds;render();IMG.world_wilds=art;");await shot('wilds-fallback');
+  await check("worldScroll=0;render()");await shot('wilds-painted');
+  await check("if(!IMG.seeder_body)throw Error('Seeder image missing');enemies=[{k:6,x:320,y:120,hp:6,t:60,ph:0,ct:22}];const before=JSON.stringify(enemies);render();if(JSON.stringify(enemies)!==before)throw Error('render mutation')");await shot('wilds-seeder');
+  await check("const art=IMG.seeder_body;delete IMG.seeder_body;render();IMG.seeder_body=art;");await shot('wilds-seeder-fallback');
+  await check("enemies=[{k:6,x:320,y:120,hp:6,t:60,ph:0,ct:60,flash:0}];booms=[];render();const normal=ctx.getImageData(X(298),X(98),88,88).data;enemies[0].flash=4;render();const hit=ctx.getImageData(X(298),X(98),88,88).data;let changes=0;for(let i=0;i<hit.length;i++)if(hit[i]!==normal[i])changes++;if(!changes)throw Error('no hit tint');for(const i of [0,87*4,87*88*4,(88*88-1)*4])for(let c=0;c<3;c++)if(normal[i+c]!==hit[i+c])throw Error('rectangular flash');if(ctx.filter!=='none')throw Error('filter leak');addHitImpact(320,135,true);render()");await shot('organic-hit');
+  await check("enemies=[{k:2,x:320,y:120,hp:3,t:60,ct:60,flash:4}];booms=[];addHitImpact(320,135,false);render()");await shot('mechanical-hit');
+  await check("newRun();mode='play';level=15;worldStage=worldFrom=2;worldFade=0;worldNotice=0;ship.inv=0;hint=0;spawnBoss();boss.y=boss.ty;boss.flash=3;boss.phase=2;boss.fireT=22;if(!IMG.matriarch_body)throw Error('Matriarch missing');const draw=ctx.drawImage;let wrong=false;ctx.drawImage=function(im,...args){if(im===IMG.boss_mech||im===IMG.boss_mech_fire)wrong=true;return draw.call(this,im,...args);};render();ctx.drawImage=draw;if(wrong)throw Error('wrong boss hit sprite');");await shot('matriarch-hit-phase2');
+  await check("const art=IMG.matriarch_body;delete IMG.matriarch_body;render();IMG.matriarch_body=art;");await shot('matriarch-fallback');
+  await check("newRun();mode='play';level=16;worldStage=worldFrom=3;worldFade=0;worldNotice=0;ship.inv=0;hint=0;if(!IMG.world_labyrinth||WORLDS[3].asset!=='world_labyrinth')throw Error('Labyrinth image');worldScroll=0;render()");await shot('labyrinth-painted');
+  await check("const h=Math.round(IMG.world_labyrinth.height*X(PW)/IMG.world_labyrinth.width);for(const y of [h-1,h,h+1,h*2-1,h*2,h*2+1]){worldScroll=y;render();}const before=worldScroll;paused=true;stepLogic();if(worldScroll!==before)throw Error('Labyrinth pause');paused=false;");await shot('labyrinth-seam');
+  await check("const art=IMG.world_labyrinth;delete IMG.world_labyrinth;render();IMG.world_labyrinth=art;");await shot('labyrinth-fallback');
+  await check("newRun();mode='play';level=16;worldStage=worldFrom=3;worldFade=0;worldNotice=0;hint=0;ship.inv=0;if(!IMG.needle_body)throw Error('Needle missing');enemies=[{k:7,x:280,y:110,hp:3,t:60,ph:0,ct:22},{k:7,x:320,y:130,hp:3,t:75,ph:0,ct:80,flash:4},{k:7,x:360,y:110,hp:3,t:90,ph:0,ct:80}];const before=JSON.stringify(enemies);render();if(JSON.stringify(enemies)!==before)throw Error('Needle render mutation');if(ctx.globalAlpha!==1||ctx.globalCompositeOperation!=='source-over')throw Error('Needle canvas leak');");await shot('labyrinth-needles');
+  await check("const art=IMG.needle_body;delete IMG.needle_body;render();IMG.needle_body=art;");await shot('needle-fallback');
+  await check("newRun();mode='play';level=20;worldStage=worldFrom=3;worldFade=0;worldNotice=0;hint=0;ship.inv=0;spawnBoss();boss.y=boss.ty;boss.fireT=22;boss.phase=2;boss.flash=3;if(!IMG.warden_body)throw Error('Warden missing');const before=JSON.stringify(boss);render();if(JSON.stringify(boss)!==before)throw Error('Warden render mutation');");await shot('warden-painted');
+  await check("const art=IMG.warden_body;delete IMG.warden_body;render();IMG.warden_body=art;");await shot('warden-fallback');
+  await check("newRun();mode='play';level=21;worldStage=worldFrom=4;worldFade=0;worldNotice=0;hint=0;ship.inv=0;if(!IMG.world_brood||WORLDS[4].asset!=='world_brood')throw Error('Brood image');worldScroll=0;render();");await shot('brood-painted');
+  await check("const h=Math.round(IMG.world_brood.height*X(PW)/IMG.world_brood.width);for(const y of [h-1,h,h+1,h*2-1,h*2,h*2+1]){worldScroll=y;render();}const before=worldScroll;paused=true;stepLogic();if(worldScroll!==before)throw Error('Brood pause');paused=false;");await shot('brood-seam');
+  await check("const art=IMG.world_brood;delete IMG.world_brood;render();IMG.world_brood=art;");await shot('brood-fallback');
+  await check("worldScroll=0;enemies=[{k:8,x:280,y:110,hp:8,t:60,ph:0,ct:22},{k:8,x:360,y:130,hp:8,t:80,ph:0,ct:80,flash:4}];if(!IMG.colony_body)throw Error('Colony missing');const before=JSON.stringify(enemies);render();if(JSON.stringify(enemies)!==before)throw Error('Colony render mutation');if(ctx.globalAlpha!==1||ctx.globalCompositeOperation!=='source-over')throw Error('Colony canvas leak');");await shot('colony-painted');
+  await check("const art=IMG.colony_body;delete IMG.colony_body;render();IMG.colony_body=art;");await shot('colony-fallback');
   console.log('PASS 25-wave roster, five worlds/bosses, projectiles, checkpoints/shop/travel, final banking, victory wait/replay/menu, debug finale');console.log(errors);ws.close();finish(errors.length?1:0);
 })().catch(e=>{console.error(e);finish(2);});

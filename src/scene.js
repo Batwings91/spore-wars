@@ -27,9 +27,9 @@ const STARS=[];for(let i=0;i<20;i++)STARS.push({x:Math.random()*X(PW),y:Math.ran
 const WORLDS=[
   {name:'ORBITAL FOUNDRY',detail:'OUTER INDUSTRIAL BELT',accent:'#a9b6c0',asset:'world_foundry'},
   {name:'INFECTED SALVAGE',detail:'THE MACHINES ARE CHANGING',accent:'#bc92d5',asset:'world_salvage'},
-  {name:'SPORE WILDS',detail:'THE FOREST IS WATCHING',accent:'#aca978',asset:null},
-  {name:'LIVING LABYRINTH',detail:'THROUGH THE RIBS OF THE WORLD',accent:'#ad9dc3',asset:null},
-  {name:'BROOD HEART',detail:'SILENCE THE SOURCE',accent:'#d69391',asset:'world_heart'}
+  {name:'SPORE WILDS',detail:'THE FOREST IS WATCHING',accent:'#aca978',asset:'world_wilds'},
+  {name:'LIVING LABYRINTH',detail:'THROUGH THE RIBS OF THE WORLD',accent:'#ad9dc3',asset:'world_labyrinth'},
+  {name:'BROOD HEART',detail:'SILENCE THE SOURCE',accent:'#d69391',asset:'world_brood'}
 ];
 const WORLD_TILES=WORLDS.map((world,stage)=>{
   const tile=document.createElement('canvas');tile.width=X(PW);tile.height=TH;

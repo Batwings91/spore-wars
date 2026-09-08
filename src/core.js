@@ -12,7 +12,7 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev: everything loads from ./assets/. dist: tools/build.js inlines the PNG sprites here; the WebP illustrations and the music stay as files in dist/assets/.
-const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',spore_skimmer:'webp',ground_sentries:'webp',ground_bunkers:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
+const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',spore_skimmer:'webp',needle_body:'webp',colony_body:'webp',seeder_body:'webp',warden_body:'webp',matriarch_body:'webp',ground_sentries:'webp',ground_bunkers:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_labyrinth:'webp',world_wilds:'webp',world_foundry:'webp',world_salvage:'webp',world_brood:'webp',world_heart:'webp'};
 const MAIN_TRACK='assets/space-adventure.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
 (function(){

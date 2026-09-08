@@ -5,7 +5,7 @@ AI-generated content disclosure
 -------------------------------
 Some illustrations are AI-assisted: generated with OpenAI image generation under 640K Games' art
 direction, then edited, encoded and composed by 640K Games. Each is listed individually below
-(the three world backdrops, the Mothership, Mech and Battleship bodies, the crawler and lurker
+(the world backdrops, the Mothership, Mech and Battleship bodies, the crawler and lurker
 bodies, the title hangar, the salvage trader and the modular player hull). Everything else - sprites derived from the
 credited packs, the studio logo, procedural art, code and sound synthesis - is human-made.
 Declare this on store pages that ask (itch.io has an AI-generation disclosure field).
@@ -142,3 +142,30 @@ Modular player hull (assets/player_hull.png):
 
 Siege cannon housings and Seeker Orb:
   Original procedural artwork by 640K Games, drawn by game code; no third-party assets.
+
+Spore Wilds background (assets/world_wilds.webp):
+  Original AI-assisted artwork generated with OpenAI image generation for 640K Games, 2026-09-08.
+  Based on the approved original five-world concept sheet; no third-party source pack.
+  Quality-82 WebP, original resolution; scrolling/reflection by game code.
+  Prompt/provenance: docs/spore-wilds-20260908.md.
+
+Seeder body (assets/seeder_body.webp):
+  Original AI-assisted artwork generated with OpenAI image generation for 640K Games, 2026-09-08.
+  Trimmed/resized to 176x176, quality-86 WebP with alpha quality 100.
+  Breathing and firing-organ glow drawn by game code. No third-party asset pack used.
+  Prompt/provenance: docs/seeder-20260908.md.
+
+Seed Matriarch (assets/matriarch_body.webp):
+  Original AI-assisted artwork generated with OpenAI image generation for 640K Games, 2026-09-08.
+  Trimmed, resized to width 432, quality-86 WebP with alpha quality 100.
+  No third-party source pack. Prompt/provenance: docs/matriarch-20260908.md.
+
+Living Labyrinth background (world_labyrinth.webp): original AI-assisted artwork generated with OpenAI under 640K Games direction, 2026-09-08. No third-party asset pack. See docs/labyrinth-20260908.md.
+
+Needle creature (needle_body.webp): original AI-assisted artwork generated with OpenAI under 640K Games direction, 2026-09-08. No third-party asset pack. See docs/needle-20260908.md.
+
+Tendril Warden (warden_body.webp): original AI-assisted artwork generated with OpenAI under 640K Games direction, 2026-09-08. No third-party pack. See docs/warden-20260908.md.
+
+Brood Heart background (world_brood.webp): original AI-assisted OpenAI artwork under 640K Games direction, 2026-09-08. No third-party pack. See docs/brood-heart-20260908.md.
+
+Colony creature (colony_body.webp): original AI-assisted OpenAI artwork under 640K Games direction, 2026-09-08. No third-party pack. See docs/colony-20260908.md.
