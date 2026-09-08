@@ -3,7 +3,11 @@
 // World-space state advances only from updateWorldEncounters(), so pause freezes every tell and collision shape.
 
 const FAUNA_DECOR_H=720;
-const FAUNA_DECOR=Array.from({length:WORLDS.length},(_,stage)=>{
+// Decor tiles are 880x720 canvases (~2.5 MB each): build one on first use and keep only the current stage resident,
+// instead of five at boot. faunaDecor() is the only way in.
+const FAUNA_DECOR=[];
+function faunaDecor(stage){if(!FAUNA_DECOR[stage])FAUNA_DECOR[stage]=buildFaunaDecor(stage);for(const k in FAUNA_DECOR)if(+k!==stage)delete FAUNA_DECOR[k];return FAUNA_DECOR[stage];}
+function buildFaunaDecor(stage){
   const c=document.createElement('canvas');c.width=X(PW);c.height=FAUNA_DECOR_H;
   if(stage===0)return c;
   const g=c.getContext('2d'),h=FAUNA_DECOR_H/K;g.scale(K,K);g.lineCap='round';g.lineJoin='round';
@@ -32,11 +36,11 @@ const FAUNA_DECOR=Array.from({length:WORLDS.length},(_,stage)=>{
     }
   }
   return c;
-});
+}
 
 function drawFaunaBackground(){
   if(worldStage<1)return;
-  const tile=FAUNA_DECOR[worldStage],y=Math.floor(worldScroll%tile.height);
+  const tile=faunaDecor(worldStage),y=Math.floor(worldScroll%tile.height);
   ctx.save();ctx.drawImage(tile,X(PX),y-tile.height);ctx.drawImage(tile,X(PX),y);
   // Waves 21-22 establish the Lattice as distant ecology before its interactive wave-23 sequence.
   if(worldStage===4&&!broodLattice&&level<23){const ly=Math.floor((worldScroll*0.24)%X(430))-X(280);ctx.globalAlpha=0.12;ctx.drawImage(LATTICE_ART,X(PX+PW/2-110),ly);}
@@ -197,7 +201,7 @@ function updateRouteSegment(){
   if(level!==routeLevel){routeLevel=level;routeTimer=240;}
   const eligible=worldStage===3&&level===18&&!faunaSuppressed();
   if(eligible&&routeSpawnedLevel!==level&&--routeTimer<=0){spawnRouteSegment();routeSpawnedLevel=level;}
-  if(routeSegment){routeSegment.y+=1.1/K;resolvePlayerTerrain();keepRouteEntitiesReachable();if(routeSegment.y>LH+30)routeSegment=null;}
+  if(routeSegment){routeSegment.y+=1.1/K;resolvePlayerTerrain();if(routeSegment.y>LH+30)routeSegment=null;}
 }
 
 function spawnBroodLattice(){

@@ -73,7 +73,6 @@ function update(){t++;scroll=(scroll+1.8)%TH;
       if(e.x<PX+16){e.x=PX+16;e.dir=1;}if(e.x>PX+PW-16){e.x=PX+PW-16;e.dir=-1;}}
     if(e.k===2){e.y+=0.6;e.ct--;if(e.ct<=0&&e.y>0){e.ct=90;const a=Math.atan2(ship.y-e.y,ship.x-e.x);eshots.push({x:e.x,y:e.y+8,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4});SFX.plasma();}}
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
-  keepRouteEntitiesReachable();
   updateSideLasers();
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
   for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
@@ -91,7 +90,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
       if(d.k==='h'&&lives>0){const full=ship.hull>=MAX_HULL;ship.hull=Math.min(MAX_HULL,ship.hull+1);pickupEvent(full?'HULL FULL':'HULL REPAIRED', '#79e69b');SFX.power();}
       if(d.k==='s'){shield=Math.min(2,shield+1);pickupEvent('SHIELD',C.cyan);SFX.shield();}
       if(d.k==='b'){const full=bombs>=6;bombs=Math.min(6,bombs+1);pickupEvent(full?'BOMB FULL':'BOMB +1',C.G);SFX.power();}}}
-  keepRouteEntitiesReachable();drops=drops.filter(d=>d.y<LH+12);
+  keepRouteEntitiesReachable();drops=drops.filter(d=>d.y<LH+12); // once per tick, after enemies, ground and drops have moved
   for(const b of booms){if(b.vx!==undefined){b.x+=b.vx;b.y+=b.vy;}b.life--;}booms=booms.filter(b=>b.life>0);if(hint>0)hint--;if(muzz>0)muzz--;if(shieldHit>0)shieldHit--;
   for(const f of floats){f.y-=0.7;f.life--;}floats=floats.filter(f=>f.life>0);for(const r of rings){r.r+=r.big?9:4;r.life--;}rings=rings.filter(r=>r.life>0);if(evt>0)evt--;if(bombFx>0)bombFx--;
   for(const e of enemies)if(e.flash>0)e.flash--;
