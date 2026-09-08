@@ -132,3 +132,6 @@ Run node tools/ship-smoke.js alongside node tools/smoke.js. Inspect all five gun
 
 ## Siege upgrade and Seeker Orb
 Run node tools/ship-smoke.js for six tier tables, Siege firing, orb pickup versus purchased ownership, affordability/duplicate buy, reload, 180-tick launch delay, live missile cap, missing/recovered targets, life loss/Continue, pause and four-item keyboard/touch navigation. Test natural orb drops from wave 6 with no orb; old save should default to no orb. Confirm existing five gun states and core/bomb/repair/shield probabilities stay unchanged. Check large Siege housings and the orb at bottom/side screen edges on mobile; player collision stays central.
+
+## Earlier side support and ground aftermath
+Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.

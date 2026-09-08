@@ -55,8 +55,9 @@ const ROCKET=(()=>{const c=document.createElement('canvas');c.width=20;c.height=
   g.fillStyle='#173348';g.beginPath();g.moveTo(10,1);g.lineTo(15,10);g.lineTo(15,23);g.lineTo(19,30);g.lineTo(1,30);g.lineTo(5,23);g.lineTo(5,10);g.closePath();g.fill();
   g.fillStyle='#819aa7';g.fillRect(6,11,8,17);g.fillStyle='#eaffff';g.fillRect(7,9,3,18);
   g.fillStyle='#54e5ff';g.fillRect(6,14,8,3);g.fillRect(8,29,4,9);return c;})();
-let podOpen=0,rocketT=120,rocketSide=-1,rocketFlash=0;
-function resetRockets(){resetOrb();podOpen=0;rocketT=120;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
+const POD_RELOAD=[0,240,210,180,150,120],POD_LIMIT=[0,1,2,2,3,3];
+let podOpen=0,rocketT=240,rocketSide=-1,rocketFlash=0;
+function resetRockets(){resetOrb();podOpen=0;rocketT=240;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
 function rocketTarget(x,y){
   const candidates=enemies.concat(ground).filter(e=>e.hp>0&&e.y>0&&e.y<y&&e.x>PX&&e.x<PX+PW);
   if(!candidates.length)return boss&&!bossDying&&boss.hp>0&&boss.y>=boss.ty&&boss.y<y?boss:null;
@@ -66,11 +67,12 @@ function rocketTarget(x,y){
 }
 function updateRockets(){
   if(rocketFlash>0)rocketFlash--;
-  podOpen=Math.max(0,Math.min(24,podOpen+(wpn>=3?1:-1)));
-  if(wpn<3)rocketT=120;
-  else if(podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&!s.orb&&s.y>0).length<3){
+  podOpen=Math.max(0,Math.min(24,podOpen+(wpn>=1?1:-1)));
+  if(wpn<1)rocketT=240;
+  else rocketT=Math.min(rocketT,POD_RELOAD[wpn]);
+  if(wpn>=1&&podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&!s.orb&&s.y>0).length<POD_LIMIT[wpn]){
     const x=ship.x+rocketSide*40,target=rocketTarget(x,ship.y);
-    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=120;rocketFlash=12;}
+    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=POD_RELOAD[wpn];rocketFlash=12;}
   }
   updateOrb();
   for(const s of shots){if(!s.rocket||s.y<-50)continue;
@@ -89,7 +91,6 @@ function drawRocketPods(sx=ship.x,sy=ship.y,openTicks=podOpen,flash=rocketFlash,
     ctx.fillStyle='#6a8392';ctx.fillRect(X(Math.min(sx+side*24,x)),X(y+4),X(Math.abs(x-sx-side*24)),X(4));
     ctx.fillStyle='#142331';ctx.fillRect(X(x-6),X(y-8),X(12),X(23));ctx.fillStyle='#9a885f';ctx.fillRect(X(x-5),X(y+12),X(10),X(2));
     ctx.fillStyle='#617b8b';ctx.fillRect(X(x-4),X(y+2),X(8),X(11));ctx.fillStyle='#080e18';ctx.fillRect(X(x-3),X(y-7),X(6),X(7));
-    ctx.fillStyle='#a0b6be';ctx.fillRect(X(x-5),X(y-7-5*ease),X(10),X(3*(1-ease)+1));
     ctx.fillStyle=openTicks<24?'#dca761':'#83efff';ctx.fillRect(X(x+side*3-1),X(y+6),X(2),X(5));
     // Visible magazines use the player missile's silver body and cyan band.
     if(openTicks>=12)for(const offset of [-2,2]){ctx.fillStyle='#c6d5d9';ctx.fillRect(X(x+offset)-1,X(y-4),2,X(9));ctx.fillStyle='#6be7f6';ctx.fillRect(X(x+offset)-1,X(y),2,2);}

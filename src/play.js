@@ -92,9 +92,9 @@ function updateGround(){
   // off with the scenery instead of vanishing mid-screen. The timer is held so the first post-boss spawn waits 240 ticks.
   const suppress=boss||bossWarn||bossDying||sectorPending;if(suppress)groundTimer=Math.max(groundTimer,240);
   if(level<1)return;
-  const progress=Math.min(3,(level-1)%5),cap=progress===3?6:5;
+  const progress=Math.min(3,(level-1)%5),cap=6+progress;
   if(!suppress&&--groundTimer<=0&&ground.length<cap){const n=groundCount++,variant=n%3===2?2:Math.floor(n/3)%2,edge=variant?72:45,x=variant===2?PX+PW/2:(groundSide?PX+PW-edge:PX+edge);if(variant!==2)groundSide=1-groundSide;
-    ground.push({x,y:-28,anchor:worldScroll+56,stage:Math.min(2,worldStage),variant,hp:Math.ceil(4*(1+campaignLoop*0.25)),ct:150,aim:Math.PI/2,flash:0});groundTimer=210-progress*30;}
+    ground.push({x,y:-28,anchor:worldScroll+56,stage:Math.min(2,worldStage),variant,hp:Math.ceil(4*(1+campaignLoop*0.25)),ct:150,aim:Math.PI/2,flash:0});groundTimer=150-progress*20;}
   for(const e of ground){e.y=(worldScroll-e.anchor)/K;if(e.flash>0)e.flash--;
     if(suppress||e.y<24||e.y>LH-90)continue;
     e.ct--;
@@ -107,22 +107,23 @@ function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
   awardKill(40,e.x,e.y);boom(e.x,e.y,true);if(Math.random()<0.5)drops.push({x:e.x,y:e.y,k:'core'}); // 50%: a guaranteed core tripled first-sector income
   groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,variant:e.variant,heat:90,age:0});if(groundWrecks.length>20)groundWrecks.shift();
 }
+const WRECK_SMOKE=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),h=g.createRadialGradient(32,32,3,32,32,31);h.addColorStop(0,'rgba(156,148,137,0.8)');h.addColorStop(0.5,'rgba(104,102,99,0.5)');h.addColorStop(1,'rgba(80,80,80,0)');g.fillStyle=h;g.fillRect(0,0,64,64);return c;})();
 const GROUND_FALLBACK_GRADIENT=[null,null]; // radial gradients are in user space, so one per variant serves every unit
 // Snap to the same scrolling pixel as the scenery, with a fixed world anchor.
 const groundRenderY=anchor=>Math.floor(worldScroll)-Math.floor(anchor);
 function drawGround(){
   for(const w of groundWrecks){ctx.save();ctx.translate(X(w.x),groundRenderY(w.anchor));
-    const r=w.variant===2?29:23;ctx.fillStyle='rgba(5,8,12,0.65)';ctx.beginPath();ctx.ellipse(0,X(3),X(r),X(r*0.7),0,0,Math.PI*2);ctx.fill();
+    const r=w.variant===2?32:27;ctx.fillStyle='rgba(5,8,12,0.4)';ctx.beginPath();ctx.ellipse(0,X(3),X(r),X(r*0.7),0,0,Math.PI*2);ctx.fill();
     // Torn plates/chitin, a charred crater and a collapsed weapon.
-    for(let i=0;i<8;i++){const a=i*2.4+w.variant*0.7,dx=Math.cos(a)*(10+i*1.5),dy=Math.sin(a)*(7+i);
-      ctx.save();ctx.translate(X(dx),X(dy));ctx.rotate(a);ctx.fillStyle=w.stage?'#392b35':'#303638';ctx.strokeStyle=w.stage?'#68505a':'#626762';ctx.lineWidth=1;
+    for(let i=0;i<14;i++){const a=i*2.4+w.variant*0.7,dx=Math.cos(a)*(8+(i*7%23)),dy=Math.sin(a)*(5+(i*11%18));
+      ctx.save();ctx.translate(X(dx),X(dy));ctx.rotate(a);const scale=0.7+(i%3)*0.25;ctx.scale(scale,scale);ctx.fillStyle=w.stage?(i%2?'#654651':'#493039'):(i%2?'#62625a':'#444b4c');ctx.strokeStyle='#1c2023';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(X(-7),X(-4));ctx.lineTo(X(5),X(-3));ctx.lineTo(X(2),0);ctx.lineTo(X(7),X(3));ctx.lineTo(X(-4),X(2));ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}
-    ctx.fillStyle='#0c0d10';ctx.beginPath();ctx.ellipse(0,0,X(w.variant===2?19:13),X(10),-0.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0c0d10';ctx.beginPath();ctx.ellipse(0,0,X(w.variant===2?15:10),X(8),-0.2,0,Math.PI*2);ctx.fill();
     ctx.save();ctx.rotate(0.8+w.variant*0.4);ctx.fillStyle=w.stage?'#49323e':'#454b49';ctx.fillRect(X(5),X(-3),X(13),X(5));ctx.fillStyle='#111216';ctx.fillRect(X(15),X(-3),X(3),X(4));ctx.restore();
     if(w.heat>0){ctx.globalAlpha=w.heat/90;ctx.fillStyle=w.stage?'#c86786':'#d98b46';for(let i=0;i<3;i++)ctx.fillRect(X(i*5-6),X(i%2?3:-2),X(2),X(2));}
-    // Bounded, faint smoke uses logic age so pausing freezes it.
-    for(let i=0;i<3;i++){const age=w.age-i*28;if(age<0||age>=180)continue;const f=age/180;
-      ctx.globalAlpha=0.18*Math.sin(Math.PI*f);ctx.fillStyle='#88827d';ctx.beginPath();ctx.ellipse(X(Math.sin(i*2+w.variant)*4+f*7),X(-5-f*29),X(4+f*9),X(5+f*11),-0.2,0,Math.PI*2);ctx.fill();}
+    // Cached soft puffs: visible smoke without hiding incoming fire; logic age freezes on pause.
+    for(let i=0;i<8;i++){const age=w.age-i*18;if(age<0||age>=300)continue;const f=age/300,size=X(16+f*24);
+      ctx.globalAlpha=0.32*Math.sin(Math.PI*f);ctx.drawImage(WRECK_SMOKE,X(Math.sin(i*2+w.variant)*8+f*11)-size/2,X(-5-f*37)-size/2,size,size);}
     ctx.restore();
   }
   for(const e of ground){ctx.save();ctx.translate(X(e.x),groundRenderY(e.anchor));
@@ -269,7 +270,7 @@ function drawEquipmentPreview(kind,tier,x,y){
   // Permanent guns/shields apply on the next launch, as the product description states.
   const loadout={weapon:save.weapon,engine:save.engine,shield:save.shield,orb:save.orb};loadout[kind]=tier;
   ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.56,0.56);
-  drawShipAssembly(0,0,loadout,0,0,loadout.weapon>=3?24:0);
+  drawShipAssembly(0,0,loadout,0,0,loadout.weapon>=1?24:0);
   ctx.restore();
 }
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;

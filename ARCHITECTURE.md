@@ -124,3 +124,6 @@ Player presentation uses drawShipAssembly for flight and next-run Workshop previ
 
 ## Siege upgrade and Seeker Orb
 GUN/MAXW/BOLT/GUN_PORTS now cover six states; SIEGE index 5 uses unchanged central origins and new side ports. orbActive is per-run, save.orb defaults to 0 for legacy saves. resetOrb resets follow/launch state without ownership; newRun restores ownership from save, clearScene clears it. Orb missiles reuse the existing marked rocket steering and collision path, with an independent two-missile cap. Shop indices use SHOP.length for the return button.
+
+## Earlier side support and ground aftermath
+Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
