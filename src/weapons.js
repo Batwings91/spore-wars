@@ -31,7 +31,7 @@ const EQUIPMENT=Object.freeze({
     effect:t=>t?'Trailing homing missile support':'No support fitted',note:'Equips now and on future runs.',
     draw:(tier,x,y,v)=>{if(tier)drawSeekerOrb(x+SHIP_MOUNTS.support[0][0],y+SHIP_MOUNTS.support[0][1],v.frame,0);}},
   sideWeapon:{id:'sideWeapon',saveKey:'sideLaser',loadoutKey:'sideLaser',label:'SIDE LASER',name:'Twin ion lances',maxOwned:1,costs:[240],tiers:[null,{recharge:150,windup:48,duration:36,pulse:6,damage:1,width:14}],
-    effect:t=>t?'Twin sustained beams / 3.9 sec cycle':'No side weapon fitted',note:'The 14-unit bright core deals damage.',
+    effect:t=>t?'Twin sustained beams / 3.9 sec cycle':'No side weapon fitted',note:'Wider hull: 28 units less dodge room per side.',
     draw:(tier,x,y,v)=>{if(tier)drawSideLaserMounts(x,y,v.frame,v.laserPhase,v.laserT);}}
 });
 const SHOP_COLUMNS=4,SHOP=Object.freeze(['primary','defence','engine','ordnance','support','sideWeapon'].map(id=>EQUIPMENT[id]));

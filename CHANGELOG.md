@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-08 — Review follow-ups for the equipment and ecosystem update
+- Fauna decor tiles are built on first use with one stage resident (was five 880×720 canvases at boot). Route-lane placement runs once per tick.
+- tools/ecosystem-smoke.js runs on the DevTools harness; Playwright is no longer needed anywhere.
+- The Workshop now says the side laser widens the hull (28 units less dodge room per side); the mechanic itself is unchanged.
+
 ## 2026-09-08 — Phase 4 creature ecosystem and Brood Lattice
 - Added original Carapace Rammer and Tendril Hunter families with distinct tells, shared visible/damaging tendril geometry and authored late-wave introductions; widened the Spore Ray silhouette and gave it a warm three-barb volley.
 - Added the wave-23 Brood Lattice: eleven varied cached nodes, travelling pulse, three sequential target windows, main/rocket/side-laser/bomb damage, split-shell destruction and an exactly-once three-core reward. Earlier Brood Heart waves foreshadow it below combat contrast.
