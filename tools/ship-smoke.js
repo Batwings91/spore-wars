@@ -50,12 +50,23 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   const check=async code=>{const r=await evalJs('(()=>{'+code+';return true})()');if(r!==true)throw Error('Check failed '+code+' '+errors.join(' | '));};
 
   await check("newRun();mode='play';ship.inv=0;hint=0;level=1;worldNotice=0;if(!IMG.player_hull)throw Error('hull missing');");
-  for(let gun=0;gun<5;gun++){
+  for(let gun=0;gun<6;gun++){
     await check("wpn="+gun+";save.engine=2;shield=2;podOpen=wpn>=3?24:0;rocketFlash=0;render()");await shot('ship-tier-'+gun);
     await check("const before=JSON.stringify([save,wpn,shield,podOpen,rocketT,rocketSide]);drawEquipmentPreview('weapon',"+gun+",343,120);if(JSON.stringify([save,wpn,shield,podOpen,rocketT,rocketSide])!==before)throw Error('preview mutation');");
   }
   await check("save.weapon=2;save.engine=2;save.shield=2;save.cores=200;mode='shop';shopSel=0;render()");await shot('ship-workshop');
   await check("const old=drawShipAssembly;let got;drawShipAssembly=(x,y,loadout)=>{got=loadout;};drawEquipmentPreview('weapon',4,0,0);drawShipAssembly=old;if(got.weapon!==4||got.engine!==2||got.shield!==2)throw Error('preview lost equipment');");
   await check("mode='play';const old=IMG.player_hull;delete IMG.player_hull;render();IMG.player_hull=old;");await shot('ship-fallback');
-  console.log('PASS five gun tiers, full loadout preview, state immutability and fallback');console.log(errors);ws.close();finish(errors.length?1:0);
+
+  await check("if(GUN.length!==6||MAXW!==5||BOLT.length!==6||GUN_PORTS.length!==6)throw Error('tier tables');save.orb=0;newRun();mode='play';ship.inv=0;wpn=5;fireT=0;waveT=999;level=1;formationGroup=AUTHORED_WAVES[0].length;update();if(shots.filter(s=>!s.rocket).length!==6||shots.some(s=>s.dmg!==3))throw Error('Siege fire');render()");await shot('ship-siege');
+  await check("drops=[{k:'o',x:ship.x,y:ship.y}];update();if(!orbActive||save.orb)throw Error('run pickup');newRun();if(orbActive)throw Error('pickup persisted');mode='shop';shopSel=3;save.cores=0;buy();if(save.orb||orbActive)throw Error('unaffordable');save.cores=200;buy();if(save.orb!==1||save.cores!==80||!orbActive)throw Error('purchase');buy();if(save.cores!==80)throw Error('duplicate purchase');newRun();if(!orbActive)throw Error('owned reset');mode='play';wpn=0;enemies=[{x:ship.x,y:100,hp:100,k:0}];ground=[];shots=[];for(let i=0;i<179;i++)updateRockets();if(shots.length)throw Error('early orb missile');updateRockets();if(shots.length!==1||!shots[0].orb||shots[0].target!==enemies[0])throw Error('orb launch');if(!Number.isFinite(shots[0].vx+shots[0].vy))throw Error('steering');");
+  await check("orbT=0;shots=[{orb:true,rocket:true,y:100,life:180,vx:0,vy:-2},{orb:true,rocket:true,y:110,life:180,vx:0,vy:-2}];updateRockets();if(shots.length!==2)throw Error('orb cap');shots=[];enemies=[];boss=null;orbT=0;updateRockets();if(shots.length)throw Error('no target');enemies=[{x:ship.x+60,y:100,hp:5,k:0}];updateRockets();if(shots.length!==1)throw Error('target recovery');ship.inv=0;shield=0;ship.hull=1;lives=3;hitShip();if(!orbActive||shots.some(s=>s.orb))throw Error('life reset');continueRun();if(!orbActive||orbReady)throw Error('continue reset');");
+  await check("newRun();mode='play';paused=true;orbReady=true;orbX=100;orbY=200;orbT=95;const before=JSON.stringify([orbX,orbY,orbT]);stepLogic();if(JSON.stringify([orbX,orbY,orbT])!==before)throw Error('pause');paused=false;mode='shop';shopSel=2;shopItem=2;");
+  await key('ArrowRight');await check("if(shopSel!==3)throw Error('orb navigation');");await key('ArrowDown');await check("if(shopSel!==SHOP.length)throw Error('down to back');");await key('ArrowUp');await check("if(shopSel!==3)throw Error('return to orb');");
+  await check("shopSel=0;ptr.x=576;ptr.y=120;tapSrc='pointer';tapped=true;stepLogic();if(shopSel!==3)throw Error('orb touch');render()");await shot('shop-orb');
+  await check("newRun();mode='play';wpn=5;podOpen=24;ship.inv=0;hint=0;level=1;worldNotice=0;updateOrb();render()");await shot('ship-siege-orb');
+  await go(BASE);await evalJs('requestAnimationFrame=()=>0');await sleep(100);await check("newRun();if(save.orb!==1||!orbActive)throw Error('saved orb reload');");
+  await check("save.orb=0;orbActive=false;level=6;wpn=MAXW;kills=20;lastW=20;const random=Math.random;Math.random=()=>0.585;if(dropFor({})!=='o')throw Error('orb drop');orbActive=true;if(dropFor({})==='o')throw Error('owned orb drop');Math.random=random;const legacy={...save};delete legacy.orb;localStorage.setItem(KEY,JSON.stringify(legacy));");
+  await go(BASE);await evalJs('requestAnimationFrame=()=>0');await sleep(100);await check("newRun();if(save.orb!==0||orbActive)throw Error('legacy save migration');");
+  console.log('PASS six tiers, Siege fire, orb pickup/shop/save/reload, cadence/cap/targeting, death/Continue/pause and keyboard/touch shop');console.log(errors);ws.close();finish(errors.length?1:0);
 })().catch(e=>{console.error(e);finish(2);});

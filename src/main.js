@@ -2,7 +2,7 @@
 // Run transitions (clearScene/quitRun/continueRun), the fixed-step loop, stepLogic() and render().
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
-function clearScene(){resetGround();resetRockets();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
+function clearScene(){orbActive=false;resetGround();resetRockets();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
 function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
 function continueRun(){resetGround();resetRockets();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=ship.hullDisplay=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
@@ -17,7 +17,7 @@ function stepLogic(){if(!paused)ship.hullDisplay+=Math.max(-0.08,Math.min(0.08,s
   else if(mode==='travel'){if(!paused)updateSectorTravel();}
   else if(mode==='dead'){if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
   else if(mode==='sector'||mode==='victory'){if(tapped&&t>15){if(t<60)t=60;else if(tapSrc==='key')chooseSector(sectorSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216)chooseSector(0);else if(ptr.y>=228&&ptr.y<=260)chooseSector(1);}}}
-  else if(mode==='shop'){if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/110);if(i>=0&&i<3&&ptr.x<=292+i*110+102){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<3)buy();}}}
+  else if(mode==='shop'){if(tapped){if(tapSrc==='key'){if(shopSel===SHOP.length)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/82);if(i>=0&&i<SHOP.length&&ptr.x<=292+i*82+76){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<SHOP.length)buy();}}}
   if(mode!=='title')SFX.stopPreview();
   // Music runs through play and the sector travel sequence; ducking it for the 3-second flight read as the track stopping.
   SFX.music(((mode==='play'||mode==='travel')&&!paused)||(mode==='title'&&SFX.previewing()),worldStage);

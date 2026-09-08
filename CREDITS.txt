@@ -139,3 +139,6 @@ Modular player hull (assets/player_hull.png):
   Guns, engine upgrades, shield emitters and rocket pods are composed by game code.
   Original Skorpio-derived player.png remains a fallback with its attribution and licence above.
   Prompt/provenance: docs/player-hull-20260908.md.
+
+Siege cannon housings and Seeker Orb:
+  Original procedural artwork by 640K Games, drawn by game code; no third-party assets.

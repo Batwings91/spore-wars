@@ -15,6 +15,7 @@ function dropFor(e){kills++;
   if(r<(early?0.38:0.34))return 's';
   if(ship.hull<MAX_HULL&&r<(early?0.42:0.38))return 'h';
   if(r>=0.42&&r<0.57)return 'core';
+  if(!orbActive&&level>=6&&r>=0.57&&r<0.60)return 'o';
   return null;}
 function addFloat(x,y,txt,col,big){floats.push({x,y,txt,col,life:60,big});}
 function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;rings.push({x:ship.x,y:ship.y,r:10,col,life:30});
@@ -37,7 +38,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     else if(wpn===1){sh(-14,-20,0,-8);sh(14,-20,0,-8);}
     else if(wpn===2){sh(0,-34,0,-9);sh(-16,-20,0,-8.5);sh(16,-20,0,-8.5);}
     else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.55,-8.4);sh(14,-22,0.55,-8.4);sh(-22,-14,-1,-7.6);sh(22,-14,1,-7.6);}
-    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.5,-9);sh(18,-22,0.5,-9);sh(-26,-12,-1.05,-8);sh(26,-12,1.05,-8);}}
+    else if(wpn===4){sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.5,-9);sh(18,-22,0.5,-9);sh(-26,-12,-1.05,-8);sh(26,-12,1.05,-8);}
+    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-28,-24,-0.2,-9);sh(28,-24,0.2,-9);sh(-34,-18,-0.4,-8.5);sh(34,-18,0.4,-8.5);}}
   updateRockets();
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.y<LH+20&&s.x>PX&&s.x<PX+PW);
   waveT--;
@@ -72,7 +74,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   eshots=eshots.filter(s=>s.y<LH+10&&s.y>-10&&s.x>PX&&s.x<PX+PW);
   for(const d of drops){if(sectorPending){const dx=ship.x-d.x,dy=ship.y-d.y,len=Math.hypot(dx,dy)||1;d.x+=dx/len*7;d.y+=dy/len*7;}else d.y+=1.4;if(Math.hypot(d.x-ship.x,d.y-ship.y)<34||(sectorPending&&waveT<=0)){d.y=999;
       if(d.k==='core'){cores++;score+=5;SFX.core();addFloat(d.x,d.y,'+1 CORE',C.cyan);}
-      if(d.k==='w'){if(wpn<MAXW){wpn++;pickupEvent('GUN '+(wpn+1)+'/5 / '+GUN[wpn].n,C.cyan);}else{score+=100;pickupEvent('GUN MAX / +100 SCORE',C.cyan);}SFX.power();}
+      if(d.k==='w'){if(wpn<MAXW){wpn++;pickupEvent('GUN '+(wpn+1)+'/'+GUN.length+' / '+GUN[wpn].n,C.cyan);}else{score+=100;pickupEvent('GUN MAX / +100 SCORE',C.cyan);}SFX.power();}
+      if(d.k==='o'){if(orbActive){score+=100;pickupEvent('ORB ONLINE / +100 SCORE',C.cyan);}else{orbActive=true;resetOrb();pickupEvent('SEEKER ORB ONLINE',C.cyan);}SFX.power();}
       if(d.k==='h'&&lives>0){const full=ship.hull>=MAX_HULL;ship.hull=Math.min(MAX_HULL,ship.hull+1);pickupEvent(full?'HULL FULL':'HULL REPAIRED', '#79e69b');SFX.power();}
       if(d.k==='s'){shield=Math.min(2,shield+1);pickupEvent('SHIELD',C.cyan);SFX.shield();}
       if(d.k==='b'){const full=bombs>=6;bombs=Math.min(6,bombs+1);pickupEvent(full?'BOMB FULL':'BOMB +1',C.G);SFX.power();}}}
@@ -253,25 +256,24 @@ function drawShieldLayers(count,sx,sy,frame=t,hit=shieldHit){
 }
 // One assembly for live flight and candidate previews; previews never mutate run/save state.
 function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSide=-1,shieldFlash=0){
-  // Mount rails sit behind the hull and make outer guns visibly attached.
-  ctx.save();ctx.lineCap='round';
-  for(const [ox,oy] of GUN_PORTS[loadout.weapon])if(Math.abs(ox)>=14){for(const [width,col] of [[7,'#101a20'],[4,'#6e797c'],[1,'#b49b64']]){ctx.strokeStyle=col;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(X(x+Math.sign(ox)*9),X(y+8));ctx.lineTo(X(x+ox),X(y+oy+12));ctx.stroke();}}
-  ctx.restore();
   const base=IMG.player_hull||IMG.player||SHIP;
   ctx.drawImage(base,X(x)-Math.floor(base.width/2),X(y)-Math.floor(base.height/2));
   drawEngines(loadout.engine,x,y,frame);
+  if(loadout.weapon===5)drawSiegeHousings(x,y,frame,gunFlash);
   drawGunMounts(loadout.weapon,x,y,gunFlash);
   drawRocketPods(x,y,pods,podFlash,podSide);
   drawShieldLayers(loadout.shield,x,y,frame,shieldFlash);
+  if(loadout.orb)drawSeekerOrb(x,y+34,frame,0);
 }
 function drawEquipmentPreview(kind,tier,x,y){
   // Permanent guns/shields apply on the next launch, as the product description states.
-  const loadout={weapon:save.weapon,engine:save.engine,shield:save.shield};loadout[kind]=tier;
-  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.66,0.66);
+  const loadout={weapon:save.weapon,engine:save.engine,shield:save.shield,orb:save.orb};loadout[kind]=tier;
+  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.56,0.56);
   drawShipAssembly(0,0,loadout,0,0,loadout.weapon>=3?24:0);
   ctx.restore();
 }
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
+  if(orbActive)drawSeekerOrb(orbX,orbY,t,orbFlash);
   drawShipAssembly(ship.x,ship.y,{weapon:wpn,engine:save.engine,shield},t,muzz,podOpen,rocketFlash,rocketSide,shieldHit);
 }
 
@@ -286,6 +288,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
   drawGround();
   for(const d of drops){const bob=Math.sin(t*0.15+d.y)*2,p=1+Math.sin(t*0.2+d.x)*0.08;
     if(d.k==='core'){if(!img('icon_core',d.x,d.y,0.7*p)){blit(CORE,d.x,d.y,1.4*p);}}
+    else if(d.k==='o'){drawSeekerOrb(d.x,d.y+bob,t,0);txt('ORB',d.x,d.y+bob+14,C.cyan,8,'center');}
     else if(d.k==='h'){blit(CAP_H,d.x,d.y+bob,2*p);txt('+',d.x,d.y+bob-4,'#f0fff2',10,'center');txt('REPAIR',d.x,d.y+bob+17,'#79e69b',8,'center');}
     else{const nm=d.k==='w'?'icon_w':d.k==='b'?'icon_b':'icon_s';if(!img(nm,d.x,d.y+bob,p)){const cap=d.k==='w'?CAP_W:d.k==='b'?CAP_B:CAP_S;blit(cap,d.x,d.y+bob,2);}txt(d.k.toUpperCase(),d.x+0.5,d.y+bob-7,C.s0,13,'center');txt(d.k.toUpperCase(),d.x,d.y+bob-8,C.white,13,'center');}}
   for(const e of enemies){

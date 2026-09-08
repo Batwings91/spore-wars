@@ -129,3 +129,6 @@ Each non-boss wave now has two additional formations, preserving spawn intervals
 
 ## Modular ship presentation
 Run node tools/ship-smoke.js alongside node tools/smoke.js. Inspect all five gun tiers (1/2/3/5/6 muzzles), attached engines, visible shield emitters and open rocket magazines. Previews retain saved weapon/engine/shield values except the candidate override; rendering must not change save, current weapon/shields, rocket timers or pod state. Block player_hull.png for fallback. Check transparent hull edges, live/shop consistency, shields hit/depleted, pause, touch and mobile sizing. No damage/collision/rate changes intended.
+
+## Siege upgrade and Seeker Orb
+Run node tools/ship-smoke.js for six tier tables, Siege firing, orb pickup versus purchased ownership, affordability/duplicate buy, reload, 180-tick launch delay, live missile cap, missing/recovered targets, life loss/Continue, pause and four-item keyboard/touch navigation. Test natural orb drops from wave 6 with no orb; old save should default to no orb. Confirm existing five gun states and core/bomb/repair/shield probabilities stay unchanged. Check large Siege housings and the orb at bottom/side screen edges on mobile; player collision stays central.

@@ -270,3 +270,6 @@ Each non-boss wave now has two additional formations, preserving spawn intervals
 
 ## Modular ship presentation
 Added the approved compact modular player hull, matching metal/brass gun hardware, visible shield emitters, restrained shield outlines and visible rocket magazines. Flight and Workshop now share full ship assembly; previews retain other saved upgrades. Existing gun counts, origins, damage, rates, collision and purchases are preserved.
+
+## Siege upgrade and Seeker Orb
+Removed thin weapon support rails and pod outlines. Added SIEGE as the fifth upgrade after Pulse (six gun states total), with large side cannon housings and six focused 3-damage shots every 20 ticks. Added Seeker Orb: 120-core permanent Workshop upgrade that equips immediately; 3% eligible air-kill pickup chance from wave 6 when absent, using previously empty rolls. A trailing orb launches one homing missile every 180 ticks, damage 1, max two live orb missiles independently of the existing three pod missiles. Pickup ownership lasts the run; purchased ownership restores on new runs. Expanded shop to four cards with keyboard/touch navigation.

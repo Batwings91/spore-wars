@@ -121,3 +121,6 @@ At final completion, normal salvage sweep/banking precede mode=victory. It waits
 
 ## Modular ship presentation
 Player presentation uses drawShipAssembly for flight and next-run Workshop previews. player_hull.png is a gated core sprite with player.png/SHIP fallbacks. drawRocketPods accepts explicit visual state for previews without touching rocket logic. Gun muzzle count follows the existing GUN_PORTS array; shield rings are smooth low-opacity outlines.
+
+## Siege upgrade and Seeker Orb
+GUN/MAXW/BOLT/GUN_PORTS now cover six states; SIEGE index 5 uses unchanged central origins and new side ports. orbActive is per-run, save.orb defaults to 0 for legacy saves. resetOrb resets follow/launch state without ownership; newRun restores ownership from save, clearScene clears it. Orb missiles reuse the existing marked rocket steering and collision path, with an independent two-missile cap. Shop indices use SHOP.length for the return button.

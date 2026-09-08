@@ -1,7 +1,8 @@
 'use strict';
 // Save data, keyboard, pointer/touch handlers, pause-on-blur.
-const KEY='640k.sporewars.v3';let save={cores:0,best:0,weapon:0,shield:0,engine:0};
+const KEY='640k.sporewars.v3';let save={cores:0,best:0,weapon:0,shield:0,engine:0,orb:0};
 try{const s=localStorage.getItem(KEY);if(s)save=Object.assign(save,JSON.parse(s));}catch(e){}
+save.orb=save.orb===1?1:0;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
 
 const keys={};let tapped=false,tapSrc='key';
@@ -25,10 +26,10 @@ addEventListener('keydown',e=>{
   if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
   if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){if(t<60)t=60;else{shopFromSector=true;mode='shop';t=0;}}else if(mode==='title'||mode==='dead'){shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
   if(mode==='shop'){
-    if(shopSel<3)shopItem=shopSel;
-    if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=3;
+    if(shopSel<SHOP.length)shopItem=shopSel;
+    if(e.code==='ArrowDown'||e.code==='KeyS')shopSel=SHOP.length;
     else if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=shopItem;
-    else if(shopSel<3&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?2:1))%3;shopItem=shopSel;}
+    else if(shopSel<SHOP.length&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?SHOP.length-1:1))%SHOP.length;shopItem=shopSel;}
   }
   if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
   if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}

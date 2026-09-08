@@ -22,7 +22,7 @@ function drawPanels(){
   const percent=Math.round(ship.hull/MAX_HULL*100);
   txt(ship.hull===0?'DESTROYED':percent+(ship.hull===1?'% CRITICAL':'% HEALTH'),PX/2,330,ship.hull===1?'#ed8474':'#91a7b5',7,'center');
   const rx=PX+PW+12,rw=LW-PX-PW-24;
-  box(rx,12,rw,44,'GUN',GUN[wpn].n,C.cyan);for(let i=0;i<5;i++){ctx.fillStyle=i<=wpn?C.cyan:C.s1;ctx.fillRect(X(rx+rw-34+i*6),X(18),X(4),X(8));}
+  box(rx,12,rw,44,'GUN',GUN[wpn].n,C.cyan);for(let i=0;i<GUN.length;i++){ctx.fillStyle=i<=wpn?C.cyan:C.s1;ctx.fillRect(X(rx+rw-40+i*6),X(18),X(4),X(8));}
   box(rx,64,rw,44,'SHIELD');for(let i=0;i<2;i++){ctx.globalAlpha=i<shield?1:0.25;ctx.drawImage(SHF[Math.floor(t/4)%8],X(rx+8+i*30),X(80),X(18),X(18));ctx.globalAlpha=1;}
   txt(shield+' '+(shield===1?'hit left':'hits left'),rx+rw/2,99,shield?'#91cbd3':'#e5a08e',7,'center');
   box(rx,116,rw,44,'RUN CORES',String(cores),C.cyan);
@@ -135,7 +135,8 @@ function pauseScreen(){
 }
 const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
   {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
-  {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3}];
+  {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3},
+  {k:'orb',name:'Seeker orb',desc:'trailing homing missile support',cost:()=>120,max:1}];
 // Presentation follows the existing 200-tick reward sweep; it never awards cores.
 function drawVictorySweep(){
   const age=200-waveT,fade=Math.min(1,age/24,Math.max(0,waveT/24));
@@ -216,24 +217,24 @@ function shopScreen(){
   const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
-  small('NEXT-RUN LOADOUT PREVIEWS',292,66,'#a7b6c0',8);
-  SHOP.forEach((it,i)=>{const x=292+i*110,lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),hot=shopSel===i;
-    surface(x,82,102,116,hot);
+  small('SHIP UPGRADES / MISSILE SUPPORT',292,66,'#a7b6c0',8);
+  SHOP.forEach((it,i)=>{const x=292+i*82,lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),hot=shopSel===i;
+    surface(x,82,76,116,hot);
     const previewTier=Math.min(it.max,lvl+1);
-    drawEquipmentPreview(it.k,previewTier,x+51,120);
-    small((maxed?'OWNED':'NEXT')+' / MK '+previewTier,x+51,86,'#8ea9b7',7,'center');
-    small(['GUN MODULE','SHIELD CORE','ION ENGINE'][i],x+51,164,hot?'#e6f0f2':'#b3c2ca',9,'center');
-    small(maxed?'FULLY UPGRADED':cost+' cores',x+51,182,maxed?'#8fa2ac':'#c9b791',8,'center');
+    drawEquipmentPreview(it.k,previewTier,x+38,120);
+    small((maxed?'OWNED':'NEXT')+' / MK '+previewTier,x+38,86,'#8ea9b7',7,'center');
+    small(['GUN','SHIELD','ENGINE','SEEKER ORB'][i],x+38,164,hot?'#e6f0f2':'#b3c2ca',9,'center');
+    small(maxed?'MAX TIER':cost+' cores',x+38,182,maxed?'#8fa2ac':'#c9b791',8,'center');
   });
-  if(shopSel<3)shopItem=shopSel;
+  if(shopSel<SHOP.length)shopItem=shopSel;
   const selected=shopItem,it=SHOP[selected],lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),can=save.cores>=cost;
   surface(292,210,322,72,false);small(it.name,304,220,'#e4e9e9',12);small('OWNED '+lvl+' / '+it.max,602,223,'#a6b7c0',8,'right');
-  const effect=selected===0?'Start future runs with '+GUN[Math.min(it.max,lvl+1)].n:selected===1?'Start future runs with '+Math.min(it.max,lvl+1)+(Math.min(it.max,lvl+1)===1?' shield':' shields'):'Engine speed +'+Math.round(Math.min(it.max,lvl+1)*0.5/3.7*100)+'% / installs now';
+  const effect=selected===0?'Start future runs with '+GUN[Math.min(it.max,lvl+1)].n:selected===1?'Start future runs with '+Math.min(it.max,lvl+1)+(Math.min(it.max,lvl+1)===1?' shield':' shields'):selected===3?'Homing missiles / equips now + future runs':'Engine speed +'+Math.round(Math.min(it.max,lvl+1)*0.5/3.7*100)+'% / installs now';
   small(effect,304,242,'#bdcbd2',9);small(maxed?'All upgrades owned.':can?'Permanent upgrade. Ready to purchase.':'Collect '+(cost-save.cores)+' more cores to afford this.',304,261,can?'#9cb7b8':'#d4ad91',8);
-  surface(292,298,208,32,shopSel<3);small(maxed?'FULLY UPGRADED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
-  surface(510,298,104,32,shopSel===3);small(shopFromSector?'CONTINUE':'BACK',562,310,'#d9e1e4',9,'center');
+  surface(292,298,208,32,shopSel<SHOP.length);small(maxed?'FULLY UPGRADED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
+  surface(510,298,104,32,shopSel===SHOP.length);small(shopFromSector?'CONTINUE':'BACK',562,310,'#d9e1e4',9,'center');
   small('"Quality parts. Mostly legal."',146,318,'#ddc8ac',9,'center');
   if(!TOUCH)small('LEFT/RIGHT items / DOWN back / UP items / ENTER select',453,344,'#8b9fae',8,'center');
 }
 
-function buy(){const it=SHOP[shopSel],lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;persist();SFX.power();}
+function buy(){const it=SHOP[shopSel];if(!it)return;const lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;if(it.k==='orb'){orbActive=true;resetOrb();}persist();SFX.power();}
