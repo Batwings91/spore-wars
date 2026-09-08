@@ -226,6 +226,8 @@ function drawCrawler(e){const cx=X(e.x),cy=X(e.y),d=e.dir;
     ctx.fillStyle=C.s5;ctx.fillRect(ax-2,ay-2,d>0?12:-12,4);ctx.fillRect(ax+d*8,ay-2-side*6,4,side>0?-6:6);ctx.fillRect(ax+d*8,ay-2,4,side*8);}
   seg(cx+d*6,cy,3,e.lunge>0?C.magenta:'#ff8000','#000');}
 // Shop previews and live equipment use the same renderers; these never change loadout state.
+// Engine housing gradients are position-free (drawn under a translate), so one per tier serves every frame.
+const ENGINE_GRADIENT=[];
 function drawEngines(tier,sx,sy,frame=t){
   // Cool exhaust and physical housings share the same two rear sockets.
   ctx.save();
@@ -235,9 +237,8 @@ function drawEngines(tier,sx,sy,frame=t){
   ctx.save();
   for(const side of [-1,1]){
     const x=X(sx+side*11),y=X(sy+17),w=5+tier;
-    const metal=ctx.createLinearGradient(x-w,0,x+w,0);
-    metal.addColorStop(0,'#20282e');metal.addColorStop(0.4,'#afbabd');metal.addColorStop(1,'#3b464c');
-    ctx.fillStyle=metal;ctx.fillRect(x-w,y,w*2,25+tier*2);
+    let metal=ENGINE_GRADIENT[tier];if(!metal){metal=ctx.createLinearGradient(-w,0,w,0);metal.addColorStop(0,'#20282e');metal.addColorStop(0.4,'#afbabd');metal.addColorStop(1,'#3b464c');ENGINE_GRADIENT[tier]=metal;}
+    ctx.save();ctx.translate(x,0);ctx.fillStyle=metal;ctx.fillRect(-w,y,w*2,25+tier*2);ctx.restore();
     ctx.strokeStyle='#122330';ctx.lineWidth=1;ctx.strokeRect(x-w,y,w*2,25+tier*2);
     for(let n=0;n<tier;n++){
       ctx.fillStyle='#20313c';ctx.fillRect(x-w-2,y+4+n*7,w*2+4,3);
