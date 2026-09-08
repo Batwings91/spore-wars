@@ -43,8 +43,8 @@ function updateBoss(){
   // Carrier lower wings stay open so shots can reach the launch bays.
   // player shots vs turrets then hull
   for(const s of shots){if(s.y<-50)continue;let hit=false;
-    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){tu.hp-=(s.dmg||1);hit=true;addHitImpact(s.x,s.y,b.kind>=2);if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}break;}}
-    if(!hit&&(b.mother?((Math.abs(s.x-b.x)<32&&Math.abs(s.y-b.y)<142)||(Math.abs(s.x-b.x)<96&&Math.abs(s.y-b.y)<62)):(Math.abs(s.x-b.x)<(b.mech?54:80)&&Math.abs(s.y-b.y)<(b.mech?36:60)))){b.hp-=(s.dmg||1);b.flash=3;hit=true;addHitImpact(s.x,s.y,b.kind>=2);SFX.hit();}
+    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){tu.hp-=(s.dmg||1);hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}break;}}
+    if(!hit&&(b.mother?((Math.abs(s.x-b.x)<32&&Math.abs(s.y-b.y)<142)||(Math.abs(s.x-b.x)<96&&Math.abs(s.y-b.y)<62)):(Math.abs(s.x-b.x)<(b.mech?54:80)&&Math.abs(s.y-b.y)<(b.mech?36:60)))){b.hp-=(s.dmg||1);b.flash=3;hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);SFX.hit();}
     if(hit)s.y=-99;}
   if(b.phase===1&&b.hp<b.hpMax*0.5){b.phase=2;pickupEvent(b.kind>=2?'BROOD FRENZY':b.mech?'MECH OVERDRIVE':'HULL BREACH',C.red);shake=10;flash=6;}
   if(b.hp<=0){bossDying=110;eshots=[];SFX.bossTheme(false);}
