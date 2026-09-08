@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-08 — Phase 4 creature ecosystem and Brood Lattice
+- Added original Carapace Rammer and Tendril Hunter families with distinct tells, shared visible/damaging tendril geometry and authored late-wave introductions; widened the Spore Ray silhouette and gave it a warm three-barb volley.
+- Added the wave-23 Brood Lattice: eleven varied cached nodes, travelling pulse, three sequential target windows, main/rocket/side-laser/bomb damage, split-shell destruction and an exactly-once three-core reward. Earlier Brood Heart waves foreshadow it below combat contrast.
+- Refinished the Living Labyrinth split with cached embedded ribs/organs while preserving its three exact collision rectangles and mature-ship clearance. Added the six-family silhouette study, exact prompt/provenance and focused browser regression/screenshots.
+
 ## 2026-09-08 — Phase 3 living-world encounters
 - Added cached low-contrast fauna overlays to Infected Salvage and all later alien worlds, alternating dense edge pockets, sparse growth and quiet/open stretches with no per-frame generated art.
 - Added capped wall-mounted spore organs and snap blooms. Their swell/open tells precede distinct slow seed shots or a short harmful reach; attacks, projectiles and animation freeze/suppress and clean up with the existing pause/run/checkpoint lifecycle.

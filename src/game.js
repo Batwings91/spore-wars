@@ -14,7 +14,9 @@ function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultipl
 function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();resetWorldEncounters();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetSideLasers();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=starting.weapon;shield=starting.shield;orbActive=!!starting.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
 const spd=()=>3.7+EQUIPMENT.engine.tiers[save.engine].bonus;
-const R={0:17,1:20,2:23,3:30,4:20,5:20,6:22,7:13,8:26};
+const R={0:17,1:20,2:23,3:30,4:20,5:28,6:22,7:13,8:26,9:32,10:18};
+const ENEMY_POINTS=[10,20,50,150,60,70,80,50,120,110,90];
+const ENEMY_HP=[1,1,3,8,4,4,6,3,10,9,5];
 // Authored formations through all five sectors; null entries are boss waves.
 // Entries are [enemy kind, count, horizontal fraction of the playfield].
 const AUTHORED_WAVES=[
@@ -31,19 +33,19 @@ const AUTHORED_WAVES=[
   null,
   // Spore Heart: biological attackers, building towards the final paired lurkers.
   [[5,2,0.3],[6,1,0.5],[4,2,0.94],[3,1,0.3],[5,2,0.65],[6,1,0.3]],
-  [[4,2,0.06],[3,1,0.65],[5,2,0.65],[3,1,0.35],[5,2,0.3],[3,1,0.6]],
-  [[6,1,0.3],[5,2,0.35],[3,1,0.7],[4,2,0.94],[4,2,0.06],[5,2,0.65]],
-  [[4,2,0.06],[6,1,0.35],[5,2,0.65],[3,1,0.5],[6,1,0.65],[3,1,0.3]],
+  [[9,1,0.28],[3,1,0.65],[5,2,0.65],[3,1,0.35],[5,2,0.3],[3,1,0.6]],
+  [[6,1,0.3],[5,2,0.35],[9,1,0.7],[4,2,0.94],[10,1,0.06],[5,2,0.65]],
+  [[10,1,0.06],[6,1,0.35],[5,2,0.65],[9,1,0.5],[6,1,0.65],[10,1,0.94]],
   null,
-  [[7,2,0.25],[4,2,0.94],[3,1,0.5],[7,2,0.7],[7,2,0.5],[3,1,0.3]],
-  [[4,2,0.06],[7,2,0.65],[6,1,0.4],[3,1,0.65],[6,1,0.65],[7,2,0.3]],
-  [[7,3,0.3],[3,1,0.7],[4,2,0.94],[6,1,0.5],[7,2,0.65],[4,2,0.06]],
-  [[6,1,0.3],[7,3,0.6],[3,1,0.4],[4,2,0.06],[3,1,0.65],[7,2,0.3]],
+  [[7,2,0.25],[10,1,0.94],[3,1,0.5],[7,2,0.7],[9,1,0.5],[3,1,0.3]],
+  [[9,1,0.3],[7,2,0.65],[6,1,0.4],[10,1,0.94],[6,1,0.65],[7,2,0.3]],
+  [[5,2,0.3],[10,1,0.06],[9,1,0.7],[6,1,0.5],[7,2,0.65],[4,2,0.06]],
+  [[9,1,0.3],[7,3,0.6],[10,1,0.94],[4,2,0.06],[3,1,0.65],[5,2,0.3]],
   null,
-  [[8,1,0.5],[5,2,0.3],[7,2,0.7],[6,1,0.5],[7,2,0.3],[8,1,0.65]],
-  [[6,1,0.25],[8,1,0.7],[3,1,0.4],[7,2,0.6],[5,2,0.65],[6,1,0.5]],
-  [[8,1,0.3],[7,3,0.65],[6,1,0.5],[3,1,0.7],[7,2,0.3],[8,1,0.65]],
-  [[5,2,0.3],[8,1,0.6],[7,3,0.5],[8,1,0.4],[6,1,0.3],[8,1,0.65]],
+  [[8,1,0.5],[5,2,0.3],[9,1,0.7],[6,1,0.5],[10,1,0.06],[8,1,0.65]],
+  [[6,1,0.25],[8,1,0.7],[10,1,0.06],[7,2,0.6],[5,2,0.65],[9,1,0.5]],
+  [[8,1,0.3],[7,3,0.65],[9,1,0.5],[10,1,0.94],[7,2,0.3],[8,1,0.65]],
+  [[5,2,0.3],[8,1,0.6],[10,1,0.06],[9,1,0.4],[6,1,0.3],[8,1,0.65]],
   null
 ];
 function spawnFormationGroup(){
@@ -56,8 +58,8 @@ function spawnFormationGroup(){
     else if(kind===1)enemies.push({k:1,x:x+(i?24:-24),y:-24-i*90,hp:1,t:0});
     else if(kind===2)enemies.push({k:2,x,y:-24-i*30,hp:3,t:0,ct:60+i*20});
     else if(kind===3)enemies.push({k:3,x,y:-40-i*30,hp:8,t:i*20,ct:80,ty:50+i*12,tent:[0,1,2,3].map(j=>({ph:j*1.7+i,len:26+j*4}))});
-    else if(kind===5)enemies.push({k:5,x:x+i*40,y:-30-i*80,hp:4,t:0,ph:i*Math.PI});
-    else if(kind>=6)enemies.push({k:kind,x:x+i*32,y:-32-i*65,hp:kind===7?3:kind===8?10:6,t:0,ph:i*1.7,ct:120+i*30});
+    else if(kind===5)enemies.push({k:5,x:x+i*40,y:-30-i*80,hp:ENEMY_HP[5],t:0,ph:i*Math.PI,ct:110+i*24,aim:Math.PI/2});
+    else if(kind>=6)enemies.push({k:kind,x:x+i*32,y:-32-i*65,hp:ENEMY_HP[kind],t:0,ph:i*1.7,ct:120+i*30,state:0,vx:0,vy:0});
     else{const edge=i%2?1-lane:lane;enemies.push({k:4,x:PX+PW*edge,y:-30-i*60,hp:4,t:0,dir:edge<0.5?1:-1,lunge:0});}
   }
   for(let i=first;i<enemies.length;i++)enemies[i].hp=Math.ceil(enemies[i].hp*(1+campaignLoop*0.25));
@@ -72,7 +74,7 @@ function spawnWave(){if(level>=CAMPAIGN_WAVES)return;level++;if(level>1)SFX.wave
     if(kind===1)enemies.push({k:1,x:PX+28+Math.random()*(PW-56),y:-24-i*48,hp:1,t:0});
     if(kind===2)enemies.push({k:2,x:PX+56+i*((PW-112)/Math.max(1,n-1)),y:-24-(i%2)*30,hp:3,t:0,ct:60+i*20});
     if(kind===3&&i<3)enemies.push({k:3,x:PX+80+i*((PW-160)/2),y:-40-i*30,hp:8,t:i*20,ct:80,ty:50+i*12,tent:[0,1,2,3].map(j=>({ph:j*1.7+i,len:26+j*4}))});
-    if(kind===5&&i<4)enemies.push({k:5,x:PX+80+i*70,y:-30-i*80,hp:4,t:0,ph:i*Math.PI});
+    if(kind===5&&i<4)enemies.push({k:5,x:PX+80+i*70,y:-30-i*80,hp:ENEMY_HP[5],t:0,ph:i*Math.PI,ct:110+i*24,aim:Math.PI/2});
     if(kind===4&&i<4)enemies.push({k:4,x:i%2?PX+20:PX+PW-20,y:-30-i*60,hp:4,t:0,dir:i%2?1:-1,lunge:0});}
   // add a few drifters alongside the new types so the screen isn't empty
   if(kind>=3)for(let i=0;i<4;i++)enemies.push({k:0,x:base,y:-140-i*40,ph:i*0.6,hp:1,t:0});}

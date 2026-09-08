@@ -174,3 +174,12 @@ Tendril Warden (warden_body.webp): original AI-assisted artwork generated with O
 Brood Heart background (world_brood.webp): original AI-assisted OpenAI artwork under 640K Games direction, 2026-09-08. No third-party pack. See docs/brood-heart-20260908.md.
 
 Colony creature (colony_body.webp): original AI-assisted OpenAI artwork under 640K Games direction, 2026-09-08. No third-party pack. See docs/colony-20260908.md.
+
+Phase 4 alien-family silhouette study (docs/phase4-creature-silhouettes.png):
+  Original design reference generated with OpenAI built-in image generation under 640K Games art direction, 2026-09-08.
+  No uploaded reference image or third-party asset pack was used. The sheet is documentation and is not loaded at runtime.
+  Exact prompt, family mapping and production-use notes: docs/phase4-creature-design.md.
+
+Carapace Rammer, Tendril Hunter, Spore Ray membrane/projectile and Brood Lattice:
+  Original procedural Canvas artwork by 640K Games, 2026-09-08. No third-party assets.
+  Design and gameplay contract: docs/phase4-creature-design.md.

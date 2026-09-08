@@ -18,6 +18,7 @@ tools/build.js      release build → dist/ (build.py is the identical Python ve
 tools/serve.js      dev server on port 8000 (or python3 -m http.server 8000)
 tools/smoke.js      headless regression run; see TESTING.md
 tools/world-smoke.js focused living-fauna and split-route regression; see TESTING.md
+tools/ecosystem-smoke.js focused six-family and Brood Lattice Playwright regression; see TESTING.md
 dist/               release artefact, NOT committed (gitignored): dist/index.html with the PNG sprites inlined plus dist/assets/ (WebP
                     illustrations + music, loaded after boot). Build at release time and zip the folder with index.html at the root.
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)
@@ -61,4 +62,4 @@ Boot screen, title and Workshop, six gun states, independent rocket pods, twin s
 - Build dist/ (`node tools/build.js` or `python3 tools/build.py`) at release time only; it is not committed.
 
 ## Current campaign (2026-09-08)
-Five levels  / 25 waves: Orbital Foundry, Infected Salvage, Spore Wilds, Living Labyrinth and Brood Heart. Bosses at5/10/15/20 / 25; Workshop breaks between levels and campaign victory after 25. Harder replay starts a fresh run from level1 with increased enemy HP; normal Launch resets difficulty. New scenery/creature silhouettes are procedural staging art pending the separate visual redesign. See docs/campaign-20260908.md. This supersedes the earlier rotating/endless roadmap.
+Five levels / 25 waves: Orbital Foundry, Infected Salvage, Spore Wilds, Living Labyrinth and Brood Heart. Bosses at 5/10/15/20/25; Workshop breaks between levels and campaign victory after 25. Harder replay starts a fresh run from level 1 with increased enemy HP; normal Launch resets difficulty. Six late biological families and the wave-23 Brood Lattice now complete the Phase 4 ecosystem pass. See docs/campaign-20260908.md and docs/phase4-creature-design.md. This supersedes the earlier rotating/endless roadmap.

@@ -1,12 +1,12 @@
 # Spore Wars — Visual Evolution Direction
 
-**Status:** dated visual reference; Phases 1–3 implemented, remaining creature/Brood Lattice proposals require separate approval
+**Status:** dated visual reference; Phases 1–4 implemented
 
-**Version:** 1.2 (Phase 3 implementation annotation)
+**Version:** 1.3 (Phase 4 implementation annotation)
 
 **Date:** 2026-09-08
 
-**Scope:** preserves the owner’s other-chat reference synthesis. The canonical repository, ARCHITECTURE.md and DECISIONS.md describe the implemented game. Shop/loadout work, side beams and the first living-world/split-route pass are implemented; this document does not by itself authorize the remaining creature ecosystem or Brood Lattice proposals.
+**Scope:** preserves the owner’s other-chat reference synthesis. The canonical repository, ARCHITECTURE.md and DECISIONS.md describe the implemented game. Shop/loadout work, side beams, living-world routes, the creature ecosystem and Brood Lattice are implemented.
 
 ## Intent
 
@@ -22,7 +22,7 @@ The current game already provides useful foundations:
 - A 640×360 logic canvas / 1280×720 render, mid-1990s painted VGA direction, and a 256-colour master palette.
 - A strong existing illustrated salesman and shop backdrop that should be retained.
 - Shared equipment renderers for the shop preview and live ship: `drawGunMounts`, `drawEngines`, and `drawShieldLayers`.
-- Six gun states (Pulse through Siege), shields, engines, support rockets, Seeker Orb, ground emplacements, nine airborne enemy kinds and five bosses.
+- Six gun states (Pulse through Siege), shields, engines, support rockets, Seeker Orb, ground emplacements, eleven airborne enemy kinds and five bosses.
 - Existing mechanical, infected, and biological ground-sentry art.
 - Implemented Phase 3 living-world layer: cached decorative fauna in worlds 2–5, two telegraphed wall-fauna hazards, and a reusable stepped central-island split in Living Labyrinth wave 18. Both 168-unit lanes clear the widest current ship with margin; grounded rewards relocate to a lane while airborne combat remains reachable.
 
@@ -301,10 +301,7 @@ Preserve procedural fallbacks for every new production asset.
 
 ### Phase 4 — Creature ecosystem and Brood Lattice
 
-- Produce a silhouette sheet for the six alien families before final sprites.
-- Implement at least three families with distinct movement and attacks.
-- Add the Brood Lattice as an environmental set-piece, then connect it to a later encounter.
-- Expand variants only after the base families are readable and behaviourally distinct.
+**Implemented 2026-09-08.** An original six-cell silhouette study establishes the Carapace Rammer, Tendril Hunter, Spore Ray, Seeder, Needle Larva and Colony Mass grammars. The late roster now preserves all six identities, with new rammer/hunter state machines and a widened, banking, warm-volley Spore Ray. Brood Heart foreshadows an irregular eleven-node Brood Lattice before its wave-23 set-piece; three sequential nodes travel-pulse, push forward and open to every player weapon, then release three salvage cores exactly once. Existing approved creature art remains in use with procedural fallbacks; prompt/provenance is in `docs/phase4-creature-design.md`.
 
 ## Proposed feature acceptance checks
 

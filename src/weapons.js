@@ -149,9 +149,10 @@ function damageWithSideLasers(){
   const p=EQUIPMENT.sideWeapon.tiers[1];let hit=false;
   for(const mount of SHIP_MOUNTS.sideWeapon){const x=ship.x+mount[0],top=ship.y+mount[1];
     for(const e of enemies){if(e.hp<=0||e.y<0||e.y>top||!sideLaserHitsX(x,e.x,R[e.k]))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.k>=3);hit=true;
-      if(e.hp<=0){awardKill([10,20,50,150,60,60,80,50,120][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}
+      if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}
     for(const e of ground){if(e.hp<=0||e.y<=0||e.y>top||!sideLaserHitsX(x,e.x,21))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.stage>0);hit=true;if(e.hp<=0)destroyGround(e);}
     if(typeof damageBossWithSideLaser==='function'&&damageBossWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,boss?boss.y+30:80,true);hit=true;}
+    if(typeof damageLatticeWithSideLaser==='function'&&damageLatticeWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,80,true);hit=true;}
   }
   if(hit){shake=Math.max(shake,2);SFX.hit();}
 }
