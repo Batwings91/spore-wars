@@ -143,6 +143,11 @@ Modular player hull (assets/player_hull.png):
 Siege cannon housings and Seeker Orb:
   Original procedural artwork by 640K Games, drawn by game code; no third-party assets.
 
+Workshop equipment wall, module thumbnails and locked side-laser hardpoint marker:
+  Original runtime UI composition by 640K Games, drawn by game code in 2026-09-08.
+  Thumbnails reuse the credited player hull and existing procedural equipment renderers; no new third-party or binary art.
+  Design/provenance: docs/ship-shop-foundation-20260908.md.
+
 Spore Wilds background (assets/world_wilds.webp):
   Original AI-assisted artwork generated with OpenAI image generation for 640K Games, 2026-09-08.
   Based on the approved original five-world concept sheet; no third-party source pack.

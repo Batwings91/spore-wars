@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-08 — Phase 1 truthful equipment foundation
+- Rebuilt the Workshop stock as a readable four-column square grid while retaining the illustrated trader, persistent cores, full-loadout detail preview and keyboard/touch navigation.
+- Centralized equipment tiers, costs, module hooks, gun shot origins and support profiles; live fire, ship assembly and previews now consume the same definitions.
+- Separated twin rocket pods into purchasable ordnance with shared visual/launch mounts, a three-second cadence and independent ownership. Existing v3 saves receive Mk I pods; fresh saves do not.
+- Added a locked Phase 2 side-laser hardpoint without selling or equipping a nonfunctional beam, plus expanded ship/shop regression coverage and small-viewport screenshots.
+
 ## 2026-09-08 — Art documentation consolidation
 - Consolidated current art implementation notes in ARCHITECTURE and validation in TESTING; preserved historical entries below.
 - Added the other-chat visual synthesis as a dated reference, corrected its current-state summary and distinguished proposed features from accepted implementation.

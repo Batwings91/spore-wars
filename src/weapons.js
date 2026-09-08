@@ -1,5 +1,46 @@
 'use strict';
-// Player bolts, gun mounts, and the gun-level-four homing rockets.
+// Player weapons, shared equipment definitions, mount data and support ordnance.
+// Shop, preview, ship assembly and combat all resolve through these records.
+const SHIP_MOUNTS=Object.freeze({
+  engine:[[-11,28],[11,28]],defence:[[-9,-3],[9,-3]],
+  ordnance:[[-40,-8],[40,-8]],sideWeapon:[[-46,-10],[46,-10]],support:[[0,34]]
+});
+const GUN=[
+  {n:'PULSE',dmg:1,rate:12,shots:[[0,-32,0,-8]]},
+  {n:'TWIN',dmg:1,rate:11,shots:[[-14,-20,0,-8],[14,-20,0,-8]]},
+  {n:'TRIPLE',dmg:2,rate:10,shots:[[0,-34,0,-9],[-16,-20,0,-8.5],[16,-20,0,-8.5]]},
+  {n:'SPREAD',dmg:2,rate:16,shots:[[0,-34,0,-9],[-14,-22,-0.55,-8.4],[14,-22,0.55,-8.4],[-22,-14,-1,-7.6],[22,-14,1,-7.6]]},
+  {n:'STORM',dmg:2,rate:18,shots:[[-6,-34,0,-10],[6,-34,0,-10],[-18,-22,-0.5,-9],[18,-22,0.5,-9],[-26,-12,-1.05,-8],[26,-12,1.05,-8]]},
+  {n:'SIEGE',dmg:3,rate:20,shots:[[-6,-34,0,-10],[6,-34,0,-10],[-28,-24,-0.2,-9],[28,-24,0.2,-9],[-34,-18,-0.4,-8.5],[34,-18,0.4,-8.5]]}
+];
+const MAXW=GUN.length-1,GUN_PORTS=GUN.map(g=>g.shots.map(s=>s.slice(0,2)));
+const EQUIPMENT=Object.freeze({
+  primary:{id:'primary',saveKey:'weapon',loadoutKey:'weapon',label:'PRIMARY',name:'Starting gun',maxOwned:2,costs:[80,200],tiers:GUN,
+    effect:t=>'Future runs start with '+GUN[t].n,note:'Run pickups can still advance it.',
+    draw:(tier,x,y,v)=>{if(tier===5)drawSiegeHousings(x,y,v.frame,v.flash);drawGunMounts(tier,x,y,v.flash);}},
+  defence:{id:'defence',saveKey:'shield',loadoutKey:'shield',label:'SHIELD',name:'Shield emitters',maxOwned:2,costs:[60,150],tiers:[{capacity:0},{capacity:1},{capacity:2}],
+    effect:t=>t+' shield '+(t===1?'charge':'charges')+' at launch',note:'Absorbs hits before hull damage.',
+    draw:(tier,x,y,v)=>drawShieldLayers(tier,x,y,v.frame,v.flash)},
+  engine:{id:'engine',saveKey:'engine',loadoutKey:'engine',label:'ENGINE',name:'Engine tune',maxOwned:3,costs:[20,120,190],tiers:[{bonus:0},{bonus:0.5},{bonus:1},{bonus:1.5}],
+    effect:t=>'Flight speed +'+Math.round(EQUIPMENT.engine.tiers[t].bonus/3.7*100)+'%',note:'Installs immediately and persists.',
+    draw:(tier,x,y,v)=>drawEngines(tier,x,y,v.frame)},
+  ordnance:{id:'ordnance',saveKey:'rockets',loadoutKey:'rockets',label:'ROCKET PODS',name:'Twin rocket pods',maxOwned:1,costs:[90],tiers:[null,{reload:180,limit:2,damage:1,life:180,turn:0.055,maxSpeed:4.2,accel:0.06}],
+    effect:t=>t?'Twin homing pods / 3.0 sec reload':'No ordnance fitted',note:'Primary gun tier does not control pods.',
+    draw:(tier,x,y,v)=>{if(tier)drawRocketPods(x,y,v.open,v.flash,v.side);}},
+  support:{id:'support',saveKey:'orb',loadoutKey:'orb',label:'SEEKER ORB',name:'Seeker orb',maxOwned:1,costs:[120],tiers:[null,{reload:180,limit:2,damage:1}],
+    effect:t=>t?'Trailing homing missile support':'No support fitted',note:'Equips now and on future runs.',
+    draw:(tier,x,y,v)=>{if(tier)drawSeekerOrb(x+SHIP_MOUNTS.support[0][0],y+SHIP_MOUNTS.support[0][1],v.frame,0);}},
+  sideWeapon:{id:'sideWeapon',saveKey:null,loadoutKey:'sideLaser',label:'SIDE LASER',name:'Heavy side laser',maxOwned:0,costs:[],tiers:[null],locked:true,
+    effect:()=> 'Side hardpoints reserved for Phase 2',note:'Beam system is not for sale or equip yet.',draw:()=>{}}
+});
+const SHOP_COLUMNS=4,SHOP=Object.freeze(['primary','defence','engine','ordnance','support','sideWeapon'].map(id=>EQUIPMENT[id]));
+function equipmentFor(key){return EQUIPMENT[key]||SHOP.find(it=>it.saveKey===key||it.loadoutKey===key);}
+function equipmentOwned(it,source=save){return it.saveKey?Math.max(0,Math.min(it.maxOwned,Number(source[it.saveKey])||0)):0;}
+function equipmentCost(it,level=equipmentOwned(it)){return it.locked||level>=it.maxOwned?null:it.costs[level];}
+function savedLoadout(source=save){return{weapon:Number(source.weapon)||0,shield:Number(source.shield)||0,engine:Number(source.engine)||0,rockets:source.rockets===1?1:0,orb:source.orb===1?1:0,sideLaser:0};}
+function candidateLoadout(base,kind,tier){const it=equipmentFor(kind),loadout=Object.assign({},base);if(it&&!it.locked)loadout[it.loadoutKey]=tier;return loadout;}
+function previewLoadout(kind,tier,source=save){return candidateLoadout(savedLoadout(source),kind,tier);}
+function drawEquipmentModule(id,tier,x,y,visual={}){const it=EQUIPMENT[id];if(!it)return;it.draw(tier,x,y,{frame:visual.frame||0,flash:visual.flash||0,open:visual.open||0,side:visual.side===undefined?-1:visual.side});}
 // Player-only, cached white/cyan bolts: needle, rails, spear, chevron, split lance.
 // Generated once at render resolution; no per-shot gradients or shared enemy sprites.
 const BOLT=Array.from({length:6},(_,level)=>{
@@ -26,11 +67,7 @@ const BOLT=Array.from({length:6},(_,level)=>{
   else{g.fillRect(11,7,2,level>=2?21:17);}
   return o;
 });
-// Visual mount locations mirror the existing shot origins; firing logic is unchanged.
-const GUN_PORTS=[[[0,-32]],[[-14,-20],[14,-20]],[[0,-34],[-16,-20],[16,-20]],
-  [[0,-34],[-14,-22],[14,-22],[-22,-14],[22,-14]],
-  [[-6,-34],[6,-34],[-18,-22],[18,-22],[-26,-12],[26,-12]],
-  [[-6,-34],[6,-34],[-28,-24],[28,-24],[-34,-18],[34,-18]]];
+// Visual mount locations are derived from the firing profiles above.
 function drawGunMounts(gun=wpn,sx=ship.x,sy=ship.y,flash=muzz){
   ctx.save();
   for(const [ox,oy] of GUN_PORTS[gun]){
@@ -55,7 +92,6 @@ const ROCKET=(()=>{const c=document.createElement('canvas');c.width=20;c.height=
   g.fillStyle='#173348';g.beginPath();g.moveTo(10,1);g.lineTo(15,10);g.lineTo(15,23);g.lineTo(19,30);g.lineTo(1,30);g.lineTo(5,23);g.lineTo(5,10);g.closePath();g.fill();
   g.fillStyle='#819aa7';g.fillRect(6,11,8,17);g.fillStyle='#eaffff';g.fillRect(7,9,3,18);
   g.fillStyle='#54e5ff';g.fillRect(6,14,8,3);g.fillRect(8,29,4,9);return c;})();
-const POD_RELOAD=[0,240,210,180,150,120],POD_LIMIT=[0,1,2,2,3,3];
 let podOpen=0,rocketT=240,rocketSide=-1,rocketFlash=0;
 function resetRockets(){resetOrb();podOpen=0;rocketT=240;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
 function rocketTarget(x,y){
@@ -66,13 +102,14 @@ function rocketTarget(x,y){
   return best;
 }
 function updateRockets(){
+  const tier=save.rockets===1?1:0,profile=EQUIPMENT.ordnance.tiers[tier];
   if(rocketFlash>0)rocketFlash--;
-  podOpen=Math.max(0,Math.min(24,podOpen+(wpn>=1?1:-1)));
-  if(wpn<1)rocketT=240;
-  else rocketT=Math.min(rocketT,POD_RELOAD[wpn]);
-  if(wpn>=1&&podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&!s.orb&&s.y>0).length<POD_LIMIT[wpn]){
-    const x=ship.x+rocketSide*40,target=rocketTarget(x,ship.y);
-    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=POD_RELOAD[wpn];rocketFlash=12;}
+  podOpen=Math.max(0,Math.min(24,podOpen+(profile?1:-1)));
+  if(!profile)rocketT=240;
+  else rocketT=Math.min(rocketT,profile.reload);
+  if(profile&&podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&!s.orb&&s.y>0).length<profile.limit){
+    const mount=SHIP_MOUNTS.ordnance[rocketSide<0?0:1],x=ship.x+mount[0],y=ship.y+mount[1],target=rocketTarget(x,ship.y);
+    if(target){shots.push({x,y,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:profile.damage,rocket:true,target,life:profile.life,retargeted:false});rocketSide*=-1;rocketT=profile.reload;rocketFlash=12;}
   }
   updateOrb();
   for(const s of shots){if(!s.rocket||s.y<-50)continue;
@@ -81,13 +118,14 @@ function updateRockets(){
       s.target=s.retargeted?null:rocketTarget(s.x,s.y);s.retargeted=true;
     }
     let angle=Math.atan2(s.vy,s.vx);
-    if(s.target){const desired=Math.atan2(s.target.y-s.y,s.target.x-s.x);const delta=Math.atan2(Math.sin(desired-angle),Math.cos(desired-angle));angle+=Math.max(-0.055,Math.min(0.055,delta));}
-    const speed=Math.min(4.2,Math.hypot(s.vx,s.vy)+0.06);s.vx=Math.cos(angle)*speed;s.vy=Math.sin(angle)*speed;
+    const steer=s.orb?EQUIPMENT.ordnance.tiers[1]:profile||EQUIPMENT.ordnance.tiers[1];
+    if(s.target){const desired=Math.atan2(s.target.y-s.y,s.target.x-s.x);const delta=Math.atan2(Math.sin(desired-angle),Math.cos(desired-angle));angle+=Math.max(-steer.turn,Math.min(steer.turn,delta));}
+    const speed=Math.min(steer.maxSpeed,Math.hypot(s.vx,s.vy)+steer.accel);s.vx=Math.cos(angle)*speed;s.vy=Math.sin(angle)*speed;
   }
 }
 function drawRocketPods(sx=ship.x,sy=ship.y,openTicks=podOpen,flash=rocketFlash,nextSide=rocketSide){if(openTicks<=0)return;ctx.save();
-  for(const side of [-1,1]){const open=openTicks/24,ease=open*open*(3-2*open),firing=flash>0&&side===-nextSide;
-    const x=sx+side*(25+15*ease),y=sy+(firing?flash*0.3:0);
+  for(const [i,side] of [-1,1].entries()){const open=openTicks/24,ease=open*open*(3-2*open),firing=flash>0&&side===-nextSide,mount=SHIP_MOUNTS.ordnance[i];
+    const x=sx+side*(25+(Math.abs(mount[0])-25)*ease),y=sy+mount[1]+(firing?flash*0.3:0);
     ctx.fillStyle='#6a8392';ctx.fillRect(X(Math.min(sx+side*24,x)),X(y+4),X(Math.abs(x-sx-side*24)),X(4));
     ctx.fillStyle='#142331';ctx.fillRect(X(x-6),X(y-8),X(12),X(23));ctx.fillStyle='#9a885f';ctx.fillRect(X(x-5),X(y+12),X(10),X(2));
     ctx.fillStyle='#617b8b';ctx.fillRect(X(x-4),X(y+2),X(8),X(11));ctx.fillStyle='#080e18';ctx.fillRect(X(x-3),X(y-7),X(6),X(7));
@@ -104,12 +142,13 @@ let orbActive=false,orbX=0,orbY=0,orbT=180,orbFlash=0,orbReady=false;
 function resetOrb(){orbT=180;orbFlash=0;orbReady=false;}
 function updateOrb(){
   if(!orbActive)return;
+  const profile=EQUIPMENT.support.tiers[1];
   const tx=ship.x,ty=Math.min(LH-12,ship.y+34);
   if(!orbReady){orbX=tx;orbY=ty;orbReady=true;}else{orbX+=(tx-orbX)*0.12;orbY+=(ty-orbY)*0.12;}
   if(orbFlash>0)orbFlash--;
   if(orbT>0)orbT--;
-  if(orbT===0&&shots.filter(s=>s.orb&&s.y>0).length<2){const target=rocketTarget(orbX,ship.y);
-    if(target){shots.push({x:orbX,y:orbY-7,vx:0,vy:-2.4,g:wpn,dmg:1,rocket:true,orb:true,target,life:180,retargeted:false});orbT=180;orbFlash=12;}}
+  if(orbT===0&&shots.filter(s=>s.orb&&s.y>0).length<profile.limit){const target=rocketTarget(orbX,ship.y);
+    if(target){shots.push({x:orbX,y:orbY-7,vx:0,vy:-2.4,g:wpn,dmg:profile.damage,rocket:true,orb:true,target,life:180,retargeted:false});orbT=profile.reload;orbFlash=12;}}
 }
 function drawSeekerOrb(x,y,frame=t,flash=0){
   ctx.save();ctx.translate(X(x),X(y));const pulse=1+Math.sin(frame*0.07)*0.04;ctx.scale(pulse,pulse);

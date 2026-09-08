@@ -133,10 +133,9 @@ function pauseScreen(){
     menuChoice(label,LW/2-130,y+i*44,260,30,hot);});
   if(!TOUCH)txt(exitConfirm?'UP/DOWN choose / ENTER select / ESC resume':'UP/DOWN choose / ENTER select / ESC resume',LW/2,264,'#a4b8c6',9,'center');
 }
-const SHOP=[{k:'weapon',name:'Starting gun',desc:'begin each run with a better gun',cost:l=>80+l*120,max:2},
-  {k:'shield',name:'Starting shield',desc:'absorb hits before losing a ship',cost:l=>60+l*90,max:2},
-  {k:'engine',name:'Engine tune',desc:'move faster',cost:l=>l===0?20:50+l*70,max:3},
-  {k:'orb',name:'Seeker orb',desc:'trailing homing missile support',cost:()=>120,max:1}];
+const SHOP_GRID={x:304,y:60,size:70,gap:6,cols:SHOP_COLUMNS};
+function shopTileBounds(i){const col=i%SHOP_GRID.cols,row=Math.floor(i/SHOP_GRID.cols);return{x:SHOP_GRID.x+col*(SHOP_GRID.size+SHOP_GRID.gap),y:SHOP_GRID.y+row*(SHOP_GRID.size+SHOP_GRID.gap),w:SHOP_GRID.size,h:SHOP_GRID.size};}
+function shopHitTest(x,y){for(let i=0;i<SHOP.length;i++){const b=shopTileBounds(i);if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)return i;}return-1;}
 // Presentation follows the existing 200-tick reward sweep; it never awards cores.
 function drawVictorySweep(){
   const age=200-waveT,fade=Math.min(1,age/24,Math.max(0,waveT/24));
@@ -217,24 +216,25 @@ function shopScreen(){
   const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
-  small('SHIP UPGRADES / MISSILE SUPPORT',292,66,'#a7b6c0',8);
-  SHOP.forEach((it,i)=>{const x=292+i*82,lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),hot=shopSel===i;
-    surface(x,82,76,116,hot);
-    const previewTier=Math.min(it.max,lvl+1);
-    drawEquipmentPreview(it.k,previewTier,x+38,120);
-    small((maxed?'OWNED':'NEXT')+' / MK '+previewTier,x+38,86,'#8ea9b7',7,'center');
-    small(['GUN','SHIELD','ENGINE','SEEKER ORB'][i],x+38,164,hot?'#e6f0f2':'#b3c2ca',9,'center');
-    small(maxed?'MAX TIER':cost+' cores',x+38,182,maxed?'#8fa2ac':'#c9b791',8,'center');
+  small('EQUIPMENT WALL / 4 x 2',304,50,'#a7b6c0',8);
+  SHOP.forEach((it,i)=>{const b=shopTileBounds(i),lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),hot=shopSel===i,can=cost!==null&&save.cores>=cost;
+    surface(b.x,b.y,b.w,b.h,hot);
+    if(hot){small('>',b.x+4,b.y+4,'#e8ffff',8);ctx.strokeStyle='#e8ffff';ctx.strokeRect(X(b.x+3),X(b.y+3),X(b.w-6),X(b.h-6));}
+    const previewTier=it.locked?0:Math.min(it.maxOwned,lvl+1),state=it.locked?'[LOCKED]':maxed?'[EQUIPPED]':can?'[READY]':'[NEED]';
+    drawEquipmentPreview(it.id,previewTier,b.x+b.w/2,b.y+31,0.25);
+    small(it.label,b.x+b.w/2,b.y+48,hot?'#f0fbfc':'#c2ced3',7,'center');
+    small(state,b.x+b.w/2,b.y+60,it.locked||maxed?'#8fa2ac':can?'#a8e4cf':'#d4ad91',6,'center');
   });
   if(shopSel<SHOP.length)shopItem=shopSel;
-  const selected=shopItem,it=SHOP[selected],lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),can=save.cores>=cost;
-  surface(292,210,322,72,false);small(it.name,304,220,'#e4e9e9',12);small('OWNED '+lvl+' / '+it.max,602,223,'#a6b7c0',8,'right');
-  const effect=selected===0?'Start future runs with '+GUN[Math.min(it.max,lvl+1)].n:selected===1?'Start future runs with '+Math.min(it.max,lvl+1)+(Math.min(it.max,lvl+1)===1?' shield':' shields'):selected===3?'Homing missiles / equips now + future runs':'Engine speed +'+Math.round(Math.min(it.max,lvl+1)*0.5/3.7*100)+'% / installs now';
-  small(effect,304,242,'#bdcbd2',9);small(maxed?'All upgrades owned.':can?'Permanent upgrade. Ready to purchase.':'Collect '+(cost-save.cores)+' more cores to afford this.',304,261,can?'#9cb7b8':'#d4ad91',8);
-  surface(292,298,208,32,shopSel<SHOP.length);small(maxed?'FULLY UPGRADED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
+  const it=SHOP[shopItem],lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),can=cost!==null&&save.cores>=cost,candidate=it.locked?0:Math.min(it.maxOwned,lvl+1);
+  surface(292,214,322,72,false);drawEquipmentPreview(it.id,candidate,338,251,0.43);
+  small(it.name,380,221,'#e4e9e9',11);small(it.locked?'RESERVED':'OWNED '+lvl+' / '+it.maxOwned,602,222,'#a6b7c0',7,'right');
+  small(it.effect(candidate),380,241,'#bdcbd2',8);small(it.note,380,258,it.locked?'#b39aaa':'#9cb7b8',7);
+  small(it.locked?'Preview leaves the loadout unchanged.':maxed?'Installed / preview and combat match.':can?'Permanent equipment / ready to buy.':'Collect '+(cost-save.cores)+' more cores.',380,273,can?'#9cb7b8':'#d4ad91',7);
+  surface(292,298,208,32,shopSel<SHOP.length&&!it.locked);small(it.locked?'NOT FOR SALE':maxed?'FULLY EQUIPPED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
   surface(510,298,104,32,shopSel===SHOP.length);small(shopFromSector?'CONTINUE':'BACK',562,310,'#d9e1e4',9,'center');
   small('"Quality parts. Mostly legal."',146,318,'#ddc8ac',9,'center');
-  if(!TOUCH)small('LEFT/RIGHT items / DOWN back / UP items / ENTER select',453,344,'#8b9fae',8,'center');
+  if(!TOUCH)small('ARROWS grid / DOWN back / ENTER buy',453,344,'#8b9fae',8,'center');
 }
 
-function buy(){const it=SHOP[shopSel];if(!it)return;const lvl=save[it.k];if(lvl>=it.max)return;const c=it.cost(lvl);if(save.cores<c){flash=4;SFX.hit();return;}save.cores-=c;save[it.k]=lvl+1;if(it.k==='orb'){orbActive=true;resetOrb();}persist();SFX.power();}
+function buy(){const it=SHOP[shopSel];if(!it||it.locked)return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();persist();SFX.power();}

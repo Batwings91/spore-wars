@@ -14,7 +14,7 @@ Do **not** open `index.html` by double-clicking: `file://` blocks the music fetc
 | `?god=1` | player never takes damage |
 | `?wave=N` | start at wave N (level counter = N). Bosses trigger when `(level+1)%5===0`, so `?wave=4`, `?wave=9`, `?wave=14` give an immediate boss |
 | `?god=1&wave=4` | both — the standard boss-testing URL |
-Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['640k.sporewars.v3']`. Clear via browser devtools → Application → Local Storage to reset upgrades/cores.
+Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['640k.sporewars.v3']`. Clear via browser devtools → Application → Local Storage to reset upgrades/cores. Existing v3 records without `rockets` migrate to Mk I pods; a fresh save starts without them.
 
 ## Manual smoke test (do this before every commit that touches gameplay)
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
@@ -62,11 +62,9 @@ Needs Node 22+ and a Chrome/Edge install (no npm packages), with the dev build s
 Check Up/Down and W/S wrapping plus Enter selection on title, pause, exit confirmation, level complete, Workshop (including Back), and game over. Game over defaults to Retry and omits Continue once used. Confirm menu arrows do not move the ship after resuming; touch activates the corresponding visible rows.
 
 ## Salvage Exchange
-Check illustrated merchant and all three cards at zero funds, affordable funds and maximum upgrade levels. Select tiles with arrows or touch; Enter/Buy purchases. Clicks on the merchant or tile gaps do nothing. Check all icons, small text and steady UI during the subtle backdrop motion. Back returns to the correct menu/checkpoint. Block trader_shop.webp to verify the procedural fallback. Prices/effects must match the existing SHOP and buy logic.
+Check the illustrated merchant and six square equipment tiles at zero funds, affordable funds and maximum tiers. The grid is four columns: Primary/Shield/Engine/Rocket Pods on row one and Seeker Orb/locked Side Laser on row two. Each tile must identify focused plus locked/ready/need/equipped states without colour alone. Arrow movement is spatial; Down moves into row two when present and otherwise to Back, and Up from Back restores the last tile. Pointer/touch must use the visible tile bounds; gaps and the merchant do nothing. Block `trader_shop.webp` to verify the procedural fallback.
 
-Shop directional navigation: Left/Right cycle the three product tiles. Down from any tile selects Back; repeated Down stays there. Up restores the last product without changing its details. Enter activates the selection.
-
-Equipment previews: buy each tier and confirm NEXT advances, then OWNED stays on the maximum tier. Gun previews match Twin/Triple mounts on a new run; shield previews match one/two active layers (a hit removes a layer); engines show one/two/three cooling bands per housing and update in the current run. Verify player.png fallback, insufficient funds and maximum-tier purchases.
+The lower panel must show the whole ship with only the candidate slot overridden. From the title, other slots match the saved launch fit; from a checkpoint, they match the actual in-run weapon, remaining shield and run-owned Orb. Check primary, shield, engine, rocket and Orb candidates while other modules remain visible. Preview rendering must not change save/current weapon/shields/rocket timers/pod side. The locked laser tile must leave the loadout unchanged and Buy/Enter must spend nothing. Verify affordability, duplicate/max purchases, Back/Continue, `player_hull.png` fallback, 640×360 readability and a smaller landscape viewport.
 
 ## HUD clarity
 Check LIVES and shield protection at zero, one and two charges. The taller bomb panel has six slots in two rows: only available bombs are lit, including zero and full capacity. Tap its lower row to fire; paused taps must spend nothing. Pause defaults to Resume; Enter resumes, Down selects Main menu, Enter opens confirmation, and Esc resumes without exiting. Title illustration credit stays small and third-party attribution remains visible.
@@ -128,13 +126,13 @@ Automated campaign regression: `node tools/campaign-smoke.js` (server on port 80
 Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Ground wrecks show torn debris, collapsed weapons and faint smoke lasting four seconds. Ground rendering shares the scenery pixel snap. Verify no drift or jump on destruction, pause freezes smoke, and wreck limits, rewards and lifecycle resets remain unchanged.
 
 ## Modular ship presentation
-Run node tools/ship-smoke.js alongside node tools/smoke.js. Inspect all five gun tiers (1/2/3/5/6 muzzles), attached engines, visible shield emitters and open rocket magazines. Previews retain saved weapon/engine/shield values except the candidate override; rendering must not change save, current weapon/shields, rocket timers or pod state. Block player_hull.png for fallback. Check transparent hull edges, live/shop consistency, shields hit/depleted, pause, touch and mobile sizing. No damage/collision/rate changes intended.
+Run `node tools/ship-smoke.js` alongside `node tools/smoke.js`. It checks the equipment catalogue, gun mount/origin derivation, full-loadout candidate overrides, locked laser behavior, v3 save migration, rocket purchasing/ownership, grid keyboard/touch navigation and representative screenshots. Inspect all six gun tiers, attached engines, shield emitters, purchased rocket magazines and Orb. Block `player_hull.png` for fallback. Check transparent hull edges, live/shop consistency, shields hit/depleted, pause and smaller-viewport sizing.
 
 ## Siege upgrade and Seeker Orb
-Run node tools/ship-smoke.js for six tier tables, Siege firing, orb pickup versus purchased ownership, affordability/duplicate buy, reload, 180-tick launch delay, live missile cap, missing/recovered targets, life loss/Continue, pause and four-item keyboard/touch navigation. Test natural orb drops from wave 6 with no orb; old save should default to no orb. Confirm existing five gun states and core/bomb/repair/shield probabilities stay unchanged. Check large Siege housings and the orb at bottom/side screen edges on mobile; player collision stays central.
+Run `node tools/ship-smoke.js` for six tier tables, Siege firing, Orb pickup versus purchased ownership, affordability/duplicate buy, reload, 180-tick launch delay, live missile cap, missing/recovered targets, life loss/Continue and pause. Test natural Orb drops from wave 6 with no Orb; an old save still defaults missing Orb ownership to 0. Confirm existing gun states and core/bomb/repair/shield probabilities stay unchanged. Check large Siege housings and the Orb at screen edges; player collision stays central.
 
 ## Earlier side support and ground aftermath
-Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
+Gun-linked missile expectations here are superseded. With `rockets=0`, no gun tier may reveal pods or launch a rocket. With Mk I equipped, even Pulse must open both pods, alternate launches from `SHIP_MOUNTS.ordnance`, fire every 180 ticks, deal 1 damage and cap at two live rockets. Verify target loss/reacquisition, ground and boss targets, pause and lifecycle reset. Ground intervals remain 150/130/110/90 ticks with caps 6/7/8/9; wreck visuals and behavior are unchanged.
 
 ## Campaign artwork
 

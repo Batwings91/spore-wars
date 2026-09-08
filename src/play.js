@@ -34,13 +34,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   if(dx&&dy&&!ptr.down){dx*=0.707;dy*=0.707;}
   ship.x=Math.max(PX+30,Math.min(PX+PW-30,ship.x+dx*spd()));ship.y=Math.max(34,Math.min(LH-34,ship.y+dy*spd()));
   if(ship.inv>0)ship.inv--;
-  fireT--;if(fireT<=0){const G=GUN[wpn];fireT=G.rate;muzz=6;SFX.shot(Math.min(2,wpn));const sh=(ox,oy,vx,vy)=>shots.push({x:ship.x+ox,y:ship.y+oy,vx,vy,g:wpn,dmg:G.dmg});
-    if(wpn===0)sh(0,-32,0,-8);
-    else if(wpn===1){sh(-14,-20,0,-8);sh(14,-20,0,-8);}
-    else if(wpn===2){sh(0,-34,0,-9);sh(-16,-20,0,-8.5);sh(16,-20,0,-8.5);}
-    else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.55,-8.4);sh(14,-22,0.55,-8.4);sh(-22,-14,-1,-7.6);sh(22,-14,1,-7.6);}
-    else if(wpn===4){sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.5,-9);sh(18,-22,0.5,-9);sh(-26,-12,-1.05,-8);sh(26,-12,1.05,-8);}
-    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-28,-24,-0.2,-9);sh(28,-24,0.2,-9);sh(-34,-18,-0.4,-8.5);sh(34,-18,0.4,-8.5);}}
+  fireT--;if(fireT<=0){const G=GUN[wpn];fireT=G.rate;muzz=6;SFX.shot(Math.min(2,wpn));
+    for(const [ox,oy,vx,vy] of G.shots)shots.push({x:ship.x+ox,y:ship.y+oy,vx,vy,g:wpn,dmg:G.dmg});}
   updateRockets();
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.y<LH+20&&s.x>PX&&s.x<PX+PW);
   waveT--;
@@ -263,23 +258,25 @@ function drawShieldLayers(count,sx,sy,frame=t,hit=shieldHit){
 function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSide=-1,shieldFlash=0){
   const base=IMG.player_hull||IMG.player||SHIP;
   ctx.drawImage(base,X(x)-Math.floor(base.width/2),X(y)-Math.floor(base.height/2));
-  drawEngines(loadout.engine,x,y,frame);
-  if(loadout.weapon===5)drawSiegeHousings(x,y,frame,gunFlash);
-  drawGunMounts(loadout.weapon,x,y,gunFlash);
-  drawRocketPods(x,y,pods,podFlash,podSide);
-  drawShieldLayers(loadout.shield,x,y,frame,shieldFlash);
-  if(loadout.orb)drawSeekerOrb(x,y+34,frame,0);
+  drawEquipmentModule('engine',loadout.engine,x,y,{frame});
+  drawEquipmentModule('primary',loadout.weapon,x,y,{frame,flash:gunFlash});
+  drawEquipmentModule('ordnance',loadout.rockets,x,y,{frame,open:pods,flash:podFlash,side:podSide});
+  drawEquipmentModule('defence',loadout.shield,x,y,{frame,flash:shieldFlash});
+  drawEquipmentModule('support',loadout.orb,x,y,{frame});
+  drawEquipmentModule('sideWeapon',loadout.sideLaser,x,y,{frame});
 }
-function drawEquipmentPreview(kind,tier,x,y){
-  // Permanent guns/shields apply on the next launch, as the product description states.
-  const loadout={weapon:save.weapon,engine:save.engine,shield:save.shield,orb:save.orb};loadout[kind]=tier;
-  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.56,0.56);
-  drawShipAssembly(0,0,loadout,0,0,loadout.weapon>=1?24:0);
+function activeLoadout(){const loadout=savedLoadout();loadout.weapon=wpn;loadout.shield=shield;loadout.orb=orbActive?1:0;return loadout;}
+function drawEquipmentPreview(kind,tier,x,y,scale=0.56){
+  // A checkpoint preview starts from the live ship; the title Workshop starts from the saved launch fit.
+  const loadout=candidateLoadout(shopFromSector?activeLoadout():savedLoadout(),kind,tier);
+  ctx.save();ctx.translate(X(x),X(y));ctx.scale(scale,scale);
+  drawShipAssembly(0,0,loadout,0,0,loadout.rockets?24:0);
   ctx.restore();
 }
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
   if(orbActive)drawSeekerOrb(orbX,orbY,t,orbFlash);
-  drawShipAssembly(ship.x,ship.y,{weapon:wpn,engine:save.engine,shield},t,muzz,podOpen,rocketFlash,rocketSide,shieldHit);
+  const loadout=activeLoadout();loadout.orb=0;
+  drawShipAssembly(ship.x,ship.y,loadout,t,muzz,podOpen,rocketFlash,rocketSide,shieldHit);
 }
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();

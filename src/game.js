@@ -11,10 +11,9 @@ const MAX_HULL=3;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE);resetGround();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
-  score=0;lives=3;cores=0;wpn=save.weapon;shield=save.shield;orbActive=!!save.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
-const GUN=[{n:'PULSE',dmg:1,rate:12},{n:'TWIN',dmg:1,rate:11},{n:'TRIPLE',dmg:2,rate:10},{n:'SPREAD',dmg:2,rate:16},{n:'STORM',dmg:2,rate:18},{n:'SIEGE',dmg:3,rate:20}];const MAXW=5;
-const spd=()=>3.7+save.engine*0.5;
+function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+  score=0;lives=3;cores=0;wpn=starting.weapon;shield=starting.shield;orbActive=!!starting.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
+const spd=()=>3.7+EQUIPMENT.engine.tiers[save.engine].bonus;
 const R={0:17,1:20,2:23,3:30,4:20,5:20,6:22,7:13,8:26};
 // Authored formations through all five sectors; null entries are boss waves.
 // Entries are [enemy kind, count, horizontal fraction of the playfield].
