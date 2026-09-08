@@ -123,3 +123,6 @@ Check all 25 waves, five world names, HUD LEVEL x/5 and wave/boss indicator. Wav
 Defeat each boss: salvage, once-only bank, then Workshop/Proceed for levels1–4. Final boss leads to persistent campaign victory with score, banked cores, Harder replay/Main menu. Arrows/Enter and both touch rectangles work; early input only finishes tally. Victory cannot auto-start wave 26. Harder replay resets run/world/cores marker and starts atwave 1 with increased HP; normal Launch resets difficulty; Continue preserves replay difficulty. Preview fromwave24 must also replay fromwave1. Verify music across five worlds/travel, silent victory and pause safety.
 
 Automated campaign regression: `node tools/campaign-smoke.js` (server on port 8000). Exercises all 25 roster slots, world mapping, bosses/projectiles, checkpoints, final banking, replay/menu and debug finale.
+
+## Longer levels and ground wrecks
+Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Ground wrecks show torn debris, collapsed weapons and faint smoke lasting four seconds. Ground rendering shares the scenery pixel snap. Verify no drift or jump on destruction, pause freezes smoke, and wreck limits, rewards and lifecycle resets remain unchanged.

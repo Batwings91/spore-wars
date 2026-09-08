@@ -264,3 +264,6 @@
 - Fleet Lost: removed the developer '(ad slot)' label from the continue line; the rewarded-ad hook is now a code comment.
 - HUD: the SHIPS box no longer overflows at three lives (spacing 30 to 22); the GUN level meter is five equal pips inside its box instead of an ascending 'signal bars' staircase that poked above it.
 - Title footer text is clipped to the playfield so it no longer runs over the side panels; removed credits for assets not in the game (Juhani Junkala's boss track was cut, Kenney packs are unused).
+
+## Longer levels and ground wrecks
+Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Ground wrecks show torn debris, collapsed weapons and faint smoke lasting four seconds. Ground rendering shares the scenery pixel snap. Verify no drift or jump on destruction, pause freezes smoke, and wreck limits, rewards and lifecycle resets remain unchanged.

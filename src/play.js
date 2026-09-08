@@ -84,7 +84,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
 
 // Ground units share the scenery's pixel scroll, and never gate aerial wave progression.
 function updateGround(){
-  for(const w of groundWrecks){w.y=(worldScroll-w.anchor)/K;w.heat=Math.max(0,w.heat-1);}groundWrecks=groundWrecks.filter(w=>w.y<LH+40);
+  for(const w of groundWrecks){w.y=(worldScroll-w.anchor)/K;w.heat=Math.max(0,w.heat-1);w.age++;}groundWrecks=groundWrecks.filter(w=>w.y<LH+40);
   // Bosses and the sector sweep suppress new sentries and silence the live ones; existing units keep scrolling
   // off with the scenery instead of vanishing mid-screen. The timer is held so the first post-boss spawn waits 240 ticks.
   const suppress=boss||bossWarn||bossDying||sectorPending;if(suppress)groundTimer=Math.max(groundTimer,240);
@@ -102,17 +102,27 @@ function updateGround(){
 }
 function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
   awardKill(40,e.x,e.y);boom(e.x,e.y,true);if(Math.random()<0.5)drops.push({x:e.x,y:e.y,k:'core'}); // 50%: a guaranteed core tripled first-sector income
-  groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,variant:e.variant,heat:90});if(groundWrecks.length>20)groundWrecks.shift();
+  groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,variant:e.variant,heat:90,age:0});if(groundWrecks.length>20)groundWrecks.shift();
 }
 const GROUND_FALLBACK_GRADIENT=[null,null]; // radial gradients are in user space, so one per variant serves every unit
+// Snap to the same scrolling pixel as the scenery, with a fixed world anchor.
+const groundRenderY=anchor=>Math.floor(worldScroll)-Math.floor(anchor);
 function drawGround(){
-  for(const w of groundWrecks){ctx.save();ctx.translate(X(w.x),X(w.y));
+  for(const w of groundWrecks){ctx.save();ctx.translate(X(w.x),groundRenderY(w.anchor));
     const r=w.variant===2?29:23;ctx.fillStyle='rgba(5,8,12,0.65)';ctx.beginPath();ctx.ellipse(0,X(3),X(r),X(r*0.7),0,0,Math.PI*2);ctx.fill();
-    for(let i=0;i<7;i++){const a=i*2.4,dx=Math.cos(a)*(8+i*1.6),dy=Math.sin(a)*(6+i);ctx.save();ctx.translate(X(dx),X(dy));ctx.rotate(a);ctx.fillStyle=w.stage?'#503b48':'#41484a';ctx.fillRect(X(-5),X(-3),X(10),X(6));ctx.fillStyle=w.stage?'#72515d':'#69716f';ctx.fillRect(X(-5),X(-3),X(8),X(1));ctx.restore();}
-    ctx.fillStyle='#101015';ctx.beginPath();ctx.ellipse(0,0,X(12),X(9),0,0,Math.PI*2);ctx.fill();
-    if(w.heat>0){ctx.globalAlpha=w.heat/90;ctx.fillStyle=w.stage?'#c86786':'#d98b46';for(let i=0;i<3;i++)ctx.fillRect(X(i*5-6),X(i%2?3:-2),X(2),X(2));}ctx.restore();
+    // Torn plates/chitin, a charred crater and a collapsed weapon.
+    for(let i=0;i<8;i++){const a=i*2.4+w.variant*0.7,dx=Math.cos(a)*(10+i*1.5),dy=Math.sin(a)*(7+i);
+      ctx.save();ctx.translate(X(dx),X(dy));ctx.rotate(a);ctx.fillStyle=w.stage?'#392b35':'#303638';ctx.strokeStyle=w.stage?'#68505a':'#626762';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(X(-7),X(-4));ctx.lineTo(X(5),X(-3));ctx.lineTo(X(2),0);ctx.lineTo(X(7),X(3));ctx.lineTo(X(-4),X(2));ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}
+    ctx.fillStyle='#0c0d10';ctx.beginPath();ctx.ellipse(0,0,X(w.variant===2?19:13),X(10),-0.2,0,Math.PI*2);ctx.fill();
+    ctx.save();ctx.rotate(0.8+w.variant*0.4);ctx.fillStyle=w.stage?'#49323e':'#454b49';ctx.fillRect(X(5),X(-3),X(13),X(5));ctx.fillStyle='#111216';ctx.fillRect(X(15),X(-3),X(3),X(4));ctx.restore();
+    if(w.heat>0){ctx.globalAlpha=w.heat/90;ctx.fillStyle=w.stage?'#c86786':'#d98b46';for(let i=0;i<3;i++)ctx.fillRect(X(i*5-6),X(i%2?3:-2),X(2),X(2));}
+    // Bounded, faint smoke uses logic age so pausing freezes it.
+    for(let i=0;i<3;i++){const age=w.age-i*28;if(age<0||age>=180)continue;const f=age/180;
+      ctx.globalAlpha=0.18*Math.sin(Math.PI*f);ctx.fillStyle='#88827d';ctx.beginPath();ctx.ellipse(X(Math.sin(i*2+w.variant)*4+f*7),X(-5-f*29),X(4+f*9),X(5+f*11),-0.2,0,Math.PI*2);ctx.fill();}
+    ctx.restore();
   }
-  for(const e of ground){ctx.save();ctx.translate(X(e.x),X(e.y));
+  for(const e of ground){ctx.save();ctx.translate(X(e.x),groundRenderY(e.anchor));
     if(e.variant===2){
       if(IMG.ground_bunkers){const im=IMG.ground_bunkers,w=im.width/3;ctx.imageSmoothingEnabled=true;ctx.drawImage(im,e.stage*w,0,w,im.height,X(-34),X(-34),X(68),X(68));}
       else{ctx.fillStyle=e.stage?'#302631':'#252c30';ctx.beginPath();ctx.ellipse(0,0,X(32),X(30),0,0,Math.PI*2);ctx.fill();ctx.strokeStyle=e.stage?'#74515e':'#657073';ctx.lineWidth=X(4);ctx.stroke();ctx.fillStyle='#17191c';ctx.fillRect(X(-13),X(-14),X(26),X(32));}
