@@ -2,7 +2,7 @@
 // SFX: synthesised 8-bit effects, OPL-style fallback music, streamed main track, mute, tab audio ownership.
 // ---------- Sound Blaster-style audio: OPL2 FM music + one 8-bit digitised channel ----------
 const SFX=(function(){
-  let ac=null,master=null,musicBus=null,pcmBus=null,muted=false,musicMuted=false,seq=null;
+  let ac=null,master=null,musicBus=null,pcmBus=null,pcmLP=null,previewBus=null,muted=false,musicMuted=false,seq=null;
   try{muted=localStorage.getItem('640k.mute')==='1';const m=localStorage.getItem('640k.musicMute');musicMuted=m===null?muted:m==='1';if(m===null)localStorage.setItem('640k.musicMute',musicMuted?'1':'0');}catch(e){}
   let audioBlocked=false,previewUntil=0;
   const volume={sound:1,music:1};
@@ -12,15 +12,18 @@ const SFX=(function(){
   function sample(k,rate=1){const a=ctx();if(!a||!samples[k])return false;if(k==='impact'&&a.currentTime-lastImpact<0.045)return true;if(k==='impact')lastImpact=a.currentTime;if(k==='burst'&&a.currentTime-lastBurst<0.06)return true;if(k==='burst')lastBurst=a.currentTime;
     const src=a.createBufferSource();src.buffer=samples[k];src.playbackRate.value=rate;src.connect(pcmBus);src.start();return true;}
   function setVolume(k,v){if(!(k in volume))return;volume[k]=Math.max(0,Math.min(1,Math.round(v*10)/10));try{localStorage.setItem('640k.volume.'+k,String(volume[k]));}catch(e){}
-    if(pcmBus)pcmBus.gain.value=muted?0:0.8*volume.sound;
+    if(pcmBus)pcmBus.gain.value=muted?0:0.8*volume.sound;if(previewBus)previewBus.gain.value=0.8*volume.sound;
     if(musicBus)musicBus.gain.value=mainOn?0.5*volume.music:0;
     const tr=TR.main;if(tr.g&&ac){tr.g.gain.cancelScheduledValues(ac.currentTime);tr.g.gain.setTargetAtTime(mainOn?Math.max(0.0001,tr.gain*volume.music):0.0001,ac.currentTime,0.06);}}
-  function preview(k){previewUntil=performance.now()+5000;if(k!=='music')S.boom(false);}
+  // The title TEST buttons must be audible even when that channel is switched off, or they read as broken: the
+  // sound preview plays through its own bus at the row's volume, bypassing the mute but not the lowpass.
+  function preview(k){previewUntil=performance.now()+5000;if(k==='music')return;const a=ctx();if(!a)return;
+    if(!previewBus){previewBus=a.createGain();previewBus.connect(pcmLP);}previewBus.gain.value=0.8*volume.sound;pcm('previewBoom',0.55,explosion(0.55,0),11025,127,previewBus);}
   function stopPreview(){previewUntil=0;}
 
   function ctx(){if(document.hidden||audioBlocked)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=0.6;master.connect(ac.destination);
       musicBus=ac.createGain();musicBus.gain.value=0.5*volume.music;musicBus.connect(master);
-      pcmBus=ac.createGain();pcmBus.gain.value=muted?0:0.8*volume.sound;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;pcmBus.connect(lp);lp.connect(master);loadSamples(ac);}
+      pcmBus=ac.createGain();pcmBus.gain.value=muted?0:0.8*volume.sound;pcmLP=ac.createBiquadFilter();pcmLP.type='lowpass';pcmLP.frequency.value=5200;pcmBus.connect(pcmLP);pcmLP.connect(master);loadSamples(ac);}
     if(ac.state==='suspended')ac.resume();return ac;}
 
   // --- OPL2-style 2-op FM voice with ADSR, sine operators, optional vibrato ---
@@ -156,6 +159,8 @@ const SFX=(function(){
   function bossTheme(on){/* boss track removed: main theme plays throughout */}
   function loadBoss(){loadTrack('main');}
   function toggleMute(){muted=!muted;if(pcmBus)pcmBus.gain.value=muted?0:0.8*volume.sound;try{localStorage.setItem('640k.mute',muted?'1':'0');}catch(e){}return muted;}
+  // Only the off side is handled here: stepLogic() calls music() every step, so switching back on takes effect
+  // on the next step for whichever mode is current.
   function toggleMusic(){musicMuted=!musicMuted;if(musicMuted)music(false);try{localStorage.setItem('640k.musicMute',musicMuted?'1':'0');}catch(e){}return musicMuted;}
   return Object.assign(S,{music,bossTheme,toggleMute,toggleMusic,setVolume,getVolume:k=>volume[k],preview,stopPreview,previewing:()=>performance.now()<previewUntil,isMuted:()=>muted,isMusicMuted:()=>musicMuted,unlock:ctx,preload:loadBoss});
 })();
