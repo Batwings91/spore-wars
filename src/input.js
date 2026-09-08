@@ -1,18 +1,19 @@
 'use strict';
 // Save data, keyboard, pointer/touch handlers, pause-on-blur.
-const KEY='640k.sporewars.v3',SAVE_DEFAULTS=Object.freeze({cores:0,best:0,weapon:0,shield:0,engine:0,orb:0,rockets:0});
+const KEY='640k.sporewars.v3',SAVE_DEFAULTS=Object.freeze({cores:0,best:0,weapon:0,shield:0,engine:0,orb:0,rockets:0,sideLaser:0});
 function migrateSaveData(raw,legacy=false){
   const source=raw&&typeof raw==='object'?raw:{},next=Object.assign({},SAVE_DEFAULTS,source);
   next.orb=next.orb===1?1:0;
   // Every v3 player previously received gun-linked pods during a run. Granting Mk I preserves that capability.
   next.rockets=Object.prototype.hasOwnProperty.call(source,'rockets')?(source.rockets===1?1:0):(legacy?1:0);
+  next.sideLaser=next.sideLaser===1?1:0;
   return next;
 }
 let storedSave=null,hadStoredSave=false;
 try{const s=localStorage.getItem(KEY);if(s){storedSave=JSON.parse(s);hadStoredSave=true;}}catch(e){}
 let save=migrateSaveData(storedSave,hadStoredSave);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
-if(hadStoredSave&&!Object.prototype.hasOwnProperty.call(storedSave,'rockets'))persist();
+if(hadStoredSave&&(!Object.prototype.hasOwnProperty.call(storedSave,'rockets')||!Object.prototype.hasOwnProperty.call(storedSave,'sideLaser')))persist();
 
 const keys={};let tapped=false,tapSrc='key';
 const KEYMAP={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',KeyA:'l',KeyD:'r',KeyW:'u',KeyS:'d'};

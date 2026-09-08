@@ -41,7 +41,7 @@ See `ARCHITECTURE.md`. Decisions and their reasons: `DECISIONS.md`. How to test:
 - Raw source packs are on the owner's Mac (Downloads), not in this repo.
 
 ## Done
-Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop upgrades, megabomb, pickup fanfare (flash/slow-mo/banner), five enemy types, Battleship boss, six-layer parallax, full sprite set, synthesised SFX, streamed music, mute, touch controls, fixed timestep, debug params.
+Boot screen, title and Workshop, six gun states, independent rocket pods, twin sustained side lasers, shields, persistent upgrades, megabomb, pickup fanfare, a 25-wave five-stage campaign, five bosses, painted/fallback scenery, synthesised SFX, streamed music, separate audio controls, touch controls, fixed timestep and debug params.
 
 ## Next (agreed order)
 1. **Playtest balance** of the Battleship (owner feedback pending): sponginess, phase-2 bullet density, turret value.

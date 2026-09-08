@@ -11,7 +11,7 @@ const MAX_HULL=3;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetSideLasers();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
   score=0;lives=3;cores=0;wpn=starting.weapon;shield=starting.shield;orbActive=!!starting.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
 const spd=()=>3.7+EQUIPMENT.engine.tiers[save.engine].bonus;
 const R={0:17,1:20,2:23,3:30,4:20,5:20,6:22,7:13,8:26};

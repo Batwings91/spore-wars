@@ -22,7 +22,7 @@ function updateBoss(){
     if(bossDying===0){booms.push({x:b.x,y:b.y,f:0,life:40,kind:'exp_boss',sc:1.4});booms.push({x:b.x,y:b.y+20,f:0,life:60,kind:'smoke',sc:2});flash=14;shake=26;slow=30;
       score+=2000+bossCount*500;addFloat(b.x,b.y-40,'+'+(2000+bossCount*500),C.G,true);pickupEvent(b.name+' DEFEATED',C.G);
       lastW=kills;drops.push({x:b.x-40,y:b.y,k:'w'});drops.push({x:b.x,y:b.y,k:'s'});drops.push({x:b.x+40,y:b.y,k:'b'});for(let i=0;i<6;i++)drops.push({x:b.x-60+i*24,y:b.y+30,k:'core'});
-      boss=null;waveT=200;sectorPending=true;enemies=[];eshots=[];shots=[];resetRockets();SFX.bossTheme(false);}
+      boss=null;waveT=200;sectorPending=true;enemies=[];eshots=[];shots=[];resetRockets();resetSideLasers();SFX.bossTheme(false);}
     return;}
   // entry
   if(b.y<b.ty){b.y+=0.9;return;}
@@ -72,6 +72,12 @@ function updateMothership(b){
     b.salvo=(b.salvo||0)+1;b.volT=b.phase===2?160:210;SFX.plasma();}
 }
 function bombBoss(){if(!boss||bossDying)return;boss.hp-=25;boss.flash=6;for(const tu of boss.turrets){const wasAlive=tu.hp>0;tu.hp-=8;if(wasAlive&&tu.hp<=0){boom(boss.x+tu.dx,boss.y+tu.dy,false);awardKill(150,boss.x+tu.dx,boss.y+tu.dy);}}}
+function damageBossWithSideLaser(x,halfWidth,damage){
+  if(!boss||bossDying||boss.y<boss.ty)return false;const b=boss,bio=b.kind>=2||b.mother;
+  for(const tu of b.turrets){if(tu.hp>0&&Math.abs(x-(b.x+tu.dx))<=halfWidth+14){tu.hp-=damage;if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}return true;}}
+  const overlaps=b.mother?Math.abs(x-b.x)<=halfWidth+96:Math.abs(x-b.x)<=halfWidth+(b.mech?54:80);
+  if(!overlaps)return false;b.hp-=damage;b.flash=4;addHitImpact(x,b.y+(bio?35:20),bio);return true;
+}
 const BATTLESHIP_MOUNT=(()=>{
   const o=document.createElement('canvas');o.width=o.height=X(28);const g=o.getContext('2d');g.scale(K,K);g.translate(14,14);
   const metal=g.createRadialGradient(-5,-6,1,0,0,15);metal.addColorStop(0,'#a6a89c');metal.addColorStop(0.5,'#58636a');metal.addColorStop(1,'#202a33');

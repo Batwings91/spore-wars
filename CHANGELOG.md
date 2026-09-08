@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-08 — Phase 2 twin side lasers
+- Made the Workshop side-weapon slot a 240-core permanent Twin Ion Lance purchase, with saved ownership, candidate/live assembly parity and migration of older v3 saves to an unequipped default.
+- Added symmetric ship-mounted emitters with a 150-tick recharge, 48-tick visible wind-up and 36-tick sustained firing window. Two 14-unit bright beam cores pulse damage every six ticks against air, ground and boss targets; bounded sparks, hit flashes and light spill provide impact feedback.
+- Kept Mk I rocket pods independent at their existing 180-tick cadence, with projectile origins still derived from the same visible pod mounts. Expanded ship smoke coverage for purchase/equip/save, migration, beam rhythm/footprint/damage, rocket rhythm/origins and desktop/narrow screenshots.
+
 ## 2026-09-08 — Phase 1 truthful equipment foundation
 - Rebuilt the Workshop stock as a readable four-column square grid while retaining the illustrated trader, persistent cores, full-loadout detail preview and keyboard/touch navigation.
 - Centralized equipment tiers, costs, module hooks, gun shot origins and support profiles; live fire, ship assembly and previews now consume the same definitions.

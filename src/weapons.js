@@ -3,7 +3,7 @@
 // Shop, preview, ship assembly and combat all resolve through these records.
 const SHIP_MOUNTS=Object.freeze({
   engine:[[-11,28],[11,28]],defence:[[-9,-3],[9,-3]],
-  ordnance:[[-40,-8],[40,-8]],sideWeapon:[[-46,-10],[46,-10]],support:[[0,34]]
+  ordnance:[[-40,-8],[40,-8]],sideWeapon:[[-50,-14],[50,-14]],support:[[0,34]]
 });
 const GUN=[
   {n:'PULSE',dmg:1,rate:12,shots:[[0,-32,0,-8]]},
@@ -30,17 +30,18 @@ const EQUIPMENT=Object.freeze({
   support:{id:'support',saveKey:'orb',loadoutKey:'orb',label:'SEEKER ORB',name:'Seeker orb',maxOwned:1,costs:[120],tiers:[null,{reload:180,limit:2,damage:1}],
     effect:t=>t?'Trailing homing missile support':'No support fitted',note:'Equips now and on future runs.',
     draw:(tier,x,y,v)=>{if(tier)drawSeekerOrb(x+SHIP_MOUNTS.support[0][0],y+SHIP_MOUNTS.support[0][1],v.frame,0);}},
-  sideWeapon:{id:'sideWeapon',saveKey:null,loadoutKey:'sideLaser',label:'SIDE LASER',name:'Heavy side laser',maxOwned:0,costs:[],tiers:[null],locked:true,
-    effect:()=> 'Side hardpoints reserved for Phase 2',note:'Beam system is not for sale or equip yet.',draw:()=>{}}
+  sideWeapon:{id:'sideWeapon',saveKey:'sideLaser',loadoutKey:'sideLaser',label:'SIDE LASER',name:'Twin ion lances',maxOwned:1,costs:[240],tiers:[null,{recharge:150,windup:48,duration:36,pulse:6,damage:1,width:14}],
+    effect:t=>t?'Twin sustained beams / 3.9 sec cycle':'No side weapon fitted',note:'The 14-unit bright core deals damage.',
+    draw:(tier,x,y,v)=>{if(tier)drawSideLaserMounts(x,y,v.frame,v.laserPhase,v.laserT);}}
 });
 const SHOP_COLUMNS=4,SHOP=Object.freeze(['primary','defence','engine','ordnance','support','sideWeapon'].map(id=>EQUIPMENT[id]));
 function equipmentFor(key){return EQUIPMENT[key]||SHOP.find(it=>it.saveKey===key||it.loadoutKey===key);}
 function equipmentOwned(it,source=save){return it.saveKey?Math.max(0,Math.min(it.maxOwned,Number(source[it.saveKey])||0)):0;}
 function equipmentCost(it,level=equipmentOwned(it)){return it.locked||level>=it.maxOwned?null:it.costs[level];}
-function savedLoadout(source=save){return{weapon:Number(source.weapon)||0,shield:Number(source.shield)||0,engine:Number(source.engine)||0,rockets:source.rockets===1?1:0,orb:source.orb===1?1:0,sideLaser:0};}
+function savedLoadout(source=save){return{weapon:Number(source.weapon)||0,shield:Number(source.shield)||0,engine:Number(source.engine)||0,rockets:source.rockets===1?1:0,orb:source.orb===1?1:0,sideLaser:source.sideLaser===1?1:0};}
 function candidateLoadout(base,kind,tier){const it=equipmentFor(kind),loadout=Object.assign({},base);if(it&&!it.locked)loadout[it.loadoutKey]=tier;return loadout;}
 function previewLoadout(kind,tier,source=save){return candidateLoadout(savedLoadout(source),kind,tier);}
-function drawEquipmentModule(id,tier,x,y,visual={}){const it=EQUIPMENT[id];if(!it)return;it.draw(tier,x,y,{frame:visual.frame||0,flash:visual.flash||0,open:visual.open||0,side:visual.side===undefined?-1:visual.side});}
+function drawEquipmentModule(id,tier,x,y,visual={}){const it=EQUIPMENT[id];if(!it)return;it.draw(tier,x,y,{frame:visual.frame||0,flash:visual.flash||0,open:visual.open||0,side:visual.side===undefined?-1:visual.side,laserPhase:visual.laserPhase||0,laserT:visual.laserT||0});}
 // Player-only, cached white/cyan bolts: needle, rails, spear, chevron, split lance.
 // Generated once at render resolution; no per-shot gradients or shared enemy sprites.
 const BOLT=Array.from({length:6},(_,level)=>{
@@ -135,6 +136,59 @@ function drawRocketPods(sx=ship.x,sy=ship.y,openTicks=podOpen,flash=rocketFlash,
     ctx.fillStyle='#83efff';ctx.fillRect(X(x-2),X(y-6),X(4),X(2));
     if(firing){ctx.globalAlpha=flash/12;ctx.fillStyle='#eaffff';ctx.beginPath();ctx.moveTo(X(x-4),X(y-8));ctx.lineTo(X(x),X(y-22));ctx.lineTo(X(x+4),X(y-8));ctx.fill();ctx.fillStyle='#5bdaeb';ctx.beginPath();ctx.moveTo(X(x-3),X(y+14));ctx.lineTo(X(x),X(y+25));ctx.lineTo(X(x+3),X(y+14));ctx.fill();ctx.globalAlpha=1;}
   }ctx.restore();
+}
+
+// Twin side lances use one fixed-step state machine. The opaque core width below is also the collision width;
+// the wider translucent line is light spill only. Damage pulses stay bounded independently of enemy density.
+let sideLaserPhase=0,sideLaserT=EQUIPMENT.sideWeapon.tiers[1].recharge,sideLaserImpacts=[];
+function resetSideLasers(){const p=EQUIPMENT.sideWeapon.tiers[1];sideLaserPhase=0;sideLaserT=p.recharge;sideLaserImpacts=[];}
+function sideLaserOwned(){return save.sideLaser===1;}
+function sideLaserHitsX(beamX,targetX,radius=0){const p=EQUIPMENT.sideWeapon.tiers[1];return Math.abs(beamX-targetX)<=p.width/2+radius;}
+function sideLaserImpact(x,y,bio=false){sideLaserImpacts.push({x,y,bio,life:8});if(sideLaserImpacts.length>12)sideLaserImpacts.splice(0,sideLaserImpacts.length-12);}
+function damageWithSideLasers(){
+  const p=EQUIPMENT.sideWeapon.tiers[1];let hit=false;
+  for(const mount of SHIP_MOUNTS.sideWeapon){const x=ship.x+mount[0],top=ship.y+mount[1];
+    for(const e of enemies){if(e.hp<=0||e.y<0||e.y>top||!sideLaserHitsX(x,e.x,R[e.k]))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.k>=3);hit=true;
+      if(e.hp<=0){awardKill([10,20,50,150,60,60,80,50,120][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}
+    for(const e of ground){if(e.hp<=0||e.y<=0||e.y>top||!sideLaserHitsX(x,e.x,21))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.stage>0);hit=true;if(e.hp<=0)destroyGround(e);}
+    if(typeof damageBossWithSideLaser==='function'&&damageBossWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,boss?boss.y+30:80,true);hit=true;}
+  }
+  if(hit){shake=Math.max(shake,2);SFX.hit();}
+}
+function updateSideLasers(){
+  for(const impact of sideLaserImpacts)impact.life--;sideLaserImpacts=sideLaserImpacts.filter(i=>i.life>0);
+  const p=EQUIPMENT.sideWeapon.tiers[1];
+  if(!sideLaserOwned()){sideLaserPhase=0;sideLaserT=p.recharge;return;}
+  if(sideLaserPhase===0){if(--sideLaserT<=0){sideLaserPhase=1;sideLaserT=p.windup;}}
+  else if(sideLaserPhase===1){if(--sideLaserT<=0){sideLaserPhase=2;sideLaserT=p.duration;SFX.shot(2);}}
+  else{
+    if(sideLaserT===p.duration||sideLaserT%p.pulse===0)damageWithSideLasers();
+    if(--sideLaserT<=0){sideLaserPhase=0;sideLaserT=p.recharge;}
+  }
+}
+function drawSideLaserMounts(sx,sy,frame=t,phase=sideLaserPhase,phaseT=sideLaserT){
+  const p=EQUIPMENT.sideWeapon.tiers[1],charge=phase===1?1-phaseT/p.windup:phase===2?1:Math.max(0,0.28*(1-phaseT/p.recharge));
+  ctx.save();
+  for(const [i,side] of [-1,1].entries()){const [ox,oy]=SHIP_MOUNTS.sideWeapon[i],x=sx+ox,y=sy+oy;
+    ctx.fillStyle='#17232b';ctx.fillRect(X(Math.min(sx+side*24,x)),X(y+7),X(Math.abs(x-sx-side*24)),X(6));
+    ctx.fillStyle='#111b24';ctx.beginPath();ctx.moveTo(X(x-8),X(y-5));ctx.lineTo(X(x+8),X(y-5));ctx.lineTo(X(x+10),X(y+15));ctx.lineTo(X(x+6),X(y+22));ctx.lineTo(X(x-6),X(y+22));ctx.lineTo(X(x-10),X(y+15));ctx.closePath();ctx.fill();
+    ctx.fillStyle='#65747b';ctx.fillRect(X(x-6),X(y),X(12),X(16));ctx.fillStyle='#aeb8b8';ctx.fillRect(X(x-6),X(y),X(3),X(14));ctx.fillStyle='#293944';ctx.fillRect(X(x+2),X(y),X(4),X(16));
+    ctx.fillStyle='#b49b64';ctx.fillRect(X(x-7),X(y+13),X(14),X(4));ctx.fillStyle='#07121b';ctx.fillRect(X(x-5),X(y-7),X(10),X(9));
+    const pulse=0.75+Math.sin(frame*0.25+i)*0.25;ctx.globalAlpha=0.35+charge*0.65;ctx.fillStyle=phase===2?'#f5ffff':'#64e8f3';ctx.fillRect(X(x-3-charge*2),X(y-7),X(6+charge*4),X(4+charge*2));
+    if(phase===1){ctx.globalAlpha=charge*pulse;ctx.strokeStyle='#9cffff';ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(x),X(y-5),X(5+charge*6),0,Math.PI*2);ctx.stroke();}
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+function drawSideLaserBeams(){if(!sideLaserOwned()||sideLaserPhase!==2)return;const p=EQUIPMENT.sideWeapon.tiers[1],flicker=0.9+((sideLaserT+t)%3)*0.05;
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='butt';
+  for(const mount of SHIP_MOUNTS.sideWeapon){const x=X(ship.x+mount[0]),bottom=X(ship.y+mount[1]);
+    ctx.globalAlpha=0.2*flicker;ctx.strokeStyle='#39dbe9';ctx.lineWidth=X(p.width+8);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,bottom);ctx.stroke();
+    ctx.globalAlpha=0.72;ctx.strokeStyle='#72f4ff';ctx.lineWidth=X(p.width);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,bottom);ctx.stroke();
+    ctx.globalAlpha=0.95;ctx.strokeStyle='#f4ffff';ctx.lineWidth=X(Math.max(3,p.width-8));ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,bottom);ctx.stroke();
+  }
+  for(const impact of sideLaserImpacts){const a=impact.life/8;ctx.globalAlpha=a;ctx.fillStyle=impact.bio?'#ffd3ed':'#fff0ba';ctx.beginPath();ctx.arc(X(impact.x),X(impact.y),X(3+(8-impact.life)),0,Math.PI*2);ctx.fill();ctx.strokeStyle='#eaffff';ctx.lineWidth=X(1);ctx.beginPath();ctx.moveTo(X(impact.x-9*a),X(impact.y));ctx.lineTo(X(impact.x+9*a),X(impact.y));ctx.moveTo(X(impact.x),X(impact.y-9*a));ctx.lineTo(X(impact.x),X(impact.y+9*a));ctx.stroke();}
+  ctx.restore();
 }
 
 // Independent, run-owned support orb; saved ownership equips it on new runs.

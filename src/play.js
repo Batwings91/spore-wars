@@ -4,7 +4,7 @@ function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,ki
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();addFloat(Math.max(PX+90,Math.min(PX+PW-90,ship.x)),ship.y-44,shield?'SHIELD 1 LEFT':'SHIELD DOWN',C.cyan,true);return;}
   ship.hull--;
   if(ship.hull>0){ship.inv=40;shake=6;flash=3;SFX.hit();addFloat(Math.max(PX+90,Math.min(PX+PW-90,ship.x)),ship.y-44,ship.hull===1?'HULL CRITICAL 33%':'HULL DAMAGED 67%',C.red,true);return;}
-  resetRockets();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  resetRockets();resetSideLasers();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;
@@ -32,7 +32,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   let dx=0,dy=0;if(keys.l)dx-=1;if(keys.r)dx+=1;if(keys.u)dy-=1;if(keys.d)dy+=1;
   if(ptr.down){dx+=(ptr.x-ptr.lx)*4.6/spd();dy+=(ptr.y-ptr.ly)*4.6/spd();ptr.lx=ptr.x;ptr.ly=ptr.y;}
   if(dx&&dy&&!ptr.down){dx*=0.707;dy*=0.707;}
-  ship.x=Math.max(PX+30,Math.min(PX+PW-30,ship.x+dx*spd()));ship.y=Math.max(34,Math.min(LH-34,ship.y+dy*spd()));
+  const shipEdge=sideLaserOwned()?58:30;ship.x=Math.max(PX+shipEdge,Math.min(PX+PW-shipEdge,ship.x+dx*spd()));ship.y=Math.max(34,Math.min(LH-34,ship.y+dy*spd()));
   if(ship.inv>0)ship.inv--;
   fireT--;if(fireT<=0){const G=GUN[wpn];fireT=G.rate;muzz=6;SFX.shot(Math.min(2,wpn));
     for(const [ox,oy,vx,vy] of G.shots)shots.push({x:ship.x+ox,y:ship.y+oy,vx,vy,g:wpn,dmg:G.dmg});}
@@ -60,6 +60,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
       if(e.x<PX+16){e.x=PX+16;e.dir=1;}if(e.x>PX+PW-16){e.x=PX+PW-16;e.dir=-1;}}
     if(e.k===2){e.y+=0.6;e.ct--;if(e.ct<=0&&e.y>0){e.ct=90;const a=Math.atan2(ship.y-e.y,ship.x-e.x);eshots.push({x:e.x,y:e.y+8,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4});SFX.plasma();}}
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
+  updateSideLasers();
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
   for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
       if(e.hp<=0){awardKill([10,20,50,150,60,60,80,50,120][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
@@ -255,7 +256,7 @@ function drawShieldLayers(count,sx,sy,frame=t,hit=shieldHit){
   ctx.restore();
 }
 // One assembly for live flight and candidate previews; previews never mutate run/save state.
-function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSide=-1,shieldFlash=0){
+function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSide=-1,shieldFlash=0,laserPhase=0,laserT=0){
   const base=IMG.player_hull||IMG.player||SHIP;
   ctx.drawImage(base,X(x)-Math.floor(base.width/2),X(y)-Math.floor(base.height/2));
   drawEquipmentModule('engine',loadout.engine,x,y,{frame});
@@ -263,7 +264,7 @@ function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSi
   drawEquipmentModule('ordnance',loadout.rockets,x,y,{frame,open:pods,flash:podFlash,side:podSide});
   drawEquipmentModule('defence',loadout.shield,x,y,{frame,flash:shieldFlash});
   drawEquipmentModule('support',loadout.orb,x,y,{frame});
-  drawEquipmentModule('sideWeapon',loadout.sideLaser,x,y,{frame});
+  drawEquipmentModule('sideWeapon',loadout.sideLaser,x,y,{frame,laserPhase,laserT});
 }
 function activeLoadout(){const loadout=savedLoadout();loadout.weapon=wpn;loadout.shield=shield;loadout.orb=orbActive?1:0;return loadout;}
 function drawEquipmentPreview(kind,tier,x,y,scale=0.56){
@@ -276,7 +277,7 @@ function drawEquipmentPreview(kind,tier,x,y,scale=0.56){
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
   if(orbActive)drawSeekerOrb(orbX,orbY,t,orbFlash);
   const loadout=activeLoadout();loadout.orb=0;
-  drawShipAssembly(ship.x,ship.y,loadout,t,muzz,podOpen,rocketFlash,rocketSide,shieldHit);
+  drawShipAssembly(ship.x,ship.y,loadout,t,muzz,podOpen,rocketFlash,rocketSide,shieldHit,sideLaserPhase,sideLaserT);
 }
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
@@ -295,7 +296,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     else{const nm=d.k==='w'?'icon_w':d.k==='b'?'icon_b':'icon_s';if(!img(nm,d.x,d.y+bob,p)){const cap=d.k==='w'?CAP_W:d.k==='b'?CAP_B:CAP_S;blit(cap,d.x,d.y+bob,2);}txt(d.k.toUpperCase(),d.x+0.5,d.y+bob-7,C.s0,13,'center');txt(d.k.toUpperCase(),d.x,d.y+bob-8,C.white,13,'center');}}
   for(const e of enemies){drawAirEnemy(e);if(e.flash>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(e.flash,4)*0.07;drawAirEnemy(e);ctx.restore();}}
 
-  drawBoss();
+  drawBoss();drawSideLaserBeams();
   for(const s of shots){ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(Math.atan2(s.vy,s.vx)+Math.PI/2);if(s.rocket){const flame=7+(s.life%4)*2;ctx.fillStyle='rgba(67,209,236,0.3)';ctx.beginPath();ctx.moveTo(X(-3),X(5));ctx.lineTo(0,X(5+flame));ctx.lineTo(X(3),X(5));ctx.fill();ctx.fillStyle='#d9fbff';ctx.fillRect(X(-1),X(5),X(2),X(flame*0.55));}const b=s.rocket?ROCKET:BOLT[s.g];ctx.drawImage(b,-b.width/2,-12);ctx.restore();}
   for(const s of eshots){if(s.ground){ctx.fillStyle=s.bio?'#e58cbd':'#efb65d';ctx.beginPath();ctx.arc(X(s.x),X(s.y),X(4.5),0,Math.PI*2);ctx.fill();ctx.fillStyle=s.bio?'#67334e':'#784b28';ctx.beginPath();ctx.arc(X(s.x-1),X(s.y+1),X(2),0,Math.PI*2);ctx.fill();continue;}const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
   for(const b of booms){if(b.kind==='impact'){

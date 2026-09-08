@@ -152,7 +152,7 @@ function completeSector(){
   if(!sectorPending)return;
   resetGround(); // wrecks too: travel resets worldScroll to 0, which would strand anchored wrecks far above the screen
   sectorBanked=cores-bankedCores;save.cores+=sectorBanked;bankedCores=cores;
-  if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();
+  if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();resetSideLasers();
 }
 let travelOrigin={x:0,y:0};
 function nextSector(){
@@ -237,4 +237,4 @@ function shopScreen(){
   if(!TOUCH)small('ARROWS grid / DOWN back / ENTER buy',453,344,'#8b9fae',8,'center');
 }
 
-function buy(){const it=SHOP[shopSel];if(!it||it.locked)return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();persist();SFX.power();}
+function buy(){const it=SHOP[shopSel];if(!it||it.locked)return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.power();}
