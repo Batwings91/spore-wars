@@ -307,7 +307,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
       if(b.bio){ctx.fillStyle=i%2?'#e9adbb':'#f6c886';ctx.beginPath();ctx.arc(X(b.x)+dx*r,X(b.y)+dy*r,Math.max(0.6,2-age*0.15),0,Math.PI*2);ctx.fill();}
       else{ctx.strokeStyle=i%2?'#e8cb9a':'#eb9b51';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(b.x)+dx*r,X(b.y)+dy*r);ctx.lineTo(X(b.x)+dx*(r+3),X(b.y)+dy*(r+3));ctx.stroke();}}
     ctx.restore();continue;
-  }if(b.vx===undefined){const st=STRIP[b.kind||'exp_small'];const tot=b.kind==='hit'?8:24;const prog=(tot-b.life)/tot;if(!(st&&strip(b.kind,prog*st.n,b.x,b.y,b.kind==='exp_big'?1.1:b.kind==='exp_ring'?2.4:1.4))){const fr=Math.floor((24-b.life)/4);if(fr<6)blit(BOOMF[fr],b.x,b.y,b.sc);}}
+  }if(b.vx===undefined){const st=STRIP[b.kind||'exp_small'];const tot=24;const prog=(tot-b.life)/tot;if(!(st&&strip(b.kind,prog*st.n,b.x,b.y,b.kind==='exp_big'?1.1:b.kind==='exp_ring'?2.4:1.4))){const fr=Math.floor((24-b.life)/4);if(fr<6)blit(BOOMF[fr],b.x,b.y,b.sc);}}
     else{const f=b.life/24;ctx.fillStyle=f>0.6?C.white:f>0.35?C.yellow:f>0.15?C.orange:C.red;const sz=f>0.5?9:6;ctx.fillRect(X(b.x),X(b.y),sz,sz);}}
   for(const r of rings){ctx.globalAlpha=r.life/(r.big?46:30);ctx.strokeStyle=r.col;ctx.lineWidth=r.big?6:3;ctx.beginPath();ctx.arc(X(r.x),X(r.y),X(r.r),0,6.283);ctx.stroke();if(r.big){ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(r.x),X(r.y),X(r.r*0.7),0,6.283);ctx.stroke();}}ctx.globalAlpha=1;
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.life/20);txt(f.txt,f.x+1,f.y+1,C.s0,f.big?22:13,'center');txt(f.txt,f.x,f.y,f.col,f.big?22:13,'center');}ctx.globalAlpha=1;

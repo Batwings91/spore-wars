@@ -21,7 +21,7 @@ const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
   // under the portals' size guidance.
   const singles=["logo_prompt","logo_icon","px_nebula","px_haze1","px_haze2","px_stars_far","px_stars_mid","px_stars_near",'player','player_hull','scout','bomber','frigate','cruiser','destroyer','heavycruiser','boss_battleship','boss_mothership','boss_mech','boss_mech_fire','bolt0','bolt1','bolt2','bolt3','bolt4','plasma_red','plasma_blue','icon_w','icon_s','icon_b','icon_core','flash0','flash1'];
   const deferred=Object.keys(ASSET_EXT);
-  const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8,hit:8,muzzle_anim:8};
+  const strips={exp_small:12,exp_big:12,exp_boss:16,exp_ring:12,smoke:8};
   let todo=singles.length+Object.keys(strips).length;const done=()=>{if(--todo===0)assetsReady=true;};
   const load=(n,onload,gate)=>{const im=new Image();im.onload=()=>{onload(im);if(gate)done();};im.onerror=()=>{if(gate){assetsFailed=true;done();}};im.src=ASSET_DATA[n]||('assets/'+n+'.'+(ASSET_EXT[n]||'png'));};
   for(const n of singles)load(n,im=>{IMG[n]=im;},true);

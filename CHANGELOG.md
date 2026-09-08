@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-08 — Rendering cost review fixes
+- World backdrops are rescaled once into offscreen canvases and the Infected Salvage violet tint is baked once, removing two per-frame rescales and a full-playfield 'color' composite.
+- Lurker tentacles draw 9 strokes each instead of 42 (three width bands per shading pass); engine housing gradients are cached per tier.
+- Brood Mother hull hits show spore puffs rather than metal sparks.
+- Removed the unused hit and muzzle_anim strips (nothing has referenced them since the hit-effect rewrite). Added tools/perf-probe.js.
+
 ## 2026-09-08 — Five-level campaign
 - Added authored waves 16–24, Spore Wilds/Living Labyrinth/Brood Heart progression, three alien enemy behaviours and two distinct boss encounters.
 - Moved Brood Mother to wave 25; added final victory and optional harder replay with safe core banking.
