@@ -10,7 +10,7 @@ function drawPanels(){
   const box=(x,y,w,h,label,val,col)=>{panel(x,y,w,h);txt(label,x+8,y+6,'#91a7b5',9);if(val!==undefined)txt(val,x+8,y+21,col,15);};
   box(12,12,PX-24,44,'SCORE',String(score).padStart(6,'0'),C.yellow);
   box(12,64,PX-24,44,'BEST',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
-  box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(139),24,22);
+  box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player_hull||IMG.player||SHIP,X(20+i*22),X(139),24,22);
   box(12,168,PX-24,44,'LEVEL',Math.max(1,Math.ceil(level/5))+'/5',C.text);txt(boss||bossWarn?'BOSS':'WAVE '+Math.max(1,level),20,203,boss||bossWarn?C.red:'#91a7b5',7);
   box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
@@ -83,7 +83,7 @@ function titleScreen(){
     // A complete title remains usable when the illustration is unavailable.
     for(const st of STARS){ctx.fillStyle=st.c;ctx.fillRect(st.x,(st.y+scroll*0.3)%H,st.s,st.s);}
     ctx.strokeStyle='#263b4c';ctx.lineWidth=X(3);ctx.strokeRect(X(355),X(42),X(230),X(265));
-    const b=IMG.player||SHIP;ctx.drawImage(b,X(470)-b.width,X(190)-b.height,b.width*2,b.height*2);
+    const b=IMG.player_hull||IMG.player||SHIP;ctx.drawImage(b,X(470)-b.width,X(190)-b.height,b.width*2,b.height*2);
   }
   const shade=ctx.createLinearGradient(0,0,X(360),0);shade.addColorStop(0,'rgba(3,8,16,0.45)');shade.addColorStop(1,'rgba(3,8,16,0)');
   ctx.fillStyle=shade;ctx.fillRect(0,0,X(360),H);
@@ -216,7 +216,7 @@ function shopScreen(){
   const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
-  small('PERMANENT UPGRADES',292,66,'#a7b6c0',8);
+  small('NEXT-RUN LOADOUT PREVIEWS',292,66,'#a7b6c0',8);
   SHOP.forEach((it,i)=>{const x=292+i*110,lvl=save[it.k],maxed=lvl>=it.max,cost=it.cost(lvl),hot=shopSel===i;
     surface(x,82,102,116,hot);
     const previewTier=Math.min(it.max,lvl+1);

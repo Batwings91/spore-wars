@@ -220,14 +220,16 @@ function drawCrawler(e){const cx=X(e.x),cy=X(e.y),d=e.dir;
   seg(cx+d*6,cy,3,e.lunge>0?C.magenta:'#ff8000','#000');}
 // Shop previews and live equipment use the same renderers; these never change loadout state.
 function drawEngines(tier,sx,sy,frame=t){
-  const fl=FLAME[frame%6<3?0:1];
-  blit(fl,sx-11,sy+36,1+tier*0.1);blit(fl,sx+11,sy+36,1+tier*0.1);
-  if(!tier)return;
+  // Cool exhaust and physical housings share the same two rear sockets.
+  ctx.save();
+  for(const side of [-1,1]){const x=X(sx+side*11),y=X(sy+28+tier),length=12+tier*4+(frame%6<3?2:0);
+    ctx.fillStyle='#176d8a';ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x,y+length);ctx.lineTo(x+5,y);ctx.fill();ctx.fillStyle='#b8faff';ctx.beginPath();ctx.moveTo(x-2,y);ctx.lineTo(x,y+length*0.7);ctx.lineTo(x+2,y);ctx.fill();}
+  ctx.restore();
   ctx.save();
   for(const side of [-1,1]){
-    const x=X(sx+side*11),y=X(sy+22),w=5+tier;
+    const x=X(sx+side*11),y=X(sy+17),w=5+tier;
     const metal=ctx.createLinearGradient(x-w,0,x+w,0);
-    metal.addColorStop(0,'#233747');metal.addColorStop(0.4,'#b7cbd0');metal.addColorStop(1,'#405567');
+    metal.addColorStop(0,'#20282e');metal.addColorStop(0.4,'#afbabd');metal.addColorStop(1,'#3b464c');
     ctx.fillStyle=metal;ctx.fillRect(x-w,y,w*2,25+tier*2);
     ctx.strokeStyle='#122330';ctx.lineWidth=1;ctx.strokeRect(x-w,y,w*2,25+tier*2);
     for(let n=0;n<tier;n++){
@@ -241,28 +243,37 @@ function drawEngines(tier,sx,sy,frame=t){
 }
 function drawShieldLayers(count,sx,sy,frame=t,hit=shieldHit){
   if(count<=0)return;
-  const fr=Math.floor(frame/3)%8,sc=hit>0?1.15:1+Math.sin(frame*0.1)*0.03;
-  ctx.save();ctx.globalAlpha=hit>0?1:0.75+(count>1?0.15:0);
-  blit(SHF[fr],sx,sy,sc);
-  if(count>1){ctx.globalAlpha=0.5;blit(SHF[(fr+4)%8],sx,sy,sc*0.85);}
+  for(const side of [-1,1]){const x=X(sx+side*9),y=X(sy-3);ctx.save();ctx.fillStyle='#26323a';ctx.strokeStyle='#bca16a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=count>1?'#d9ffff':'#47cadf';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();ctx.restore();}
+  ctx.save();const pulse=1+Math.sin(frame*0.08)*0.015;
+  ctx.strokeStyle=hit>0?'#eaffff':'#66dce9';ctx.lineWidth=hit>0?3:1;
+  ctx.globalAlpha=hit>0?0.85:0.3;
+  ctx.beginPath();ctx.ellipse(X(sx),X(sy),X(25*pulse),X(29*pulse),0,0,Math.PI*2);ctx.stroke();
+  if(count>1){ctx.globalAlpha=hit>0?0.5:0.16;ctx.beginPath();ctx.ellipse(X(sx),X(sy),X(28*pulse),X(32*pulse),0,0,Math.PI*2);ctx.stroke();}
   ctx.restore();
 }
+// One assembly for live flight and candidate previews; previews never mutate run/save state.
+function drawShipAssembly(x,y,loadout,frame=t,gunFlash=0,pods=0,podFlash=0,podSide=-1,shieldFlash=0){
+  // Mount rails sit behind the hull and make outer guns visibly attached.
+  ctx.save();ctx.lineCap='round';
+  for(const [ox,oy] of GUN_PORTS[loadout.weapon])if(Math.abs(ox)>=14){for(const [width,col] of [[7,'#101a20'],[4,'#6e797c'],[1,'#b49b64']]){ctx.strokeStyle=col;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(X(x+Math.sign(ox)*9),X(y+8));ctx.lineTo(X(x+ox),X(y+oy+12));ctx.stroke();}}
+  ctx.restore();
+  const base=IMG.player_hull||IMG.player||SHIP;
+  ctx.drawImage(base,X(x)-Math.floor(base.width/2),X(y)-Math.floor(base.height/2));
+  drawEngines(loadout.engine,x,y,frame);
+  drawGunMounts(loadout.weapon,x,y,gunFlash);
+  drawRocketPods(x,y,pods,podFlash,podSide);
+  drawShieldLayers(loadout.shield,x,y,frame,shieldFlash);
+}
 function drawEquipmentPreview(kind,tier,x,y){
-  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.8,0.8);
-  const base=IMG.player||SHIP;
-  ctx.drawImage(base,-base.width/2,-base.height/2);
-  drawEngines(kind==='engine'?tier:0,0,0,0);
-  drawGunMounts(kind==='weapon'?tier:0,0,0,0);
-  drawShieldLayers(kind==='shield'?tier:0,0,0,0,0);
+  // Permanent guns/shields apply on the next launch, as the product description states.
+  const loadout={weapon:save.weapon,engine:save.engine,shield:save.shield};loadout[kind]=tier;
+  ctx.save();ctx.translate(X(x),X(y));ctx.scale(0.66,0.66);
+  drawShipAssembly(0,0,loadout,0,0,loadout.weapon>=3?24:0);
   ctx.restore();
 }
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
-  const bank=keys.l?-1:keys.r?1:(ptr.down?Math.max(-1,Math.min(1,(ptr.x-ptr.lx)*0.5)):0);
-  const sq=1-Math.abs(bank)*0.22;const base=IMG.player||SHIP;const w=Math.round(base.width*sq);
-  ctx.drawImage(base,X(ship.x)-Math.floor(w/2),X(ship.y)-Math.floor(base.height/2),w,base.height);
-  drawEngines(save.engine,ship.x,ship.y);
-  drawShieldLayers(shield,ship.x,ship.y);
-  drawGunMounts();drawRocketPods();}
+  drawShipAssembly(ship.x,ship.y,{weapon:wpn,engine:save.engine,shield},t,muzz,podOpen,rocketFlash,rocketSide,shieldHit);
+}
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
   if(WORLD_TILES[worldStage])drawWorld();else{

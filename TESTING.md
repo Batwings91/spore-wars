@@ -126,3 +126,6 @@ Automated campaign regression: `node tools/campaign-smoke.js` (server on port 80
 
 ## Longer levels and ground wrecks
 Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Ground wrecks show torn debris, collapsed weapons and faint smoke lasting four seconds. Ground rendering shares the scenery pixel snap. Verify no drift or jump on destruction, pause freezes smoke, and wreck limits, rewards and lifecycle resets remain unchanged.
+
+## Modular ship presentation
+Run node tools/ship-smoke.js alongside node tools/smoke.js. Inspect all five gun tiers (1/2/3/5/6 muzzles), attached engines, visible shield emitters and open rocket magazines. Previews retain saved weapon/engine/shield values except the candidate override; rendering must not change save, current weapon/shields, rocket timers or pod state. Block player_hull.png for fallback. Check transparent hull edges, live/shop consistency, shields hit/depleted, pause, touch and mobile sizing. No damage/collision/rate changes intended.

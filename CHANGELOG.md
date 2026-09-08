@@ -267,3 +267,6 @@
 
 ## Longer levels and ground wrecks
 Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Ground wrecks show torn debris, collapsed weapons and faint smoke lasting four seconds. Ground rendering shares the scenery pixel snap. Verify no drift or jump on destruction, pause freezes smoke, and wreck limits, rewards and lifecycle resets remain unchanged.
+
+## Modular ship presentation
+Added the approved compact modular player hull, matching metal/brass gun hardware, visible shield emitters, restrained shield outlines and visible rocket magazines. Flight and Workshop now share full ship assembly; previews retain other saved upgrades. Existing gun counts, origins, damage, rates, collision and purchases are preserved.

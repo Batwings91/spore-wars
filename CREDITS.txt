@@ -6,7 +6,7 @@ AI-generated content disclosure
 Some illustrations are AI-assisted: generated with OpenAI image generation under 640K Games' art
 direction, then edited, encoded and composed by 640K Games. Each is listed individually below
 (the three world backdrops, the Mothership, Mech and Battleship bodies, the crawler and lurker
-bodies, the title hangar and the salvage trader). Everything else - sprites derived from the
+bodies, the title hangar, the salvage trader and the modular player hull). Everything else - sprites derived from the
 credited packs, the studio logo, procedural art, code and sound synthesis - is human-made.
 Declare this on store pages that ask (itch.io has an AI-generation disclosure field).
 
@@ -131,3 +131,11 @@ Sampled impacts:
 
 Recessed ground emplacements (assets/ground_bunkers.webp):
   Generated original artwork with OpenAI image generation, 2026-09-08; three terrain stages, resized to 576x192 WebP. Prompt/provenance: docs/ground-bunkers-20260908.md.
+
+Modular player hull (assets/player_hull.png):
+  Original AI-assisted artwork generated with OpenAI image generation for 640K Games, 2026-09-08.
+  Derived from the owner-approved original concept sheet; no third-party source pack used.
+  Sprite import: magenta keyed to alpha, trimmed, resized to 79x100, 256-colour PNG without dithering.
+  Guns, engine upgrades, shield emitters and rocket pods are composed by game code.
+  Original Skorpio-derived player.png remains a fallback with its attribution and licence above.
+  Prompt/provenance: docs/player-hull-20260908.md.
