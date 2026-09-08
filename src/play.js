@@ -14,6 +14,7 @@ function dropFor(e){kills++;
   if(r<0.32)return 'b';
   if(r<(early?0.38:0.34))return 's';
   if(ship.hull<MAX_HULL&&r<(early?0.42:0.38))return 'h';
+  if(r>=0.42&&r<0.57)return 'core';
   return null;}
 function addFloat(x,y,txt,col,big){floats.push({x,y,txt,col,life:60,big});}
 function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;rings.push({x:ship.x,y:ship.y,r:10,col,life:30});
@@ -33,8 +34,8 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(wpn===0)sh(0,-32,0,-8);
     else if(wpn===1){sh(-14,-20,0,-8);sh(14,-20,0,-8);}
     else if(wpn===2){sh(0,-34,0,-9);sh(-16,-20,0,-8.5);sh(16,-20,0,-8.5);}
-    else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.8,-8.4);sh(14,-22,0.8,-8.4);sh(-22,-14,-1.4,-7.6);sh(22,-14,1.4,-7.6);}
-    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.7,-9);sh(18,-22,0.7,-9);sh(-26,-12,-1.5,-8);sh(26,-12,1.5,-8);}}
+    else if(wpn===3){sh(0,-34,0,-9);sh(-14,-22,-0.55,-8.4);sh(14,-22,0.55,-8.4);sh(-22,-14,-1,-7.6);sh(22,-14,1,-7.6);}
+    else{sh(-6,-34,0,-10);sh(6,-34,0,-10);sh(-18,-22,-0.5,-9);sh(18,-22,0.5,-9);sh(-26,-12,-1.05,-8);sh(26,-12,1.05,-8);}}
   updateRockets();
   for(const s of shots){s.x+=s.vx;s.y+=s.vy;}shots=shots.filter(s=>s.y>-12&&s.y<LH+20&&s.x>PX&&s.x<PX+PW);
   waveT--;
