@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-08 — Workshop clarity, integrated modules and material wreckage
+- Raised ordinary bomb drops from 2% to 4% using the no-drop band and added a 22-eligible-kill drought ceiling; other pickup odds, the starting bomb, capacity and boss rewards are unchanged.
+- Replaced the unexplained CHAIN panel with a KILL STREAK score-multiplier readout that states the kills needed for the next tier.
+- Enlarged Workshop product art, put prices in every purchasable tile, replaced NEED with shaded NOT FITTED states and added a larger whole-ship / next-launch preview. Purchases hold on the installed configuration instead of silently advancing to the next tier.
+- Renamed the checkpoint Workshop return action to MENU. Sector results initially select Upgrade / Workshop and select Proceed after returning from the shop.
+- Rebuilt player gun, pod, lance and engine housings with curved layered metalwork and under-hull connectors while preserving all shared mount and projectile origins.
+- Added world-aware ground hit marks and wrecks: Foundry units spark, scorch and smoke; infected and biological units splatter, leak and bubble in stage-specific fluids. Infected Salvage edge units gained rooted supports, sacs and integrated organic gun housings.
+
 ## 2026-09-08 — Review follow-ups for the equipment and ecosystem update
 - Fauna decor tiles are built on first use with one stage resident (was five 880×720 canvases at boot). Route-lane placement runs once per tick.
 - tools/ecosystem-smoke.js runs on the DevTools harness; Playwright is no longer needed anywhere.

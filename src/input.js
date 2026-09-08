@@ -34,8 +34,9 @@ addEventListener('keydown',e=>{
   if(e.code==='Space'){if(!e.repeat){tapped=true;tapSrc='key';}e.preventDefault();}
   if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
   if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
-  if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){if(t<60)t=60;else{shopFromSector=true;mode='shop';t=0;}}else if(mode==='title'||mode==='dead'){shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
+  if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){if(t<60)t=60;else{shopInstalled=null;shopFromSector=true;mode='shop';t=0;}}else if(mode==='title'||mode==='dead'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
   if(mode==='shop'){
+    const previousShopSel=shopSel;
     if(shopSel<SHOP.length)shopItem=shopSel;
     if(e.code==='ArrowDown'||e.code==='KeyS'){
       if(shopSel<SHOP.length){const next=shopSel+SHOP_COLUMNS;shopSel=next<SHOP.length?next:SHOP.length;if(shopSel<SHOP.length)shopItem=shopSel;}
@@ -44,6 +45,7 @@ addEventListener('keydown',e=>{
       if(shopSel===SHOP.length)shopSel=shopItem;else if(shopSel>=SHOP_COLUMNS){shopSel-=SHOP_COLUMNS;shopItem=shopSel;}
     }
     else if(shopSel<SHOP.length&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?SHOP.length-1:1))%SHOP.length;shopItem=shopSel;}
+    if(shopSel!==previousShopSel)shopInstalled=null;
   }
   if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
   if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}

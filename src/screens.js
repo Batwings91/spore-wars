@@ -12,7 +12,8 @@ function drawPanels(){
   box(12,64,PX-24,44,'BEST',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
   box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player_hull||IMG.player||SHIP,X(20+i*22),X(139),24,22);
   box(12,168,PX-24,44,'LEVEL',Math.max(1,Math.ceil(level/5))+'/5',C.text);txt(boss||bossWarn?'BOSS':'WAVE '+Math.max(1,level),20,203,boss||bossWarn?C.red:'#91a7b5',7);
-  box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
+  const mult=chainMultiplier(),nextAt=mult*3,chainHelp=mult>=4?'MAX / KEEP KILLING':Math.max(1,nextAt-chain)+' '+(nextAt-chain===1?'KILL':'KILLS')+' TO x'+(mult+1);
+  panel(12,220,PX-24,56);txt('KILL STREAK',20,226,'#91a7b5',7);txt('SCORE x'+mult,20,240,chainT>0?C.yellow:C.dim,12);txt(chainHelp,20,254,chainT>0?'#b8a76f':'#778a96',6);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
   box(12,284,PX-24,64,'HULL');
   const health=Math.max(0,Math.min(1,ship.hullDisplay/MAX_HULL));
@@ -53,7 +54,7 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=BOOT_L
   L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0,shopItem=0;
+let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0,shopItem=0,shopInstalled=null;
 function setPaused(on){pauseSel=0;paused=on;exitConfirm=false;exitChoice=0;tapped=false;ptr.down=false;for(const k in keys)keys[k]=false;}
 function pauseTap(p){
   if(exitConfirm&&exitWait>0)return;
@@ -115,7 +116,7 @@ function menuChoice(label,x,y,w,h,selected,size=12){
   txt(label,x+w/2,y+(h-7*Math.max(2,Math.round(size*K/10))/K)/2,selected?'#eefbff':'#a4b8c6',size,'center');ctx.restore();
 }
 function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RETRY','CONTINUE','WORKSHOP','MAIN MENU'];}
-function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action==='CONTINUE')continueRun();else if(action==='WORKSHOP'){shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
+function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action==='CONTINUE')continueRun();else if(action==='WORKSHOP'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
 function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,210,'#b86a72');
   if(score>=save.best&&score>0)txt('NEW BEST!',PX+PW-32,85,C.yellow,9,'right');
   txt('FLEET LOST',LW/2,96,C.red,28,'center');txt('score '+score+' / wave '+level,LW/2,132,C.white,14,'center');
@@ -177,10 +178,10 @@ function sectorTravelScreen(){
     txt(world.name,LW/2,121,'#e2edf0',22,'center');
     txt(world.detail,LW/2,157,world.accent,10,'center');ctx.restore();}
 }
-function leaveShop(){if(shopFromSector){mode='sector';t=60;tapped=false;}else{clearScene();mode='title';t=0;}}
+function leaveShop(){shopInstalled=null;if(shopFromSector){mode='sector';sectorSel=1;t=60;tapped=false;}else{clearScene();mode='title';t=0;}}
 function chooseSector(i){
   if(mode==='victory'){if(i===0){newRun(campaignLoop+1);mode='play';t=0;setPaused(false);}else{clearScene();mode='title';t=0;}tapped=false;ptr.down=false;return;}
-  if(i===0){shopFromSector=true;mode='shop';t=0;}else nextSector();
+  if(i===0){shopInstalled=null;shopFromSector=true;mode='shop';t=0;}else nextSector();
 }
 function sectorScreen(){
   const won=mode==='victory';
@@ -217,24 +218,29 @@ function shopScreen(){
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
   small('EQUIPMENT WALL / 4 x 2',304,50,'#a7b6c0',8);
+  const launchFit=savedLoadout(),iconScale={primary:0.52,defence:0.72,engine:0.72,ordnance:0.34,support:0.72,sideWeapon:0.29};
   SHOP.forEach((it,i)=>{const b=shopTileBounds(i),lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),hot=shopSel===i,can=cost!==null&&save.cores>=cost;
     surface(b.x,b.y,b.w,b.h,hot);
     if(hot){small('>',b.x+4,b.y+4,'#e8ffff',8);ctx.strokeStyle='#e8ffff';ctx.strokeRect(X(b.x+3),X(b.y+3),X(b.w-6),X(b.h-6));}
-    const previewTier=it.locked?0:Math.min(it.maxOwned,lvl+1),state=it.locked?'[LOCKED]':maxed?'[EQUIPPED]':can?'[READY]':'[NEED]';
-    drawEquipmentPreview(it.id,previewTier,b.x+b.w/2,b.y+31,0.25);
-    small(it.label,b.x+b.w/2,b.y+48,hot?'#f0fbfc':'#c2ced3',7,'center');
-    small(state,b.x+b.w/2,b.y+60,it.locked||maxed?'#8fa2ac':can?'#a8e4cf':'#d4ad91',6,'center');
+    const previewTier=it.locked?1:Math.max(1,Math.min(it.maxOwned,lvl+1)),fitted=it.id==='primary'||it.id==='engine'||launchFit[it.loadoutKey]>0;
+    ctx.save();ctx.globalAlpha=fitted?1:hot?0.5:0.3;drawEquipmentIcon(it.id,previewTier,b.x+b.w/2,b.y+22,iconScale[it.id]);ctx.restore();
+    const state=it.locked?'LOCKED':maxed?'FITTED / MAX':fitted?'FITTED':'NOT FITTED',price=cost===null?(maxed?'MAX':'---'):cost+' CORES';
+    small(it.label,b.x+b.w/2,b.y+41,hot?'#f0fbfc':'#c2ced3',7,'center');
+    small(state,b.x+b.w/2,b.y+51,it.locked?'#8fa2ac':fitted?'#a8d3d8':'#71818a',6,'center');
+    small(price,b.x+b.w/2,b.y+61,cost!==null?(can?'#a8e4cf':'#d4ad91'):'#8fa2ac',6,'center');
   });
   if(shopSel<SHOP.length)shopItem=shopSel;
-  const it=SHOP[shopItem],lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),can=cost!==null&&save.cores>=cost,candidate=it.locked?0:Math.min(it.maxOwned,lvl+1);
-  surface(292,214,322,72,false);drawEquipmentPreview(it.id,candidate,338,251,0.43);
-  small(it.name,380,221,'#e4e9e9',11);small(it.locked?'RESERVED':'OWNED '+lvl+' / '+it.maxOwned,602,222,'#a6b7c0',7,'right');
-  small(it.effect(candidate),380,241,'#bdcbd2',8);small(it.note,380,258,it.locked?'#b39aaa':'#9cb7b8',7);
-  small(it.locked?'Preview leaves the loadout unchanged.':maxed?'Installed / preview and combat match.':can?'Permanent equipment / ready to buy.':'Collect '+(cost-save.cores)+' more cores.',380,273,can?'#9cb7b8':'#d4ad91',7);
-  surface(292,298,208,32,shopSel<SHOP.length&&!it.locked);small(it.locked?'NOT FOR SALE':maxed?'FULLY EQUIPPED':can?'BUY / '+cost+' CORES':'NEED '+(cost-save.cores)+' MORE CORES',396,310,maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
-  surface(510,298,104,32,shopSel===SHOP.length);small(shopFromSector?'CONTINUE':'BACK',562,310,'#d9e1e4',9,'center');
+  const it=SHOP[shopItem],lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),can=cost!==null&&save.cores>=cost,installed=!!(shopInstalled&&shopInstalled.id===it.id&&shopInstalled.tier===lvl),candidate=installed?lvl:it.locked?0:Math.min(it.maxOwned,lvl+1);
+  surface(292,207,322,84,false);small(shopFromSector?'NEXT LAUNCH':'YOUR SHIP',302,213,'#8faebc',7);drawWorkshopShip(it.id,candidate,352,251,0.56);
+  ctx.fillStyle='#354956';ctx.fillRect(X(407),X(215),X(1),X(68));
+  small(it.name,418,213,'#e4e9e9',10);small(it.locked?'RESERVED':'OWNED '+lvl+' / '+it.maxOwned,602,214,'#a6b7c0',7,'right');
+  small(it.effect(candidate),418,232,'#bdcbd2',7);small(it.note,418,247,it.locked?'#b39aaa':'#9cb7b8',6);
+  const installCopy=installed?'INSTALLED / FULL SHIP UPDATED':it.locked?'Preview leaves the loadout unchanged.':maxed?'Installed / preview and combat match.':can?(shopFromSector&&(it.id==='primary'||it.id==='defence')?'Applies on your next launch.':'Ready to install.'):'Collect '+(cost-save.cores)+' more cores.';
+  small(installCopy,418,269,installed?'#a8e4cf':can?'#9cb7b8':'#d4ad91',6);
+  surface(292,298,208,32,shopSel<SHOP.length&&!it.locked);small(installed?'INSTALLED':it.locked?'NOT FOR SALE':maxed?'FULLY EQUIPPED':can?'BUY / '+cost+' CORES':'NOT ENOUGH CORES',396,310,installed?'#a8e4cf':maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
+  surface(510,298,104,32,shopSel===SHOP.length);small(shopFromSector?'MENU':'BACK',562,310,'#d9e1e4',9,'center');
   small('"Quality parts. Mostly legal."',146,318,'#ddc8ac',9,'center');
   if(!TOUCH)small('ARROWS grid / DOWN back / ENTER buy',453,344,'#8b9fae',8,'center');
 }
 
-function buy(){const it=SHOP[shopSel];if(!it||it.locked)return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.power();}
+function buy(){const it=SHOP[shopSel];if(!it||it.locked||(shopInstalled&&shopInstalled.id===it.id))return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;shopInstalled={id:it.id,tier:lvl+1};if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.power();}

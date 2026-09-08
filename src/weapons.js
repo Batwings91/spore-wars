@@ -72,18 +72,20 @@ const BOLT=Array.from({length:6},(_,level)=>{
 function drawGunMounts(gun=wpn,sx=ship.x,sy=ship.y,flash=muzz){
   ctx.save();
   for(const [ox,oy] of GUN_PORTS[gun]){
-    const x=X(sx+ox),y=X(sy+oy),w=[5,5,6,7,8,9][gun],length=[24,26,32,29,36,42][gun];
-    // Solid shaded receivers and one barrel per shot origin.
-    ctx.fillStyle='#0c141a';ctx.beginPath();ctx.moveTo(x-w+2,y+9);ctx.lineTo(x+w-2,y+9);ctx.lineTo(x+w,y+16);ctx.lineTo(x+w,y+length);ctx.lineTo(x-w,y+length);ctx.lineTo(x-w,y+16);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#53616a';ctx.fillRect(x-w+2,y+15,w*2-4,length-17);
-    ctx.fillStyle='#95a4aa';ctx.fillRect(x-w+2,y+15,2,length-18);
-    ctx.fillStyle='#283239';ctx.fillRect(x+1,y+15,w-2,length-17);
-    ctx.fillStyle='#b49b64';ctx.fillRect(x-w+1,y+length-5,w*2-2,3);
-    ctx.fillStyle='#080f15';ctx.fillRect(x-3,y,6,19);
-    ctx.fillStyle='#9aafb6';ctx.fillRect(x-2,y+2,2,15);ctx.fillStyle='#3a4b54';ctx.fillRect(x,y+2,2,15);
-    ctx.fillStyle='#b7f7ff';ctx.fillRect(x-1,y,2,3);
-    if(gun>=2)for(let i=0;i<(gun===4?4:3);i++){ctx.fillStyle='#253038';ctx.fillRect(x-w-1,y+16+i*4,w*2+2,2);ctx.fillStyle='#7d898e';ctx.fillRect(x-w,y+16+i*4,3,1);}
-    if(flash>0){ctx.globalAlpha=flash/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x+w,y-2);ctx.lineTo(x,y+3);ctx.lineTo(x-w,y-2);ctx.closePath();ctx.fill();ctx.fillStyle='#efffff';ctx.fillRect(x-1,y-10,2,11);ctx.globalAlpha=1;}
+    const w=[6,6,7,8,9,10][gun],length=[25,27,32,31,37,42][gun];ctx.save();ctx.translate(X(sx+ox),X(sy+oy));
+    // Rounded root collars overlap the hull nose so every barrel reads as installed hardware rather than a loose block.
+    ctx.fillStyle='#101820';ctx.beginPath();ctx.ellipse(0,length-4,w+4,7,0,0,Math.PI*2);ctx.fill();
+    const metal=ctx.createLinearGradient(-w,0,w,0);metal.addColorStop(0,'#aeb9bd');metal.addColorStop(0.22,'#65747c');metal.addColorStop(0.64,'#34434b');metal.addColorStop(1,'#17232b');
+    ctx.fillStyle=metal;ctx.strokeStyle='#0b1117';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-w+2,9);ctx.quadraticCurveTo(-w,12,-w,17);ctx.lineTo(-w+1,length-5);ctx.quadraticCurveTo(-w+3,length,w-2,length+1);ctx.quadraticCurveTo(w+2,length-2,w,length-7);ctx.lineTo(w,17);ctx.quadraticCurveTo(w,11,w-3,9);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#c2c9c9';ctx.globalAlpha=0.55;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-w+3,13);ctx.quadraticCurveTo(-w+2,20,-w+1,length-8);ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#b49b64';ctx.beginPath();ctx.roundRect(-w+1,length-7,w*2-2,3,1.5);ctx.fill();
+    // The barrel is tapered and inset into the receiver, with a fine highlight and a dark muzzle bore.
+    ctx.fillStyle='#080e14';ctx.beginPath();ctx.moveTo(-4,1);ctx.quadraticCurveTo(-4,-2,-2,-3);ctx.lineTo(2,-3);ctx.quadraticCurveTo(4,-2,4,1);ctx.lineTo(3,17);ctx.lineTo(-3,17);ctx.closePath();ctx.fill();
+    const barrel=ctx.createLinearGradient(-3,0,3,0);barrel.addColorStop(0,'#aebdc1');barrel.addColorStop(0.35,'#687a83');barrel.addColorStop(1,'#263841');ctx.fillStyle=barrel;ctx.beginPath();ctx.moveTo(-2,-1);ctx.lineTo(2,-1);ctx.lineTo(2,15);ctx.quadraticCurveTo(0,17,-2,15);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#071018';ctx.beginPath();ctx.ellipse(0,-1,2.2,1.6,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d8ffff';ctx.fillRect(-1,1,1,9);
+    if(gun>=2)for(let i=0;i<(gun===4?4:3);i++){const yy=15+i*4;ctx.strokeStyle='#17242c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-w,yy);ctx.lineTo(w,yy);ctx.stroke();ctx.strokeStyle='#829198';ctx.lineWidth=0.7;ctx.beginPath();ctx.moveTo(-w+1,yy-1);ctx.lineTo(-w+4,yy-1);ctx.stroke();}
+    if(flash>0){ctx.globalAlpha=flash/6;ctx.fillStyle='#36bada';ctx.beginPath();ctx.moveTo(0,-16);ctx.quadraticCurveTo(w,-6,w+1,-2);ctx.lineTo(0,3);ctx.lineTo(-w-1,-2);ctx.quadraticCurveTo(-w,-6,0,-16);ctx.fill();ctx.fillStyle='#efffff';ctx.fillRect(-1,-11,2,12);ctx.globalAlpha=1;}
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -127,14 +129,17 @@ function updateRockets(){
 function drawRocketPods(sx=ship.x,sy=ship.y,openTicks=podOpen,flash=rocketFlash,nextSide=rocketSide){if(openTicks<=0)return;ctx.save();
   for(const [i,side] of [-1,1].entries()){const open=openTicks/24,ease=open*open*(3-2*open),firing=flash>0&&side===-nextSide,mount=SHIP_MOUNTS.ordnance[i];
     const x=sx+side*(25+(Math.abs(mount[0])-25)*ease),y=sy+mount[1]+(firing?flash*0.3:0);
-    ctx.fillStyle='#6a8392';ctx.fillRect(X(Math.min(sx+side*24,x)),X(y+4),X(Math.abs(x-sx-side*24)),X(4));
-    ctx.fillStyle='#142331';ctx.fillRect(X(x-6),X(y-8),X(12),X(23));ctx.fillStyle='#9a885f';ctx.fillRect(X(x-5),X(y+12),X(10),X(2));
-    ctx.fillStyle='#617b8b';ctx.fillRect(X(x-4),X(y+2),X(8),X(11));ctx.fillStyle='#080e18';ctx.fillRect(X(x-3),X(y-7),X(6),X(7));
-    ctx.fillStyle=openTicks<24?'#dca761':'#83efff';ctx.fillRect(X(x+side*3-1),X(y+6),X(2),X(5));
+    ctx.strokeStyle='#17242c';ctx.lineWidth=X(5);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(X(sx+side*21),X(y+6));ctx.lineTo(X(x-side*4),X(y+4));ctx.stroke();ctx.strokeStyle='#71858d';ctx.lineWidth=X(1);ctx.stroke();
+    ctx.save();ctx.translate(X(x),X(y));const podMetal=ctx.createLinearGradient(X(-7),0,X(7),0);podMetal.addColorStop(0,'#9eabad');podMetal.addColorStop(0.28,'#536872');podMetal.addColorStop(0.72,'#263843');podMetal.addColorStop(1,'#101a22');
+    ctx.fillStyle=podMetal;ctx.strokeStyle='#091117';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(-5),X(-9));ctx.quadraticCurveTo(X(-8),X(-5),X(-7),X(4));ctx.lineTo(X(-6),X(11));ctx.quadraticCurveTo(0,X(16),X(6),X(11));ctx.lineTo(X(7),X(-3));ctx.quadraticCurveTo(X(6),X(-8),X(2),X(-10));ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#bec8c8';ctx.globalAlpha=0.55;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X(-4),X(-6));ctx.quadraticCurveTo(X(-5),X(1),X(-4),X(10));ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#9a885f';ctx.beginPath();ctx.roundRect(X(-5),X(10),X(10),X(2),X(1));ctx.fill();ctx.fillStyle='#09131c';ctx.beginPath();ctx.roundRect(X(-4),X(-8),X(8),X(7),X(2));ctx.fill();
+    ctx.fillStyle=openTicks<24?'#dca761':'#83efff';ctx.beginPath();ctx.arc(X(side*3),X(6),X(1.5),0,Math.PI*2);ctx.fill();
     // Visible magazines use the player missile's silver body and cyan band.
-    if(openTicks>=12)for(const offset of [-2,2]){ctx.fillStyle='#c6d5d9';ctx.fillRect(X(x+offset)-1,X(y-4),2,X(9));ctx.fillStyle='#6be7f6';ctx.fillRect(X(x+offset)-1,X(y),2,2);}
-    ctx.fillStyle='#83efff';ctx.fillRect(X(x-2),X(y-6),X(4),X(2));
-    if(firing){ctx.globalAlpha=flash/12;ctx.fillStyle='#eaffff';ctx.beginPath();ctx.moveTo(X(x-4),X(y-8));ctx.lineTo(X(x),X(y-22));ctx.lineTo(X(x+4),X(y-8));ctx.fill();ctx.fillStyle='#5bdaeb';ctx.beginPath();ctx.moveTo(X(x-3),X(y+14));ctx.lineTo(X(x),X(y+25));ctx.lineTo(X(x+3),X(y+14));ctx.fill();ctx.globalAlpha=1;}
+    if(openTicks>=12)for(const offset of [-2,2]){ctx.fillStyle='#c6d5d9';ctx.beginPath();ctx.roundRect(X(offset-0.8),X(-5),X(1.6),X(9),X(0.8));ctx.fill();ctx.fillStyle='#6be7f6';ctx.fillRect(X(offset-0.8),X(-1),X(1.6),X(2));}
+    ctx.fillStyle='#bffaff';ctx.beginPath();ctx.roundRect(X(-2),X(-7),X(4),X(2),X(1));ctx.fill();
+    if(firing){ctx.globalAlpha=flash/12;ctx.fillStyle='#eaffff';ctx.beginPath();ctx.moveTo(X(-4),X(-8));ctx.lineTo(0,X(-22));ctx.lineTo(X(4),X(-8));ctx.fill();ctx.fillStyle='#5bdaeb';ctx.beginPath();ctx.moveTo(X(-3),X(14));ctx.lineTo(0,X(25));ctx.lineTo(X(3),X(14));ctx.fill();ctx.globalAlpha=1;}
+    ctx.restore();
   }ctx.restore();
 }
 
@@ -150,7 +155,7 @@ function damageWithSideLasers(){
   for(const mount of SHIP_MOUNTS.sideWeapon){const x=ship.x+mount[0],top=ship.y+mount[1];
     for(const e of enemies){if(e.hp<=0||e.y<0||e.y>top||!sideLaserHitsX(x,e.x,R[e.k]))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.k>=3);hit=true;
       if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}
-    for(const e of ground){if(e.hp<=0||e.y<=0||e.y>top||!sideLaserHitsX(x,e.x,21))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.stage>0);hit=true;if(e.hp<=0)destroyGround(e);}
+    for(const e of ground){if(e.hp<=0||e.y<=0||e.y>top||!sideLaserHitsX(x,e.x,21))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.stage>0);hit=true;if(e.hp<=0)destroyGround(e);else addGroundImpact(e,x,e.y);}
     if(typeof damageBossWithSideLaser==='function'&&damageBossWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,boss?boss.y+30:80,true);hit=true;}
     if(typeof damageLatticeWithSideLaser==='function'&&damageLatticeWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,80,true);hit=true;}
   }
@@ -171,12 +176,14 @@ function drawSideLaserMounts(sx,sy,frame=t,phase=sideLaserPhase,phaseT=sideLaser
   const p=EQUIPMENT.sideWeapon.tiers[1],charge=phase===1?1-phaseT/p.windup:phase===2?1:Math.max(0,0.28*(1-phaseT/p.recharge));
   ctx.save();
   for(const [i,side] of [-1,1].entries()){const [ox,oy]=SHIP_MOUNTS.sideWeapon[i],x=sx+ox,y=sy+oy;
-    ctx.fillStyle='#17232b';ctx.fillRect(X(Math.min(sx+side*24,x)),X(y+7),X(Math.abs(x-sx-side*24)),X(6));
-    ctx.fillStyle='#111b24';ctx.beginPath();ctx.moveTo(X(x-8),X(y-5));ctx.lineTo(X(x+8),X(y-5));ctx.lineTo(X(x+10),X(y+15));ctx.lineTo(X(x+6),X(y+22));ctx.lineTo(X(x-6),X(y+22));ctx.lineTo(X(x-10),X(y+15));ctx.closePath();ctx.fill();
-    ctx.fillStyle='#65747b';ctx.fillRect(X(x-6),X(y),X(12),X(16));ctx.fillStyle='#aeb8b8';ctx.fillRect(X(x-6),X(y),X(3),X(14));ctx.fillStyle='#293944';ctx.fillRect(X(x+2),X(y),X(4),X(16));
-    ctx.fillStyle='#b49b64';ctx.fillRect(X(x-7),X(y+13),X(14),X(4));ctx.fillStyle='#07121b';ctx.fillRect(X(x-5),X(y-7),X(10),X(9));
-    const pulse=0.75+Math.sin(frame*0.25+i)*0.25;ctx.globalAlpha=0.35+charge*0.65;ctx.fillStyle=phase===2?'#f5ffff':'#64e8f3';ctx.fillRect(X(x-3-charge*2),X(y-7),X(6+charge*4),X(4+charge*2));
-    if(phase===1){ctx.globalAlpha=charge*pulse;ctx.strokeStyle='#9cffff';ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(x),X(y-5),X(5+charge*6),0,Math.PI*2);ctx.stroke();}
+    ctx.strokeStyle='#15242d';ctx.lineWidth=X(7);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(X(sx+side*21),X(y+10));ctx.lineTo(X(x-side*6),X(y+8));ctx.stroke();ctx.strokeStyle='#778890';ctx.lineWidth=X(1);ctx.stroke();
+    ctx.save();ctx.translate(X(x),X(y));const lanceMetal=ctx.createLinearGradient(X(-10),0,X(10),0);lanceMetal.addColorStop(0,'#aeb9ba');lanceMetal.addColorStop(0.25,'#64737a');lanceMetal.addColorStop(0.72,'#293a43');lanceMetal.addColorStop(1,'#101921');ctx.fillStyle=lanceMetal;ctx.strokeStyle='#081118';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(X(-6),X(-7));ctx.quadraticCurveTo(X(-10),X(-2),X(-9),X(10));ctx.quadraticCurveTo(X(-8),X(19),X(-4),X(22));ctx.lineTo(X(4),X(22));ctx.quadraticCurveTo(X(8),X(18),X(9),X(10));ctx.lineTo(X(8),X(-1));ctx.quadraticCurveTo(X(7),X(-6),X(3),X(-8));ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#c1cbca';ctx.globalAlpha=0.5;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X(-5),X(-3));ctx.quadraticCurveTo(X(-6),X(7),X(-4),X(16));ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#b49b64';ctx.beginPath();ctx.roundRect(X(-7),X(13),X(14),X(4),X(1.5));ctx.fill();ctx.fillStyle='#07121b';ctx.beginPath();ctx.roundRect(X(-5),X(-8),X(10),X(9),X(3));ctx.fill();
+    const pulse=0.75+Math.sin(frame*0.25+i)*0.25;ctx.globalAlpha=0.35+charge*0.65;ctx.fillStyle=phase===2?'#f5ffff':'#64e8f3';ctx.beginPath();ctx.ellipse(0,X(-6),X(3+charge*2),X(2+charge),0,0,Math.PI*2);ctx.fill();
+    if(phase===1){ctx.globalAlpha=charge*pulse;ctx.strokeStyle='#9cffff';ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(0,X(-5),X(5+charge*6),0,Math.PI*2);ctx.stroke();}
+    ctx.restore();
     ctx.globalAlpha=1;
   }
   ctx.restore();

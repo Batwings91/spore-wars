@@ -1,18 +1,18 @@
 'use strict';
 // Run state, kill chain, newRun, guns, wave spawning.
 let mode='boot',t=0,blink=0,shopSel=0,scroll=0,lastW=0;
-let boss=null,bossWarn=0,bossDying=0,bossCount=0;let muzz=0,shieldHit=0,floats=[],evt=0,evtText='',evtCol='#fff',rings=[],bombs=0,bombFx=0,slow=0;let ship,shots,eshots,enemies,drops,booms,score,lives,cores,wpn,shield,usedContinue,shake,flash,waveT,level,fireT,hint,kills;
+let boss=null,bossWarn=0,bossDying=0,bossCount=0;let muzz=0,shieldHit=0,floats=[],evt=0,evtText='',evtCol='#fff',rings=[],bombs=0,bombFx=0,slow=0;let ship,shots,eshots,enemies,drops,booms,score,lives,cores,wpn,shield,usedContinue,shake,flash,waveT,level,fireT,hint,kills,bombDrought;
 const CAMPAIGN_WAVES=25;let campaignLoop=0;
 let formationGroup=0;
-let ground=[],groundWrecks=[],groundTimer=240,groundSide=0,groundCount=0;
-function resetGround(clearWrecks=true){if(clearWrecks)groundWrecks=[];ground=[];groundTimer=240;groundSide=0;groundCount=0;}
+let ground=[],groundWrecks=[],groundMarks=[],groundTimer=240,groundSide=0,groundCount=0;
+function resetGround(clearWrecks=true){if(clearWrecks){groundWrecks=[];groundMarks=[];}ground=[];groundTimer=240;groundSide=0;groundCount=0;}
 let bankedCores=0,sectorPending=false,sectorBanked=0,shopFromSector=false;
 const MAX_HULL=3;
 const CHAIN_TIME=240;let chain=0,chainT=0;
 const chainMultiplier=()=>Math.min(4,1+Math.floor(chain/3));
 function awardKill(points,x,y){chain++;chainT=CHAIN_TIME;const mult=chainMultiplier(),earned=points*mult;score+=earned;addFloat(x,y,'+'+earned+(mult>1?' x'+mult:''),C.yellow);}
-function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();resetWorldEncounters();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;resetRockets();resetSideLasers();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
-  score=0;lives=3;cores=0;wpn=starting.weapon;shield=starting.shield;orbActive=!!starting.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
+function newRun(loop=0){campaignLoop=loop;const startWave=loop>0?0:Math.min(24,STARTWAVE),starting=savedLoadout();resetGround();resetWorldEncounters();formationGroup=startWave?(AUTHORED_WAVES[startWave-1]?.length||0):0;sectorPending=false;sectorBanked=0;shopFromSector=false;shopInstalled=null;resetRockets();resetSideLasers();resetWorld(startWave+1);chain=0;chainT=0;bankedCores=0;ship={x:PX+PW/2,y:LH-60,inv:60,hull:MAX_HULL,hullDisplay:MAX_HULL};shots=[];eshots=[];enemies=[];drops=[];booms=[];
+  score=0;lives=3;cores=0;wpn=starting.weapon;shield=starting.shield;orbActive=!!starting.orb;usedContinue=false;shake=0;flash=0;waveT=0;level=0;fireT=0;hint=240;kills=0;bombDrought=0;floats=[];rings=[];evt=0;bombs=1;bombFx=0;slow=0;lastW=0;boss=null;bossWarn=0;bossDying=0;bossCount=0;if(startWave)level=startWave;}
 const spd=()=>3.7+EQUIPMENT.engine.tiers[save.engine].bonus;
 const R={0:17,1:20,2:23,3:30,4:20,5:28,6:22,7:13,8:26,9:32,10:18};
 const ENEMY_POINTS=[10,20,50,150,60,70,80,50,120,110,90];
