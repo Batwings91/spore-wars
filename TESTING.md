@@ -136,29 +136,13 @@ Run node tools/ship-smoke.js for six tier tables, Siege firing, orb pickup versu
 ## Earlier side support and ground aftermath
 Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
 
-## Painted Spore Wilds
-Verify level 3 immediately uses painted Spore Wilds once loaded, with the procedural fallback while missing/blocked. Inspect reflected seams at image height and twice image height, scenery anchoring of ground enemies/wrecks, player/enemy shot contrast, paused scrolling and mobile readability. Other levels retain their existing assets. Run node tools/campaign-smoke.js and node tools/smoke.js.
+## Campaign artwork
 
-## Painted Seeder
-Inspect the Seeder against painted Spore Wilds, with ct=44/22/0 and offscreen/bottom fire suppression. Verify render does not mutate entity state; block seeder_body.webp to check procedural fallback. Check gun/rocket/bomb hits and unchanged kind-6 HP, paired shots, movement and hit radius. Run campaign and gameplay smoke tests.
+Run node tools/campaign-smoke.js and node tools/smoke.js. Before and after drawing changes, run WAVES=6,11 node tools/perf-probe.js (PowerShell: $env:WAVES='6,11'; node tools/perf-probe.js). The probe covers painted and blocked-WebP modes; desktop timings do not establish phone performance.
 
-## Enemy hit feedback
-Removed rectangular airborne/ground hit flashes. Brief additive redraws follow the actual rendered artwork, including procedural parts, without Canvas filters (mobile Safari compatible). Small warm sparks or pink/amber spore puffs mark the collision point; bosses use the same impact effects and a gentler existing silhouette flash. Verify alpha boundaries, no tint leaking into scenery/player/UI, fallback art, rapid fire, pause and performance. Damage and collision logic remain unchanged.
+- Worlds: check immediate stage identity, projectile and final-boss contrast, seams around one and two image heights, ground/wreck anchoring, paused scrolling and mobile readability. Delete the selected IMG.world_* entry and render to verify cached art cannot hide a missing-image fallback.
+- Creatures: inspect Seeder, Needle and Colony at actual size, charging and during hit flashes. Check Seeder ct=44/22/0 and offscreen/bottom firing suppression. Block each body WebP to exercise its procedural branch; rendering must not mutate entities or leak canvas state.
+- Bosses: use wave=14 for Matriarch and wave=19 for Warden. Inspect approach, breathing, charge, phase 2, hits and death; preserve safe-lane text exactly once. No legacy mech hit overlay or rectangular phase tint may appear. Block each body image for fallback.
+- Impacts: check alpha boundaries, no tint leaking into scenery/player/UI, rapid fire, pause and performance. Mechanical hits use sparks; biological hits use puffs. Check guns, rockets and bombs, unchanged damage/rewards, and boss-to-level transitions.
 
-## Painted Seed Matriarch
-Preview wave=14: inspect Matriarch approach, breathing, charge, phase 2, hit flash and death. No legacy mech sprite or rectangular phase tint may appear. Block matriarch_body.webp to verify fallback. Check unchanged HP/attacks, bomb and rocket damage, rewards and level transition.
-
-## Painted Living Labyrinth
-Verify level 4 artwork, reflected joins at one and two image heights, paused scrolling and missing-image fallback. Inspect projectile contrast and mobile readability; run campaign and gameplay smoke tests.
-
-## Painted Needle
-Inspect kind 7 at normal size on Living Labyrinth, charge and additive hit flash, plus blocked-image fallback. Rendering must not mutate the entity or leak canvas state. Run campaign and gameplay smoke tests.
-
-## Painted Tendril Warden
-Preview wave=19: inspect approach, charge, phase 2, hit flash and death on Labyrinth. Verify safe-lane text is drawn once, render does not mutate boss state, and missing warden_body.webp uses the procedural fallback. Run campaign and standard smoke tests.
-
-## Painted Brood Heart
-Check level 5 scenery, final boss contrast, reflected joins at one/two image heights, pause and missing-image fallback. Run campaign and standard smoke tests.
-
-## Painted Colony
-Inspect kind 8 on Brood Heart at normal size, charging and hit flash; block colony_body.webp for fallback. Check rendering leaves entity and canvas state unchanged. Run campaign and standard smoke tests.
+See [ARCHITECTURE.md](ARCHITECTURE.md#campaign-artwork) for asset mappings and rendering contracts.

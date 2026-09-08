@@ -7,7 +7,7 @@ No framework, no bundler. The game code is plain classic scripts in `src/`, load
 | `src/core.js` | Canvas, scaling, asset loading, debug params, palette and the pixel-sprite helpers. |
 | `src/sprites.js` | Procedural fallback sprites: player ship, flames, the three basic enemies, explosion frames. |
 | `src/weapons.js` | Player bolts, gun mounts, and the gun-level-four homing rockets. |
-| `src/scene.js` | Enemy plasma, pickups, shield ring, core icon, background tile, stars, the three worlds, and the bevel/keycap/txt primitives. |
+| `src/scene.js` | Enemy plasma, pickups, shield ring, core icon, background tile, stars, the five worlds, and the bevel/keycap/txt primitives. |
 | `src/audio.js` | SFX: synthesised 8-bit effects, OPL-style fallback music, streamed main track, mute, tab audio ownership. |
 | `src/input.js` | Save data, keyboard, pointer/touch handlers, pause-on-blur. |
 | `src/game.js` | Run state, kill chain, newRun, guns, wave spawning. |
@@ -28,7 +28,7 @@ Dev needs no build step. `tools/build.js` inlines the files into `dist/index.htm
 - **Entities:** `enemies[]` with `k`: 0 scout (drift), 1 bomber (dive), 2 frigate (aimed plasma), 3 lurker (procedural tentacles, from wave 6), 4 crawler (procedural hooks, from wave 9). `R[k]` = collision radii. `shots[]` (player, carries `g` gun level and `dmg`), `eshots[]` (`blue:true` = lurker/boss bow), `drops[]` (`k`: core/w/s/b), `booms[]` (strip explosions or spark particles), `floats[]`, `rings[]`.
 - **Lurker art:** `drawLurkerArt()` uses `IMG.lurker_body`, subtle breathing, shaded tendrils and a charge cue driven by `e.ct`. Tendril endpoints match the existing tip collision expression. Missing art uses the original `drawLurker()` with its original scaling.
 - **Crawler art:** `drawCrawlerArt()` uses `IMG.crawler_body`, procedural legs, and an amber lunge cue driven by `e.lunge`. The local drawing mirrors with `e.dir`. Missing art uses the original `drawCrawler()` and scale. Legs are cosmetic; existing body collision remains authoritative.
-- **World presentation:** Foundry (waves 1–5), Infected Salvage (6–10), Spore Heart (11 onward). `updateWorld()` follows the existing level counter and fades scenery over 150 logic ticks; it does not alter encounters. `resetWorld()` handles new runs and debug starts; Continue retains the current presentation. Painted `world_*` WebP backgrounds reflect alternate vertical repeats to join their edges. Three cached procedural tiles provide per-world fallbacks without consuming gameplay RNG. Scenery scroll and transitions freeze on pause. Stage names briefly appear at the upper edge, suppressed during boss notices.
+- **World presentation:** Foundry (waves 1–5), Infected Salvage (6–10), Spore Wilds (11–15), Living Labyrinth (16–20), Brood Heart (21–25). `updateWorld()` follows the existing level counter and fades scenery over 150 logic ticks; it does not alter encounters. `resetWorld()` handles new runs and debug starts; Continue retains the current presentation. Painted `world_*` WebP backgrounds reflect alternate vertical repeats to join their edges. Five cached procedural tiles provide per-world fallbacks without consuming gameplay RNG. Scenery scroll and transitions freeze on pause. Stage names briefly appear at the upper edge, suppressed during boss notices.
 - **Guns:** `GUN[0..4]` PULSE/TWIN/TRIPLE/SPREAD/STORM with dmg 1/1/2/2/2. Spread/Storm fire every 14 logic ticks with narrowed fans. New gun on first kill, then every ~9 kills (`dropFor`). Dying drops one gun level.
 - **Weapon visuals:** `BOLT[0..4]` caches original white/cyan procedural projectiles at startup. `GUN_PORTS` and `drawGunMounts()` draw 1/2/3/5/6 mounts matching existing shot origins. Enemy plasma uses its separate sprites/fallbacks. Legacy bolt PNGs remain packaged but are no longer drawn.
 - **Support rockets:** At gun level 4+, `updateRockets()` deploys side pods and adds marked entries to `shots`, reusing ordinary hit detection. 120-tick launch cadence, damage 1, maximum 3 active, 180-tick lifetime and capped steering. Targets are live forward enemies or an entered boss; one reacquisition is allowed. `resetRockets()` clears support state at run/ship-loss/Continue/menu boundaries. Art is procedural and cached.
@@ -115,7 +115,7 @@ Ordinary eligible air kills now drop cores 45% (30% original plus 15% from the e
 Within each five-wave stage, ground intervals are 210/180/150/120 ticks for combat waves 1–4, caps 5/5/5/6; boss suppression unchanged. Rocket launch logic/damage/cadence are unchanged; pod extension uses cosmetic smoothstep, doors and readiness strip,12-tick flash/recoil/backblast and projectile exhaust. Animation uses fixed-step state and freezes on pause.
 
 ## Five-level campaign
-CAMPAIGN_WAVES=25; AUTHORED_WAVES covers every combat wave with null boss slots. worldForWave clamps to five WORLDS. Stages2/3 use separate cached procedural scenery; final stage reuses world_heart. Ground sprite stage clamps to the existing three-cell sheet; soundtrack has five mixes.
+CAMPAIGN_WAVES=25; AUTHORED_WAVES covers every combat wave with null boss slots. worldForWave clamps to five WORLDS. All stages use painted backgrounds with cached procedural fallbacks; see Campaign artwork. Ground sprite stage clamps to the existing three-cell sheet; soundtrack has five mixes.
 New kinds6/7/8 are Seeder (slow paired aimed shots), Needle (fast weaving, one shot), Colony (slow three-shot fan), with procedural silhouettes and R radii22/13/26. Existing enemies remain in mixed formations. Bosses use campaignBossKind: Battleship, Assault Mech, Seed Matriarch, Tendril Warden, Brood Mother. New bosses reuse existing compact hit bounds and defeat/reward lifecycle; their update/draw functions provide distinct seed/escort and safe-lane attacks. No generalized boss framework.
 At final completion, normal salvage sweep/banking precede mode=victory. It waits for deliberate Harder replay/Main menu input; no wave 26. campaignLoop is per-run only; harder replay starts wave 1 (even from a debug finale), scales spawned enemy/ground/boss HP by1+0.25*loop with integer rounding. Normal newRun resets loop. Core totals are banked once before either exit. No save-format change.
 
@@ -128,26 +128,14 @@ GUN/MAXW/BOLT/GUN_PORTS now cover six states; SIEGE index 5 uses unchanged centr
 ## Earlier side support and ground aftermath
 Removed the floating horizontal pod-door bars. Side missiles now begin at Twin, with reloads 240/210/180/150/120 ticks through Siege and live limits 1/2/2/3/3; damage remains 1. Workshop previews show pods from Twin onward. Ground intervals now 150/130/110/90 ticks with caps 6/7/8/9 across each level, preserving the opening delay and boss suppression. Wrecks have 14 fragments and eight cached soft smoke puffs fading over about seven seconds; scenery anchoring, harmlessness and cap 20 remain. Verify cadence, caps, pause, targeting ground units, reset, and mobile readability.
 
-## Painted Spore Wilds
-Spore Wilds (world index 2, waves 11–15) now uses deferred world_wilds.webp. WORLD_TILES[2] remains the fallback; the existing reflected image scrolling path is unchanged.
+## Campaign artwork
 
-## Painted Seeder
-drawCampaignCreature uses deferred seeder_body.webp for kind 6 with the existing pulse; its procedural branch remains the fallback. Charge glow follows ct<45 and the existing eligible firing y range.
+All five worlds have deferred painted backgrounds and procedural WORLD_TILES fallbacks. Current mappings are in WORLDS: Foundry/world_foundry, Salvage/world_salvage, Wilds/world_wilds, Labyrinth/world_labyrinth and Brood Heart/world_brood. Legacy world_heart is retained but not selected.
 
-## Painted Seed Matriarch
-Seed Matriarch uses deferred matriarch_body.webp within existing compact boss bounds. drawCampaignBoss accepts notice=false for hit redraws so telegraph text is not drawn twice. Campaign boss flashes redraw their own body; phase effects no longer overlay a rectangle.
+worldArt() prebakes images at playfield width and bakes the Salvage tint once. It checks IMG on every call before returning cached art, preserving missing-image fallbacks. Keep full-playfield tint blends out of the per-frame path. Alternate vertical reflection joins scrolling edges; pause freezes scrolling.
 
-## Painted Living Labyrinth
-Living Labyrinth (waves 16–20) uses deferred world_labyrinth.webp: ivory chitin ribs over dark wine tissue with a quiet central flight lane. Existing procedural scenery and reflected scrolling remain; encounters and balance are unchanged.
+drawCampaignCreature() uses seeder_body (kind 6), needle_body (7) and colony_body (8), preserving pulse, charge timing and procedural branches. drawCampaignBoss() uses matriarch_body (kind 2) and warden_body (3) within existing hit bounds. Its notice=false hit-redraw path prevents duplicate attack text; charge glows preserve inherited opacity.
 
-## Painted Needle
-Kind 7 now uses deferred needle_body.webp: narrow ivory armour over wine-coloured segments, with the existing pulse and a charge glow. Original procedural fallback, movement, single shot, HP and collision radius remain unchanged.
+Enemy hit flashes redraw the rendered silhouette additively without Canvas filters. addHitImpact() supplies short sparks or organic puffs, including Brood Mother hits. The old hit and muzzle_anim strips are removed. Artwork does not change movement, attacks, HP, collisions or rewards.
 
-## Painted Tendril Warden
-Kind-3 boss uses deferred warden_body.webp within the existing compact boss bounds, with subtle breathing and amber charge/phase glow. Procedural fallback and safe-lane warning remain. No attack, HP, collision or reward changes.
-
-## Painted Brood Heart
-Final level (waves 21–25) uses deferred world_brood.webp: vascular folds, amber incubators and a quiet membrane flight lane. Reflected scrolling and procedural fallback remain unchanged, with no encounter or balance changes. Legacy world_heart asset is retained.
-
-## Painted Colony
-Kind 8 uses deferred colony_body.webp: five fused amber spore sacs, ivory ridges and a lower firing mouth. Existing pulse, charge timing and procedural fallback remain. No movement, HP, collision or attack changes.
+Asset provenance and processing are recorded in the dated art documents under docs/ and in CREDITS.txt. Validation belongs in [TESTING.md](TESTING.md#campaign-artwork); the [dated visual reference](docs/visual-direction-20260908.md) includes proposals beyond the implemented game.

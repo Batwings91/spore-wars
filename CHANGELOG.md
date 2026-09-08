@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 — Art documentation consolidation
+- Consolidated current art implementation notes in ARCHITECTURE and validation in TESTING; preserved historical entries below.
+- Added the other-chat visual synthesis as a dated reference, corrected its current-state summary and distinguished proposed features from accepted implementation.
+
 ## 2026-09-08 — Rendering cost review fixes
 - World backdrops are rescaled once into offscreen canvases and the Infected Salvage violet tint is baked once, removing two per-frame rescales and a full-playfield 'color' composite.
 - Lurker tentacles draw 9 strokes each instead of 42 (three width bands per shading pass); engine housing gradients are cached per tier.
