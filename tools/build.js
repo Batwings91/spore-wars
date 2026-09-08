@@ -5,7 +5,9 @@
 const fs=require('fs'),path=require('path');
 const root=path.dirname(__dirname),assets=path.join(root,'assets'),dist=path.join(root,'dist'),distAssets=path.join(dist,'assets');
 let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-fs.rmSync(dist,{recursive:true,force:true});fs.mkdirSync(distAssets,{recursive:true});
+// Dropbox or an open preview can hold dist/ files: clear best-effort with retries, then overwrite in place.
+try{fs.rmSync(dist,{recursive:true,force:true,maxRetries:5,retryDelay:200});}catch(e){console.warn('dist/ not fully cleared ('+e.code+'); overwriting in place');}
+fs.mkdirSync(distAssets,{recursive:true});
 const data={};let copied=0,copiedBytes=0;
 for(const f of fs.readdirSync(assets).sort()){
   const ext=path.extname(f),full=path.join(assets,f);

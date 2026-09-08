@@ -6,7 +6,7 @@ import base64,json,os,re,shutil
 root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 assets=os.path.join(root,'assets');dist=os.path.join(root,'dist');dist_assets=os.path.join(dist,'assets')
 html=open(os.path.join(root,'index.html'),encoding='utf8').read()
-shutil.rmtree(dist,ignore_errors=True);os.makedirs(dist_assets)
+shutil.rmtree(dist,ignore_errors=True);os.makedirs(dist_assets,exist_ok=True)
 data={};copied=0;copied_bytes=0
 for f in sorted(os.listdir(assets)):
     name,ext=os.path.splitext(f);full=os.path.join(assets,f)
