@@ -1,23 +1,33 @@
 #!/usr/bin/env node
-// Phase 4 creature-family and Brood Lattice regression. Serve the project, set URL if needed,
-// and expose Playwright on NODE_PATH (the Codex workspace runtime already provides it).
-'use strict';
-const {chromium}=require('playwright'),fs=require('fs'),path=require('path');
-const BASE=process.env.URL||'http://localhost:8000/index.html';
-const EXE=process.env.CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe';
+// Phase 4 creature-family and Brood Lattice regression over Chrome DevTools Protocol (no npm dependencies).
+// Serve the project on port 8000 first. Ported from the Playwright version so it runs on every machine.
+const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');
+const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=Number(process.env.SMOKE_PORT)||9482;
+const CANDIDATES=[process.env.CHROME,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean);
+const EXE=CANDIDATES.find(p=>fs.existsSync(p));if(!EXE){console.error('No Chrome/Edge found; set CHROME=<path>');process.exit(2);}
 const OUT=path.join(__dirname,'smoke-out');fs.mkdirSync(OUT,{recursive:true});
-
+const profile=fs.mkdtempSync(path.join(os.tmpdir(),'spore-eco-smoke-'));
+const chrome=spawn(EXE,['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--autoplay-policy=no-user-gesture-required',
+  '--remote-allow-origins=*','--remote-debugging-port='+PORT,'--window-size=1280,760','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),errors=[];
+const keepAlive=setInterval(()=>{},1000);
+function finish(code){clearInterval(keepAlive);try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recursive:true,force:true});}catch(e){}process.exit(code);}
 (async()=>{
-  const browser=await chromium.launch({headless:true,executablePath:EXE});
-  const page=await browser.newPage({viewport:{width:1280,height:760}}),errors=[];
-  page.on('pageerror',e=>errors.push('PAGE: '+e.message));
-  page.on('response',r=>{if(r.status()>=400&&!/favicon/i.test(r.url()))errors.push('HTTP '+r.status()+': '+r.url());});
-  page.on('console',m=>{const text=m.text();if((m.type()==='error'||m.type()==='warning')&&!/AudioContext was not allowed|Failed to load resource/.test(text))errors.push(m.type().toUpperCase()+': '+text);});
-  await page.goto(BASE+(BASE.includes('?')?'&':'?')+'god=1',{waitUntil:'networkidle'});
-  await page.waitForFunction(()=>typeof assetsReady!=='undefined'&&(assetsReady||assetsFailed)&&typeof t!=='undefined'&&t>60,null,{timeout:30000});
-  await page.evaluate(()=>{requestAnimationFrame=()=>0;});
-  const check=async code=>{const result=await page.evaluate(code=>Function(code)(),code);if(result!==true)throw Error('Check failed: '+code);};
-  const shot=async name=>{await page.screenshot({path:path.join(OUT,name+'.png')});console.log('shot',name);};
+  let wsUrl;for(let i=0;i<50&&!wsUrl;i++){try{const l=await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json(),pg=l.find(t=>t.type==='page');if(pg)wsUrl=pg.webSocketDebuggerUrl;}catch(e){}if(!wsUrl)await sleep(200);}
+  if(!wsUrl)throw new Error('no CDP page target');
+  const ws=new WebSocket(wsUrl);await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(5000).then(()=>{throw Error('CDP websocket open timeout');})]);let id=0;const pending={};
+  ws.addEventListener('message',async ev=>{const raw=typeof ev.data==='string'?ev.data:ev.data&&typeof ev.data.text==='function'?await ev.data.text():String(ev.data),m=JSON.parse(raw);if(m.id&&pending[m.id]){clearTimeout(pending[m.id].timer);pending[m.id].resolve(m.result||m.error);delete pending[m.id];}
+    if(m.method==='Runtime.exceptionThrown')errors.push('EXCEPTION: '+(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text));
+    if(m.method==='Runtime.consoleAPICalled'&&(m.params.type==='error'||m.params.type==='warning'))errors.push(m.params.type.toUpperCase()+': '+m.params.args.map(a=>a.value??a.description).join(' '));
+    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
+  const send=(method,params={})=>new Promise((resolve,reject)=>{const i=++id,timer=setTimeout(()=>{delete pending[i];reject(Error('CDP timeout: '+method));},10000);pending[i]={resolve,timer};ws.send(JSON.stringify({id:i,method,params}));});
+  const evalJs=async expr=>(await send('Runtime.evaluate',{expression:expr,returnByValue:true,awaitPromise:true})).result?.value;
+  const shot=async name=>{const r=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(OUT,name+'.png'),Buffer.from(r.data,'base64'));console.log('shot',name);};
+  await send('Page.enable');await send('Runtime.enable');await send('Log.enable');await send('Page.navigate',{url:BASE+(BASE.includes('?')?'&':'?')+'god=1'});
+  let ready=false;for(let i=0;i<120;i++){await sleep(250);ready=await evalJs("typeof assetsReady!=='undefined'&&(assetsReady||assetsFailed)&&typeof t!=='undefined'&&t>60");if(ready)break;}if(!ready)throw Error('boot timeout');
+  await evalJs('requestAnimationFrame=()=>0');await sleep(100);
+  const check=async code=>{const r=await send('Runtime.evaluate',{expression:'(()=>{'+code+'})()',returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error('Check failed: '+(r.exceptionDetails.exception?.description||r.exceptionDetails.text)+'\n  in: '+code.slice(0,160));if(r.result?.value!==true)throw Error('Check did not return true: '+code.slice(0,160));};
 
   await check("if(ENEMY_POINTS.length!==11||ENEMY_HP.length!==11||R[5]!==28||R[9]!==32||R[10]!==18)throw Error('family tables/hit radii');const first=k=>AUTHORED_WAVES.findIndex(w=>w&&w.some(g=>g[0]===k))+1;if(first(5)!==11||first(9)!==12||first(10)!==13)throw Error('family introductions');return true;");
   await check("newRun();mode='play';level=11;formationGroup=AUTHORED_WAVES[10].length;waveT=999;fireT=999;ground=[];groundTimer=999;eshots=[];const e={k:5,x:320,y:100,hp:4,t:0,ph:0,ct:1,aim:Math.PI/2};enemies=[e];update();const ray=eshots.filter(s=>s.family==='ray');if(ray.length!==3||ray.some(s=>!s.bio||!s.ground||Math.abs(Math.hypot(s.vx,s.vy)-1.65)>.001)||e.ct<168)throw Error('ray volley/cadence');return true;");
@@ -28,16 +38,15 @@ const OUT=path.join(__dirname,'smoke-out');fs.mkdirSync(OUT,{recursive:true});
   await check("broodLattice.y=80;broodLattice.t=72;const target=LATTICE_INTERACTIVE[0],step=LATTICE_PULSE_PATH.indexOf(target);broodLattice.pulse=step*9-1;updateBroodLattice();let n=broodLattice.nodes[target];if(n.state!=='tell'||n.timer!==42)throw Error('travelling pulse/tell');for(let i=0;i<42;i++)updateBroodLattice();if(n.state!=='open'||n.timer!==150)throw Error('opening window');const bg=broodLattice.nodes[0],bp=latticeNodeWorld(0);shots=[{x:bp.x,y:bp.y,dmg:99}];damageLatticeWithShots();if(bg.state!=='background'||shots[0].y===-99)throw Error('background targetable');drops=[];score=0;for(const i of LATTICE_INTERACTIVE){n=broodLattice.nodes[i];n.state='open';n.hp=1;const p=latticeNodeWorld(i);shots=[{x:p.x,y:p.y,dmg:1}];if(!damageLatticeWithShots()||n.state!=='destroyed')throw Error('target damage '+i);}if(!broodLattice.open||!broodLattice.rewarded||drops.filter(d=>d.k==='core').length!==3||score!==300||booms.some(b=>b.kind==='exp_big'||b.kind==='exp_small'))throw Error('lattice reward/burst');return true;");
   await check("spawnBroodLattice();broodLattice.y=80;drops=[];let n=broodLattice.nodes[LATTICE_INTERACTIVE[0]];n.state='open';n.hp=2;const p=latticeNodeWorld(n.i);ship.y=320;if(!damageLatticeWithSideLaser(p.x,7,1)||n.hp!==1)throw Error('lattice side laser');bombLattice(6);if(n.state!=='destroyed')throw Error('lattice bomb');paused=true;const before=JSON.stringify(broodLattice);stepLogic();if(JSON.stringify(broodLattice)!==before)throw Error('lattice pause');paused=false;boss={};updateBroodLattice();if(broodLattice)throw Error('boss cleanup');boss=null;spawnBroodLattice();continueRun();if(broodLattice)throw Error('continue cleanup');return true;");
   await check("save.sideLaser=1;routeSegment=spawnRouteSegment();routeSegment.y=80;const c=routeLaneClearance();if(c.left<c.required||c.right<c.required)throw Error('route clearance regression');return true;");
-
   await check("newRun();mode='play';worldStage=worldFrom=3;level=18;worldNotice=0;hint=0;ship.inv=999;enemies=[{k:9,x:225,y:90,hp:9,t:20,ph:0,ct:30,state:1,vx:0,vy:0},{k:10,x:320,y:90,hp:5,t:20,ph:0,ct:18,state:1,vx:0,vy:0},{k:5,x:415,y:90,hp:4,t:20,ph:0,ct:18,aim:1.5},{k:6,x:225,y:185,hp:6,t:20,ph:0,ct:80,state:0,vx:0,vy:0},{k:7,x:320,y:185,hp:3,t:20,ph:0,ct:80,state:0,vx:0,vy:0},{k:8,x:415,y:185,hp:10,t:20,ph:0,ct:30,state:0,vx:0,vy:0}];ground=[];wallFauna=[];routeSegment=null;render();return true;");await shot('phase4-six-family-lineup');
   await check("enemies=[];routeSegment=spawnRouteSegment();routeSegment.y=24;ship.x=PX+82;render();return true;");await shot('phase4-refined-split');
   await check("worldStage=worldFrom=4;level=21;worldScroll=2500;enemies=[];broodLattice=null;wallFauna=[];routeSegment=null;render();return true;");await shot('phase4-lattice-foreshadow');
   await check("level=23;spawnBroodLattice();broodLattice.y=22;let n=broodLattice.nodes[LATTICE_INTERACTIVE[0]];n.state='tell';n.timer=18;render();return true;");await shot('phase4-lattice-tell');
   await check("let n=broodLattice.nodes[LATTICE_INTERACTIVE[0]];n.state='open';n.timer=120;render();return true;");await shot('phase4-lattice-open');
   await check("for(const i of LATTICE_INTERACTIVE)broodLattice.nodes[i].state='destroyed';broodLattice.open=true;drops=LATTICE_INTERACTIVE.map((_,i)=>({x:broodLattice.x+(i-1)*30,y:285,k:'core'}));evt=50;evtText='LATTICE OPEN / SALVAGE RELEASED';evtCol='#f0b174';render();return true;");await shot('phase4-lattice-salvage');
-  await page.setViewportSize({width:800,height:500});await shot('phase4-lattice-salvage-small');
+  await send('Emulation.setDeviceMetricsOverride',{width:800,height:500,deviceScaleFactor:1,mobile:false});await sleep(250);await shot('phase4-lattice-salvage-small');
 
+  await send('Emulation.clearDeviceMetricsOverride');
   if(errors.length)throw Error(errors.join('\n'));
-  console.log('PASS six family introductions/behaviours/hit geometry/rewards and lattice layout/schedule/pulse/windows/weapons/reward/pause/lifecycle');
-  await browser.close();
-})().catch(e=>{console.error(e);process.exitCode=2;});
+  console.log('PASS six family introductions/behaviours/hit geometry/rewards and lattice layout/schedule/pulse/windows/weapons/reward/pause/lifecycle');ws.close();finish(0);
+})().catch(e=>{console.error(e);finish(2);});
