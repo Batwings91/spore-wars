@@ -1,7 +1,7 @@
 'use strict';
 // Battleship, Mech and Brood Mother: update, bombs, illustrated and fallback drawing, health bar.
 // ================= BOSSES: BATTLESHIP / MECH / MOTHERSHIP =================
-function startBossWarning(){bossWarn=150;level++;eshots=[];SFX.siren();addFloat(LW/2,150,'',C.red);}
+function startBossWarning(){bossWarn=150;level++;eshots=[];SFX.siren(level%15===0);addFloat(LW/2,150,'',C.red);}
 function spawnBoss(){bossCount++;const mech=level%15===10,mother=level%15===0;
   // Each boss scales with its own appearance count (waves 5/20/35 -> 1/2/3), not with every boss fought so far:
   // the old bossCount formula made the second Battleship (532 HP) tougher than the second Mothership (480 HP).

@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-09-08 — More salvage and escalating ground encounters
+- Increased ordinary core drops to45% and added one core per destroyed ground enemy.
+- Added harmless, scrolling wrecks; increased ground density through each stage.
+
+## 2026-09-08 — Clearer support rocket animation
+- Added eased pod opening, doors/readiness cues, launch recoil/backblast and rocket exhaust; combat stats unchanged.
+
+
+## 2026-09-08 — Longer Foundry and recessed ground emplacements
+- Extended the opening stage to five formations per wave; increased ground encounters and added a centred, terrain-mounted weapon with mechanical/infected/organic art.
+
+## 2026-09-08 — Sampled impacts and volume previews
+- Replaced routine hit/destruction generators with credited CC0 samples, retaining fallback synthesis.
+- Added independently saved music/effects volume levels and five-second main-menu test playback, with touch and keyboard controls.
+
+
+## 2026-09-08 — Independent music and sound controls
+- Added separately remembered music/effects switches to title and HUD, with keyboard and touch support. Preserved legacy mute preference and routed fallback drums with music.
+
+## 2026-09-08 — More terrain sentries and twin emitters
+- Shortened ground spawn interval to six seconds, cap three; added paired-barrel/spore-sac variants with slower twin volleys and alternating inset placement.
+
+## 2026-09-07 — Compact adaptive Space Adventure theme
+- Replaced Fly with MintoDog’s CC0 loop, encoded to 937 KB (42% smaller).
+- Added smooth per-world EQ/echo variations using one recording; kept music gain, mute, ownership and fallback controls. Updated in-game and file attribution.
+
+## 2026-09-07 — Ground mechs and rooted spore sentries
+- Added terrain-anchored mechanical, infected and biological side enemies with sparse, telegraphed shots.
+- Capped at two outside boss encounters, destructible with guns/rockets/bombs, with procedural fallbacks and normal hull/shield interactions.
+
+## 2026-09-07 — Focus high-tier weapons and clarify damage
+- Narrowed SPREAD/STORM and slowed their cadence to 16/18 ticks; earlier guns, per-shot damage, rockets and enemy strength remain unchanged.
+- Added explicit shield-loss and hull-percentage floating feedback; verified enemy bullets consume shields before hull.
+
+## 2026-09-07 — Workshop flow, purple salvage, creatures and arrival audio
+- Checkpoint Workshop uses CONTINUE; level two is violet from its arrival.
+- Redesigned the Lurker body and tendrils; introduced the biological Spore Skimmer in level three alongside returning enemies.
+- Replaced FM arrival notes with cached noise-based boss and enemy textures; no new audio download.
+
+## 2026-09-07 — Clear sector break and world arrival
+- Enlarged the completion screen with Upgrade / Workshop and Proceed choices and the next destination.
+- Added a three-second, pausable departure/fade/arrival sequence before the next wave; combat and run resources remain frozen during travel.
+
 ## 2026-09-07 — Hull repair pickups and continuous health bar
 - Add green REPAIR capsules: non-guaranteed enemy drops have a 4% repair chance while hull is damaged, taken from previously empty drops. Each repairs one hull point, capped at full health; core/bomb/shield chances and guaranteed weapons are unchanged.
 - Replace hull squares with a smoothly animated green/amber/red bar and health percentage. Keep three-hit hull damage; pause freezes the meter, while new ships/new runs/Continue reset it.

@@ -26,7 +26,7 @@ const STARS=[];for(let i=0;i<20;i++)STARS.push({x:Math.random()*X(PW),y:Math.ran
 // Scenery is cached once, with periodic edges and no gameplay random calls.
 const WORLDS=[
   {name:'ORBITAL FOUNDRY',detail:'OUTER INDUSTRIAL BELT',accent:'#a9b6c0',asset:'world_foundry'},
-  {name:'INFECTED SALVAGE',detail:'THE MACHINES ARE CHANGING',accent:'#b7a687',asset:'world_salvage'},
+  {name:'INFECTED SALVAGE',detail:'THE MACHINES ARE CHANGING',accent:'#bc92d5',asset:'world_salvage'},
   {name:'SPORE HEART',detail:'BEYOND THE LAST MACHINE',accent:'#c09ba9',asset:'world_heart'}
 ];
 const WORLD_TILES=WORLDS.map((world,stage)=>{
@@ -110,6 +110,8 @@ function drawWorld(){
         ctx.imageSmoothingEnabled=true;ctx.drawImage(art,0,0,X(PW),h);ctx.restore();
       }
     }else{const y=Math.floor(worldScroll%TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y-TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y);}
+    // Infected Salvage has its violet identity from arrival, including its fallback.
+    if(stage===1){ctx.save();ctx.globalCompositeOperation='color';ctx.fillStyle='rgba(133,72,170,0.42)';ctx.fillRect(X(PX),0,X(PW),H);ctx.restore();}
   };
   ctx.save();
   if(worldFade>0){paint(worldFrom);ctx.globalAlpha=1-worldFade/150;}

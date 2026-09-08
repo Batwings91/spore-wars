@@ -70,7 +70,7 @@ const ROCKET=(()=>{const c=document.createElement('canvas');c.width=20;c.height=
 let podOpen=0,rocketT=120,rocketSide=-1,rocketFlash=0;
 function resetRockets(){podOpen=0;rocketT=120;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
 function rocketTarget(x,y){
-  const candidates=enemies.filter(e=>e.hp>0&&e.y>0&&e.y<y&&e.x>PX&&e.x<PX+PW);
+  const candidates=enemies.concat(ground).filter(e=>e.hp>0&&e.y>0&&e.y<y&&e.x>PX&&e.x<PX+PW);
   if(!candidates.length)return boss&&!bossDying&&boss.hp>0&&boss.y>=boss.ty&&boss.y<y?boss:null;
   let best=null,rank=Infinity;
   for(const e of candidates){const reserved=shots.some(s=>s.rocket&&s.y>0&&s.target===e);const r=Math.hypot(e.x-x,e.y-y)+(reserved?1000:0);if(r<rank){best=e;rank=r;}}
@@ -82,11 +82,11 @@ function updateRockets(){
   if(wpn<3)rocketT=120;
   else if(podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&s.y>0).length<3){
     const x=ship.x+rocketSide*40,target=rocketTarget(x,ship.y);
-    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=120;rocketFlash=8;}
+    if(target){shots.push({x,y:ship.y-8,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:1,rocket:true,target,life:180,retargeted:false});rocketSide*=-1;rocketT=120;rocketFlash=12;}
   }
   for(const s of shots){if(!s.rocket||s.y<-50)continue;
     if(--s.life<=0){s.y=-99;continue;}
-    if(!s.target||s.target.hp<=0||!(enemies.includes(s.target)||(s.target===boss&&!bossDying))||s.target.y<0||s.target.y>LH){
+    if(!s.target||s.target.hp<=0||!(enemies.includes(s.target)||ground.includes(s.target)||(s.target===boss&&!bossDying))||s.target.y<0||s.target.y>LH){
       s.target=s.retargeted?null:rocketTarget(s.x,s.y);s.retargeted=true;
     }
     let angle=Math.atan2(s.vy,s.vx);
@@ -95,11 +95,14 @@ function updateRockets(){
   }
 }
 function drawRocketPods(){if(podOpen<=0)return;ctx.save();
-  for(const side of [-1,1]){const x=ship.x+side*(25+15*podOpen/24),y=ship.y;
+  for(const side of [-1,1]){const open=podOpen/24,ease=open*open*(3-2*open),firing=rocketFlash>0&&side===-rocketSide;
+    const x=ship.x+side*(25+15*ease),y=ship.y+(firing?rocketFlash*0.3:0);
     ctx.fillStyle='#6a8392';ctx.fillRect(X(Math.min(ship.x+side*24,x)),X(y+4),X(Math.abs(x-ship.x-side*24)),X(4));
     ctx.fillStyle='#142331';ctx.fillRect(X(x-6),X(y-8),X(12),X(23));ctx.strokeStyle='#91a8b5';ctx.lineWidth=1;ctx.strokeRect(X(x-6),X(y-8),X(12),X(23));
     ctx.fillStyle='#617b8b';ctx.fillRect(X(x-4),X(y+2),X(8),X(11));ctx.fillStyle='#080e18';ctx.fillRect(X(x-3),X(y-7),X(6),X(7));
+    ctx.fillStyle='#a0b6be';ctx.fillRect(X(x-5),X(y-7-5*ease),X(10),X(3*(1-ease)+1));
+    ctx.fillStyle=podOpen<24?'#dca761':'#83efff';ctx.fillRect(X(x+side*3-1),X(y+6),X(2),X(5));
     ctx.fillStyle='#83efff';ctx.fillRect(X(x-2),X(y-6),X(4),X(2));
-    if(rocketFlash>0&&side===-rocketSide){ctx.fillStyle='#eaffff';ctx.fillRect(X(x-2),X(y-13),X(4),X(6));}
+    if(firing){ctx.globalAlpha=rocketFlash/12;ctx.fillStyle='#eaffff';ctx.beginPath();ctx.moveTo(X(x-4),X(y-8));ctx.lineTo(X(x),X(y-22));ctx.lineTo(X(x+4),X(y-8));ctx.fill();ctx.fillStyle='#5bdaeb';ctx.beginPath();ctx.moveTo(X(x-3),X(y+14));ctx.lineTo(X(x),X(y+25));ctx.lineTo(X(x+3),X(y+14));ctx.fill();ctx.globalAlpha=1;}
   }ctx.restore();
 }

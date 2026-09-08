@@ -36,7 +36,7 @@ See `ARCHITECTURE.md`. Decisions and their reasons: `DECISIONS.md`. How to test:
 - chabull, explosions — **CC-BY 3.0**.
 - LuminousDragonGames, Parallax Space Scene — **CC0** (background layers px_*).
 - Kenney packs — **CC0** (not currently used in-game; UI/particles reserve).
-- Music "Fly" — Alexandr Zhelanov — **CC-BY 3.0**, wants a link back to the project.
+- Music "Space Adventure" — MintoDog — **CC0**; compressed AAC with per-world EQ/echo variations.
 - Never use Commodore/MS-DOS/brand names or any real game's characters/art. Retro *style* only.
 - Raw source packs are on the owner's Mac (Downloads), not in this repo.
 

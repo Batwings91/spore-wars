@@ -12,8 +12,8 @@ addEventListener('resize',fit);fit();cv.focus();
 
 // ---------- asset pack ----------
 const ASSET_DATA={}; // dev: everything loads from ./assets/. dist: tools/build.js inlines the PNG sprites here; the WebP illustrations and the music stay as files in dist/assets/.
-const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
-const MAIN_TRACK='assets/fly.m4a';
+const ASSET_EXT={trader_shop:'webp',menu_hangar:'webp',lurker_body:'webp',spore_skimmer:'webp',ground_sentries:'webp',ground_bunkers:'webp',crawler_body:'webp',battleship_hull:'webp',mech_body:'webp',mothership_body:'webp',world_foundry:'webp',world_salvage:'webp',world_heart:'webp'};
+const MAIN_TRACK='assets/space-adventure.m4a';
 const IMG={},STRIP={};let assetsReady=false,assetsFailed=false;
 (function(){
   // Core sprites gate the boot screen. The large WebP illustrations (ASSET_EXT) load in the background: every

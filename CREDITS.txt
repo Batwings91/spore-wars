@@ -93,9 +93,10 @@ UI icons and particles (reserved):
 
 Music
 -----
-Main theme: "Fly" (Techno Space) by Alexandr Zhelanov — CC-BY 3.0
-  https://opengameart.org/content/techno-space  ·  https://soundcloud.com/alexandr-zhelanov
-  Converted to AAC; otherwise unmodified.
+Main theme: "Space Adventure" by MintoDog — CC0
+  https://opengameart.org/content/space-adventure
+  Source: space_adventure_bpm140.mp3 (140 BPM, loopable).
+  Converted to stereo AAC, 32 kHz / 56 kbps. Runtime EQ and tempo-synchronised echo vary by world.
 
 Studio logo (assets/logo_prompt.png, assets/logo_icon.png):
   The 640K Games prompt wordmark and icon, exported from the studio's master SVG artwork
@@ -107,6 +108,26 @@ Alien salvage trader (assets/trader_shop.webp):
   Product text, icons and controls are rendered separately by the game.
 
 Everything else — code, sound synthesis, procedural art, design — © 640K Games.
-(The music is Alexandr Zhelanov's under CC-BY 3.0, credited above; it is not ours.)
+(The music is MintoDog's CC0 work, credited above; it is not our composition.)
 
 Game UI bitmap alphabet: extended from the 640K Games Logo repository’s original 5x7 letterforms, with added lowercase, numerals and punctuation. Original studio artwork, © 640K Games.
+
+Lurker redesign and Spore Skimmer (assets/lurker_body.webp, assets/spore_skimmer.webp):
+  Original AI-assisted artwork generated with OpenAI for 640K Games, 2026-09-07.
+  No new third-party source assets; lurker reference was the existing studio illustration.
+  Transparent cutouts, trimmed/resized, quality-90 WebP. Prompts: docs/enemy-art-20260907.md.
+
+Ground sentries (assets/ground_sentries.webp): original AI-assisted artwork generated
+  with OpenAI for 640K Games, 2026-09-07. Mechanical, infected and biological variants.
+  Transparent cells trimmed/resized and packed into quality-90 WebP; no third-party source pack.
+  Prompt and processing: docs/ground-art-20260907.md.
+
+Sampled impacts:
+  impact.wav: thud2.wav by Brian MacIntosh (BMacZero), CC0.
+  https://opengameart.org/content/metal-impact-sounds
+  enemy-burst.wav: mechanical_explosion.wav by Spring Spring, CC0.
+  https://opengameart.org/content/mechanical-explosion
+  Both trimmed, faded, gain-reduced and converted to mono 22.05 kHz / 16-bit WAV. Original synthesised effects remain fallbacks.
+
+Recessed ground emplacements (assets/ground_bunkers.webp):
+  Generated original artwork with OpenAI image generation, 2026-09-08; three terrain stages, resized to 576x192 WebP. Prompt/provenance: docs/ground-bunkers-20260908.md.
