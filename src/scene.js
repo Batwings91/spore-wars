@@ -99,6 +99,19 @@ const WORLD_TILES=WORLDS.map((world,stage)=>{
   }
   return tile;
 });
+// Infected Salvage's violet identity is a 'color' composite. Applied per frame over the whole playfield it is the slow
+// path on mobile GPUs, so it is baked once: into the procedural tile here and into the prebaked backdrop below.
+function tintSalvage(g,w,h){g.save();g.globalCompositeOperation='color';g.fillStyle='rgba(133,72,170,0.42)';g.fillRect(0,0,w,h);g.restore();}
+tintSalvage(WORLD_TILES[1].getContext('2d'),X(PW),TH);
+// Each painted world is rescaled to playfield width once (and tinted if Salvage) into an offscreen canvas, so the
+// per-frame cost is two unscaled blits instead of two rescales of a 1024-wide WebP. Only the current and previous
+// stage stay resident; the cache is rebuilt if the image is ever missing so the fallback still shows.
+const WORLD_ART=[];
+function worldArt(stage){const art=IMG[WORLDS[stage].asset];if(!art)return null;if(WORLD_ART[stage])return WORLD_ART[stage];
+  const h=Math.round(art.height*X(PW)/art.width),c=document.createElement('canvas');c.width=X(PW);c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=true;g.drawImage(art,0,0,X(PW),h);
+  if(stage===1)tintSalvage(g,X(PW),h);
+  for(const k in WORLD_ART)if(+k!==stage&&+k!==worldStage&&+k!==worldFrom)delete WORLD_ART[k];
+  return WORLD_ART[stage]=c;}
 let worldStage=0,worldFrom=0,worldFade=0,worldNotice=0,worldScroll=0;
 const worldForWave=wave=>Math.min(4,Math.floor(Math.max(0,wave-1)/5));
 function resetWorld(wave=STARTWAVE+1){worldStage=worldFrom=worldForWave(wave);worldFade=0;worldNotice=240;worldScroll=0;}
@@ -110,18 +123,16 @@ function updateWorld(){
 }
 function drawWorld(){
   const paint=stage=>{
-    const art=IMG[WORLDS[stage].asset];
+    const art=worldArt(stage);
     if(art){
-      const h=Math.round(art.height*X(PW)/art.width),y=Math.floor(worldScroll%(h*2));
+      const h=art.height,y=Math.floor(worldScroll%(h*2));
       // Alternate vertical reflection joins identical edge pixels without a hard seam.
       for(let i=-2;i<=0;i++){
         const top=y+i*h;if(top>=H||top+h<=0)continue;
         ctx.save();ctx.translate(X(PX),top+(i===-1?h:0));ctx.scale(1,i===-1?-1:1);
-        ctx.imageSmoothingEnabled=true;ctx.drawImage(art,0,0,X(PW),h);ctx.restore();
+        ctx.drawImage(art,0,0);ctx.restore();
       }
     }else{const y=Math.floor(worldScroll%TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y-TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y);}
-    // Infected Salvage has its violet identity from arrival, including its fallback.
-    if(stage===1){ctx.save();ctx.globalCompositeOperation='color';ctx.fillStyle='rgba(133,72,170,0.42)';ctx.fillRect(X(PX),0,X(PW),H);ctx.restore();}
   };
   ctx.save();
   if(worldFade>0){paint(worldFrom);ctx.globalAlpha=1-worldFade/150;}
