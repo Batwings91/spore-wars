@@ -2,9 +2,9 @@
 // Run transitions (clearScene/quitRun/continueRun), the fixed-step loop, stepLogic() and render().
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
-function clearScene(){orbActive=false;resetGround();resetRockets();resetSideLasers();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
+function clearScene(){orbActive=false;resetGround();resetWorldEncounters();resetRockets();resetSideLasers();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
 function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
-function continueRun(){resetGround();resetRockets();resetSideLasers();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=ship.hullDisplay=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
+function continueRun(){resetGround();resetWorldEncounters();resetRockets();resetSideLasers();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=ship.hullDisplay=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
 let lastT=0,acc=0;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-08 — Phase 3 living-world encounters
+- Added cached low-contrast fauna overlays to Infected Salvage and all later alien worlds, alternating dense edge pockets, sparse growth and quiet/open stretches with no per-frame generated art.
+- Added capped wall-mounted spore organs and snap blooms. Their swell/open tells precede distinct slow seed shots or a short harmful reach; attacks, projectiles and animation freeze/suppress and clean up with the existing pause/run/checkpoint lifecycle.
+- Added the first reusable Living Labyrinth central-island split in wave 18. Paired chevrons telegraph two 168-unit lanes; shared stepped drawing/collision primitives protect a 136-unit mature-ship footprint, relocate grounded rewards safely and allow airborne combat to remain reachable.
+- Added `tools/world-smoke.js` coverage and desktop/narrow captures for fauna, route clearance, collision, cadence, pause, lifecycle cleanup and clean rejoin. All new art is original cached/procedural Canvas work; no raster asset or external reference artwork was added.
+
 ## 2026-09-08 — Phase 2 twin side lasers
 - Made the Workshop side-weapon slot a 240-core permanent Twin Ion Lance purchase, with saved ownership, candidate/live assembly parity and migration of older v3 saves to an unequipped default.
 - Added symmetric ship-mounted emitters with a 150-tick recharge, 48-tick visible wind-up and 36-tick sustained firing window. Two 14-unit bright beam cores pulse damage every six ticks against air, ground and boss targets; bounded sparks, hit flashes and light spill provide impact feedback.

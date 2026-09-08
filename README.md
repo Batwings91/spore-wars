@@ -12,11 +12,12 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 ## Layout
 ```
 index.html          dev build — loads src/*.js in order plus ./assets/. Serve over http (see below); file:// won't fetch the music.
-src/                the game code, one topic per file (core, sprites, weapons, scene, audio, input, game, bosses, play, screens, main); see ARCHITECTURE.md
+src/                the game code, one topic per file (core, sprites, weapons, scene, audio, input, game, world encounters, bosses, play, screens, main); see ARCHITECTURE.md
 assets/             final game sprites (already palette-reduced/outlined), music
 tools/build.js      release build → dist/ (build.py is the identical Python version; use whichever runtime the machine has)
 tools/serve.js      dev server on port 8000 (or python3 -m http.server 8000)
 tools/smoke.js      headless regression run; see TESTING.md
+tools/world-smoke.js focused living-fauna and split-route regression; see TESTING.md
 dist/               release artefact, NOT committed (gitignored): dist/index.html with the PNG sprites inlined plus dist/assets/ (WebP
                     illustrations + music, loaded after boot). Build at release time and zip the folder with index.html at the root.
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)

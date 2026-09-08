@@ -1,12 +1,12 @@
 # Spore Wars — Visual Evolution Direction
 
-**Status:** dated visual reference; remaining feature proposals require separate approval
+**Status:** dated visual reference; Phases 1–3 implemented, remaining creature/Brood Lattice proposals require separate approval
 
-**Version:** 1.1 (current-state annotation)
+**Version:** 1.2 (Phase 3 implementation annotation)
 
 **Date:** 2026-09-08
 
-**Scope:** preserves the owner’s other-chat reference synthesis. The canonical repository, ARCHITECTURE.md and DECISIONS.md describe the implemented game. This document does not authorize its proposed shop expansion, beams, split routes, terrain collision or loadout restructuring.
+**Scope:** preserves the owner’s other-chat reference synthesis. The canonical repository, ARCHITECTURE.md and DECISIONS.md describe the implemented game. Shop/loadout work, side beams and the first living-world/split-route pass are implemented; this document does not by itself authorize the remaining creature ecosystem or Brood Lattice proposals.
 
 ## Intent
 
@@ -24,6 +24,7 @@ The current game already provides useful foundations:
 - Shared equipment renderers for the shop preview and live ship: `drawGunMounts`, `drawEngines`, and `drawShieldLayers`.
 - Six gun states (Pulse through Siege), shields, engines, support rockets, Seeker Orb, ground emplacements, nine airborne enemy kinds and five bosses.
 - Existing mechanical, infected, and biological ground-sentry art.
+- Implemented Phase 3 living-world layer: cached decorative fauna in worlds 2–5, two telegraphed wall-fauna hazards, and a reusable stepped central-island split in Living Labyrinth wave 18. Both 168-unit lanes clear the widest current ship with margin; grounded rewards relocate to a lane while airborne combat remains reachable.
 
 The redesign should extend these systems rather than replace the game's identity.
 
@@ -296,10 +297,7 @@ Preserve procedural fallbacks for every new production asset.
 
 ### Phase 3 — Living-world encounters
 
-- Add decorative fauna layers to Infected Salvage and Spore Heart.
-- Add two or three active wall-fauna behaviours with strong tells.
-- Introduce open/dense pacing and the first central-island/two-lane segment.
-- Add collision primitives, route preview, rejoin safety, and build-width checks.
+**Implemented 2026-09-08.** Cached procedural overlays add dense/sparse/quiet fauna bands from Infected Salvage through Brood Heart. Spore organs and snap blooms provide two original strong-tell hazards. Living Labyrinth wave 18 introduces the first telegraphed central-island/two-lane segment with shared visible/collision rectangles, mature-build clearance, grounded-reward relocation, airborne overflight and a clean open rejoin. No raster asset or reference-derived production shape was added.
 
 ### Phase 4 — Creature ecosystem and Brood Lattice
 

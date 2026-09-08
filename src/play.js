@@ -4,7 +4,7 @@ function boom(x,y,big){SFX.boom(big);booms.push({x,y,f:0,sc:big?1.6:1,life:24,ki
 function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;shieldHit=12;SFX.shieldHit();addFloat(Math.max(PX+90,Math.min(PX+PW-90,ship.x)),ship.y-44,shield?'SHIELD 1 LEFT':'SHIELD DOWN',C.cyan,true);return;}
   ship.hull--;
   if(ship.hull>0){ship.inv=40;shake=6;flash=3;SFX.hit();addFloat(Math.max(PX+90,Math.min(PX+PW-90,ship.x)),ship.y-44,ship.hull===1?'HULL CRITICAL 33%':'HULL DAMAGED 67%',C.red,true);return;}
-  resetRockets();resetSideLasers();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
+  resetRockets();resetSideLasers();resetWorldEncounters();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;
@@ -43,7 +43,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   else if(!sectorPending&&AUTHORED_WAVES[level-1]&&formationGroup<AUTHORED_WAVES[level-1].length){if(waveT<=0&&enemies.length<=2)spawnFormationGroup();}
   else if(!sectorPending&&enemies.length===0&&waveT<=0){if((level+1)%5===0){startBossWarning();}else{spawnWave();}}
   else if(!sectorPending&&!AUTHORED_WAVES[level-1]&&waveT<=0&&enemies.length<4&&(level+1)%5!==0){spawnWave();}
-  updateBoss();updateWorld();updateGround();
+  updateBoss();updateWorld();updateGround();updateWorldEncounters();
   for(const e of enemies){e.t++;
     if(e.k===0){e.y+=1.1+level*0.04;e.x+=Math.sin(e.t*0.05+e.ph)*1.8;}
     if(e.k===1){e.y+=2.8+level*0.06;}
@@ -60,6 +60,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
       if(e.x<PX+16){e.x=PX+16;e.dir=1;}if(e.x>PX+PW-16){e.x=PX+PW-16;e.dir=-1;}}
     if(e.k===2){e.y+=0.6;e.ct--;if(e.ct<=0&&e.y>0){e.ct=90;const a=Math.atan2(ship.y-e.y,ship.x-e.x);eshots.push({x:e.x,y:e.y+8,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4});SFX.plasma();}}
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
+  keepRouteEntitiesReachable();
   updateSideLasers();
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
   for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
@@ -67,7 +68,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){e.hp-=s.dmg||1;if(e.hp>0)addHitImpact(s.x,s.y,e.stage>0);s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
   ground=ground.filter(e=>e.hp>0);
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
-  for(const s of eshots){s.x+=s.vx;s.y+=s.vy;if(Math.abs(s.x-ship.x)<16&&Math.abs(s.y-ship.y)<20){s.y=999;hitShip();}}
+  for(const s of eshots){s.x+=s.vx;s.y+=s.vy;const radius=s.radius||0;if(Math.abs(s.x-ship.x)<16+radius&&Math.abs(s.y-ship.y)<20+radius){s.y=999;hitShip();}}
   eshots=eshots.filter(s=>s.y<LH+10&&s.y>-10&&s.x>PX&&s.x<PX+PW);
   for(const d of drops){if(sectorPending){const dx=ship.x-d.x,dy=ship.y-d.y,len=Math.hypot(dx,dy)||1;d.x+=dx/len*7;d.y+=dy/len*7;}else d.y+=1.4;if(Math.hypot(d.x-ship.x,d.y-ship.y)<34||(sectorPending&&waveT<=0)){d.y=999;
       if(d.k==='core'){cores++;score+=5;SFX.core();addFloat(d.x,d.y,'+1 CORE',C.cyan);}
@@ -76,7 +77,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
       if(d.k==='h'&&lives>0){const full=ship.hull>=MAX_HULL;ship.hull=Math.min(MAX_HULL,ship.hull+1);pickupEvent(full?'HULL FULL':'HULL REPAIRED', '#79e69b');SFX.power();}
       if(d.k==='s'){shield=Math.min(2,shield+1);pickupEvent('SHIELD',C.cyan);SFX.shield();}
       if(d.k==='b'){const full=bombs>=6;bombs=Math.min(6,bombs+1);pickupEvent(full?'BOMB FULL':'BOMB +1',C.G);SFX.power();}}}
-  drops=drops.filter(d=>d.y<LH+12);
+  keepRouteEntitiesReachable();drops=drops.filter(d=>d.y<LH+12);
   for(const b of booms){if(b.vx!==undefined){b.x+=b.vx;b.y+=b.vy;}b.life--;}booms=booms.filter(b=>b.life>0);if(hint>0)hint--;if(muzz>0)muzz--;if(shieldHit>0)shieldHit--;
   for(const f of floats){f.y-=0.7;f.life--;}floats=floats.filter(f=>f.life>0);for(const r of rings){r.r+=r.big?9:4;r.life--;}rings=rings.filter(r=>r.life>0);if(evt>0)evt--;if(bombFx>0)bombFx--;
   for(const e of enemies)if(e.flash>0)e.flash--;
@@ -288,7 +289,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
   else{ctx.globalAlpha=0.85;const sy=Math.floor(scroll);ctx.drawImage(BG,X(PX),sy-TH);ctx.drawImage(BG,X(PX),sy);ctx.globalAlpha=1;}
   for(const st of STARS){const yy=(st.y+scroll*1.6)%H;ctx.fillStyle=st.c;ctx.fillRect(X(PX)+st.x,Math.floor(yy),st.s,st.s);}
   }
-  drawGround();
+  drawFaunaBackground();drawRouteSegments();drawGround();drawWallFauna();
   for(const d of drops){const bob=Math.sin(t*0.15+d.y)*2,p=1+Math.sin(t*0.2+d.x)*0.08;
     if(d.k==='core'){if(!img('icon_core',d.x,d.y,0.7*p)){blit(CORE,d.x,d.y,1.4*p);}}
     else if(d.k==='o'){drawSeekerOrb(d.x,d.y+bob,t,0);txt('ORB',d.x,d.y+bob+14,C.cyan,8,'center');}
@@ -298,7 +299,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
 
   drawBoss();drawSideLaserBeams();
   for(const s of shots){ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(Math.atan2(s.vy,s.vx)+Math.PI/2);if(s.rocket){const flame=7+(s.life%4)*2;ctx.fillStyle='rgba(67,209,236,0.3)';ctx.beginPath();ctx.moveTo(X(-3),X(5));ctx.lineTo(0,X(5+flame));ctx.lineTo(X(3),X(5));ctx.fill();ctx.fillStyle='#d9fbff';ctx.fillRect(X(-1),X(5),X(2),X(flame*0.55));}const b=s.rocket?ROCKET:BOLT[s.g];ctx.drawImage(b,-b.width/2,-12);ctx.restore();}
-  for(const s of eshots){if(s.ground){ctx.fillStyle=s.bio?'#e58cbd':'#efb65d';ctx.beginPath();ctx.arc(X(s.x),X(s.y),X(4.5),0,Math.PI*2);ctx.fill();ctx.fillStyle=s.bio?'#67334e':'#784b28';ctx.beginPath();ctx.arc(X(s.x-1),X(s.y+1),X(2),0,Math.PI*2);ctx.fill();continue;}const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
+  for(const s of eshots){if(s.fauna==='spore'){drawFaunaProjectile(s);continue;}if(s.ground){ctx.fillStyle=s.bio?'#e58cbd':'#efb65d';ctx.beginPath();ctx.arc(X(s.x),X(s.y),X(4.5),0,Math.PI*2);ctx.fill();ctx.fillStyle=s.bio?'#67334e':'#784b28';ctx.beginPath();ctx.arc(X(s.x-1),X(s.y+1),X(2),0,Math.PI*2);ctx.fill();continue;}const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
   for(const b of booms){if(b.kind==='impact'){
     const age=8-b.life;ctx.save();ctx.globalAlpha=b.life/8;
     for(let i=0;i<4;i++){const a=i*2.4,dx=Math.cos(a),dy=Math.sin(a),r=2+age*0.7;
