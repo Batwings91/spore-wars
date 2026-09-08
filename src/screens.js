@@ -62,12 +62,12 @@ function pauseTap(p){
   if(p.y>=y&&p.y<=y+30)setPaused(false);
   else if(p.y>=y+44&&p.y<=y+74){if(exitConfirm)quitRun();else{exitConfirm=true;exitChoice=0;exitWait=15;}}
 }
-const TITLE_BUTTONS=[{x:40,y:178,w:230,h:38},{x:40,y:224,w:230,h:32},{x:40,y:262,w:334,h:24},{x:40,y:290,w:334,h:24}];
+const TITLE_BUTTONS=[{x:40,y:178,w:230,h:38},{x:40,y:224,w:230,h:32},{x:40,y:262,w:300,h:24},{x:40,y:290,w:300,h:24}]; // audio rows end at x=340 so they clear the hangar art
 function titleAudioAction(i,x){const k=i===2?'sound':'music';
   if(x===undefined||x<164){if(i===2)SFX.toggleMute();else SFX.toggleMusic();}
   else if(x<188){SFX.setVolume(k,SFX.getVolume(k)-0.1);SFX.preview(k);}
-  else if(x<284){SFX.setVolume(k,(x-188)/96);SFX.preview(k);}
-  else if(x<308){SFX.setVolume(k,SFX.getVolume(k)+0.1);SFX.preview(k);}
+  else if(x<260){SFX.setVolume(k,(x-188)/72);SFX.preview(k);}
+  else if(x<282){SFX.setVolume(k,SFX.getVolume(k)+0.1);SFX.preview(k);}
   else SFX.preview(k);
 }
 // Translucent surfaces keep the scene visible; text remains fully opaque.
@@ -98,8 +98,8 @@ function titleScreen(){
     if(hot){ctx.fillStyle='rgba(39,160,190,0.12)';ctx.fillRect(X(b.x+2),X(b.y+1),X(b.w-3),X(b.h-2));}
     txt(labels[i],b.x+20,b.y+(i===0?10:i>1?5:8),hot?'#a3f2ff':'#adc0cd',i===0?19:13);
     if(hot)txt('>',b.x+7,b.y+(i===0?12:i>1?5:8),'#56dcf1',13);
-    if(i>1){const k=i===2?'sound':'music',v=SFX.getVolume(k);txt('-',174,b.y+6,'#a3f2ff',13,'center');txt('+',296,b.y+6,'#a3f2ff',13,'center');
-      ctx.fillStyle='#223543';ctx.fillRect(X(188),X(b.y+6),X(96),X(12));ctx.fillStyle='#426f7b';ctx.fillRect(X(188),X(b.y+6),X(96*v),X(12));txt(Math.round(v*100)+'%',236,b.y+8,'#eefbff',8,'center');txt('TEST',340,b.y+7,'#a3f2ff',9,'center');
+    if(i>1){const k=i===2?'sound':'music',v=SFX.getVolume(k);txt('-',174,b.y+6,'#a3f2ff',13,'center');txt('+',270,b.y+6,'#a3f2ff',13,'center');
+      ctx.fillStyle='#223543';ctx.fillRect(X(188),X(b.y+6),X(72),X(12));ctx.fillStyle='#426f7b';ctx.fillRect(X(188),X(b.y+6),X(72*v),X(12));txt(Math.round(v*100)+'%',224,b.y+8,'#eefbff',8,'center');txt('TEST',312,b.y+7,'#a3f2ff',9,'center');
     }
     if(!TOUCH&&i<2)txt(i===0?'ENTER':i===1?'Q':i===2?'M':'N',b.x+b.w-10,b.y+(i>1?7:12),'#7e9aa9',9,'right');
   });

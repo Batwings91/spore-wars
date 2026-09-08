@@ -164,18 +164,6 @@ function drawLurkerArt(e){
 }
 
 
-function drawLurker(e){const cx=X(e.x),cy=X(e.y);
-  // tentacles: chains of shrinking segments ending in a hook
-  for(const tn of e.tent){let px=cx,py=cy+24;const sw=Math.sin(e.t*0.05+tn.ph);
-    for(let i=0;i<8;i++){const f=i/8;px+=sw*tn.len*0.22*(1-f*0.3);py+=tn.len*0.3;const r=Math.max(2,6-i*0.6);seg(px,py,r,i%2?'#7a2c8a':'#a040b0','#3a0c48');}
-    // hook
-    ctx.fillStyle=C.s5;ctx.fillRect(Math.round(px-2),Math.round(py),4,10);ctx.fillRect(Math.round(px-2+sw*6),Math.round(py+8),Math.abs(Math.round(sw*6))+4,4);}
-  // dome body with eye cluster
-  ctx.fillStyle='#3a0c48';ctx.beginPath();ctx.ellipse(cx,cy,46,30,0,0,6.283);ctx.fill();
-  ctx.fillStyle='#7a2c8a';ctx.beginPath();ctx.ellipse(cx,cy-3,40,24,0,0,6.283);ctx.fill();
-  ctx.fillStyle='#c060d0';ctx.beginPath();ctx.ellipse(cx-8,cy-12,22,10,0,0,6.283);ctx.fill();
-  for(let i=-1;i<=1;i++){seg(cx+i*16,cy+2,5,e.ct<25?C.magenta:'#101018','#e0e0ff');seg(cx+i*16,cy+2,2,C.white,C.white);}
-  for(let i=0;i<7;i++){ctx.fillStyle='#3a0c48';ctx.fillRect(cx-42+i*14,cy+20,6,8);}}
 // Spore skimmer banks gently with its weaving descent.
 function drawSporeSkimmer(e){
   ctx.save();ctx.translate(X(e.x),X(e.y));ctx.rotate(Math.sin(e.t*0.055+e.ph)*0.12);ctx.imageSmoothingEnabled=true;
@@ -281,7 +269,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     else if(e.k===3){drawLurkerArt(e);}
     else if(e.k===5){drawSporeSkimmer(e);}
     else if(e.k===4&&IMG.crawler_body){drawCrawlerArt(e);}
-    else{const sc=K/1.5,cx=X(e.x),cy=X(e.y);ctx.save();ctx.translate(cx*(1-sc),cy*(1-sc));ctx.scale(sc,sc);if(e.k===3)drawLurker(e);else drawCrawler(e);ctx.restore();}
+    else{const sc=K/1.5,cx=X(e.x),cy=X(e.y);ctx.save();ctx.translate(cx*(1-sc),cy*(1-sc));ctx.scale(sc,sc);drawCrawler(e);ctx.restore();}
     if(e.flash>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.fillStyle=C.white;ctx.fillRect(X(e.x)-X(R[e.k]),X(e.y)-X(R[e.k]),X(R[e.k]*2),X(R[e.k]*2));ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
   }
   drawBoss();
