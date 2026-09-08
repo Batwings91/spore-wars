@@ -150,7 +150,7 @@ function drawVictorySweep(){
 }
 function completeSector(){
   if(!sectorPending)return;
-  resetGround();
+  resetGround(); // wrecks too: travel resets worldScroll to 0, which would strand anchored wrecks far above the screen
   sectorBanked=cores-bankedCores;save.cores+=sectorBanked;bankedCores=cores;
   if(score>save.best)save.best=score;persist();sectorPending=false;mode='sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();
 }

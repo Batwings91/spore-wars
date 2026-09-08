@@ -60,7 +60,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
   for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();booms.push({x:s.x,y:s.y-4,f:0,life:8,kind:'hit',sc:1});}s.y=-99;
       if(e.hp<=0){awardKill([10,20,50,150,60,60][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
-  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){e.hp-=s.dmg||1;s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
+  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){e.hp-=s.dmg||1;s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
   ground=ground.filter(e=>e.hp>0);
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
   for(const s of eshots){s.x+=s.vx;s.y+=s.vy;if(Math.abs(s.x-ship.x)<16&&Math.abs(s.y-ship.y)<20){s.y=999;hitShip();}}
@@ -80,13 +80,15 @@ function update(){t++;scroll=(scroll+1.8)%TH;
 // Ground units share the scenery's pixel scroll, and never gate aerial wave progression.
 function updateGround(){
   for(const w of groundWrecks){w.y=(worldScroll-w.anchor)/K;w.heat=Math.max(0,w.heat-1);}groundWrecks=groundWrecks.filter(w=>w.y<LH+40);
-  if(boss||bossWarn||bossDying||sectorPending){resetGround(false);return;}
+  // Bosses and the sector sweep suppress new sentries and silence the live ones; existing units keep scrolling
+  // off with the scenery instead of vanishing mid-screen. The timer is held so the first post-boss spawn waits 240 ticks.
+  const suppress=boss||bossWarn||bossDying||sectorPending;if(suppress)groundTimer=Math.max(groundTimer,240);
   if(level<1)return;
   const progress=Math.min(3,(level-1)%5),cap=progress===3?6:5;
-  if(--groundTimer<=0&&ground.length<cap){const n=groundCount++,variant=n%3===2?2:Math.floor(n/3)%2,edge=variant?72:45,x=variant===2?PX+PW/2:(groundSide?PX+PW-edge:PX+edge);if(variant!==2)groundSide=1-groundSide;
+  if(!suppress&&--groundTimer<=0&&ground.length<cap){const n=groundCount++,variant=n%3===2?2:Math.floor(n/3)%2,edge=variant?72:45,x=variant===2?PX+PW/2:(groundSide?PX+PW-edge:PX+edge);if(variant!==2)groundSide=1-groundSide;
     ground.push({x,y:-28,anchor:worldScroll+56,stage:worldStage,variant,hp:4,ct:150,aim:Math.PI/2,flash:0});groundTimer=210-progress*30;}
   for(const e of ground){e.y=(worldScroll-e.anchor)/K;if(e.flash>0)e.flash--;
-    if(e.y<24||e.y>LH-90)continue;
+    if(suppress||e.y<24||e.y>LH-90)continue;
     e.ct--;
     if(e.ct===45)e.aim=Math.atan2(ship.y-e.y,ship.x-e.x);
     if(e.ct<=0){if(Math.hypot(ship.x-e.x,ship.y-e.y)>90){for(const spread of (e.variant===1?[-0.12,0.12]:[0])){const a=e.aim+spread,side=spread?Math.sign(spread)*7:0;eshots.push({x:e.x+Math.cos(e.aim)*18-Math.sin(e.aim)*side,y:e.y+Math.sin(e.aim)*18+Math.cos(e.aim)*side,vx:Math.cos(a)*1.7,vy:Math.sin(a)*1.7,ground:true,bio:e.stage>0});}SFX.plasma();}e.ct=e.variant?300:240;}
@@ -97,6 +99,7 @@ function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
   awardKill(40,e.x,e.y);boom(e.x,e.y,true);drops.push({x:e.x,y:e.y,k:'core'});
   groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,variant:e.variant,heat:90});if(groundWrecks.length>20)groundWrecks.shift();
 }
+const GROUND_FALLBACK_GRADIENT=[null,null]; // radial gradients are in user space, so one per variant serves every unit
 function drawGround(){
   for(const w of groundWrecks){ctx.save();ctx.translate(X(w.x),X(w.y));
     const r=w.variant===2?29:23;ctx.fillStyle='rgba(5,8,12,0.65)';ctx.beginPath();ctx.ellipse(0,X(3),X(r),X(r*0.7),0,0,Math.PI*2);ctx.fill();
@@ -114,7 +117,7 @@ function drawGround(){
     ctx.fillStyle='rgba(0,0,0,0.38)';ctx.beginPath();ctx.ellipse(X(3),X(7),X(26),X(18),0,0,Math.PI*2);ctx.fill();
     if(IMG.ground_sentries){const im=IMG.ground_sentries,w=im.width/3;ctx.imageSmoothingEnabled=true;ctx.drawImage(im,e.stage*w,0,w,im.height,X(-26),X(-26),X(52),X(52));}
     else{const bio=e.stage>0;ctx.lineCap='round';for(const side of [-1,1])for(const y of [-12,12]){ctx.strokeStyle=bio?'#715365':'#69747a';ctx.lineWidth=X(4);ctx.beginPath();ctx.moveTo(X(side*8),X(y*0.5));ctx.lineTo(X(side*22),X(y));ctx.lineTo(X(side*24),X(y+7));ctx.stroke();}
-      const g=ctx.createRadialGradient(X(-5),X(-6),X(2),0,0,X(21));g.addColorStop(0,bio?'#a07583':'#a5a38e');g.addColorStop(1,bio?'#362236':'#27323a');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,X(17),X(20),0,0,Math.PI*2);ctx.fill();}
+      let g=GROUND_FALLBACK_GRADIENT[bio?1:0];if(!g){g=ctx.createRadialGradient(X(-5),X(-6),X(2),0,0,X(21));g.addColorStop(0,bio?'#a07583':'#a5a38e');g.addColorStop(1,bio?'#362236':'#27323a');GROUND_FALLBACK_GRADIENT[bio?1:0]=g;}ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,X(17),X(20),0,0,Math.PI*2);ctx.fill();}
     const charging=e.ct<=45&&e.y>=24&&e.y<=LH-90;
     ctx.rotate(e.aim-Math.PI/2);
     for(const offset of (e.variant?[-7,7]:[0])){ctx.fillStyle=e.stage?'#382433':'#1a252e';
