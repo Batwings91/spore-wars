@@ -5,6 +5,7 @@
 - Title TEST buttons are audible with that channel switched off; music keeps playing through sector travel.
 - Removed the unreachable procedural drawLurker(); title audio rows no longer overlap the hangar art.
 - Docs: restored missing spaces around numbers in TESTING/ARCHITECTURE; DECISIONS #18 records the music change.
+- Balance (separate commit, revert alone if disliked): ground kills drop a core 50% of the time instead of always. With ~10 sentries per wave a guaranteed core took first-sector income from ~17 to ~63 cores; this brings it to ~43.
 
 ## 2026-09-08 — More salvage and escalating ground encounters
 - Increased ordinary core drops to 45% and added one core per destroyed ground enemy.

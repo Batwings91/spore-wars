@@ -96,7 +96,7 @@ function updateGround(){
   ground=ground.filter(e=>e.y<LH+35&&e.hp>0);
 }
 function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
-  awardKill(40,e.x,e.y);boom(e.x,e.y,true);drops.push({x:e.x,y:e.y,k:'core'});
+  awardKill(40,e.x,e.y);boom(e.x,e.y,true);if(Math.random()<0.5)drops.push({x:e.x,y:e.y,k:'core'}); // 50%: a guaranteed core tripled first-sector income
   groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,variant:e.variant,heat:90});if(groundWrecks.length>20)groundWrecks.shift();
 }
 const GROUND_FALLBACK_GRADIENT=[null,null]; // radial gradients are in user space, so one per variant serves every unit
