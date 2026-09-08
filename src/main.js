@@ -16,7 +16,7 @@ function stepLogic(){if(!paused)ship.hullDisplay+=Math.max(-0.08,Math.min(0.08,s
   else if(mode==='play'){if(!paused){if(slow>0){slow--;if(blink%2===0)update();}else update();}}
   else if(mode==='travel'){if(!paused)updateSectorTravel();}
   else if(mode==='dead'){if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
-  else if(mode==='sector'){if(tapped&&t>15){if(t<60){t=60;}else if(tapSrc==='key'){if(sectorSel===0){shopFromSector=true;mode='shop';t=0;}else nextSector();}else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216){shopFromSector=true;mode='shop';t=0;}else if(ptr.y>=228&&ptr.y<=260)nextSector();}}}
+  else if(mode==='sector'||mode==='victory'){if(tapped&&t>15){if(t<60)t=60;else if(tapSrc==='key')chooseSector(sectorSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){if(ptr.y>=184&&ptr.y<=216)chooseSector(0);else if(ptr.y>=228&&ptr.y<=260)chooseSector(1);}}}
   else if(mode==='shop'){if(tapped){if(tapSrc==='key'){if(shopSel===3)leaveShop();else buy();}else if(ptr.y>=82&&ptr.y<=198){const i=Math.floor((ptr.x-292)/110);if(i>=0&&i<3&&ptr.x<=292+i*110+102){shopSel=i;shopItem=i;}}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=292&&ptr.x<=500&&shopSel<3)buy();}}}
   if(mode!=='title')SFX.stopPreview();
   // Music runs through play and the sector travel sequence; ducking it for the 3-second flight read as the track stopping.
@@ -29,7 +29,7 @@ function render(){
   else if(mode==='title')titleScreen();
   else if(mode==='play'){playScene();if(paused)pauseScreen();}
   else if(mode==='dead')deadScreen();
-  else if(mode==='sector')sectorScreen();
+  else if(mode==='sector'||mode==='victory')sectorScreen();
   else if(mode==='travel'){sectorTravelScreen();if(paused)pauseScreen();}
   else if(mode==='shop')shopScreen();}
 requestAnimationFrame(frame);

@@ -117,8 +117,8 @@ const SFX=(function(){
       // Author's 140-BPM loop: 76 bars. Preserve its musical tail instead of silence-trimming it.
       t.buf=buf;t.loopEnd=Math.min(buf.duration,76*4*60/140);
       if(cur===k&&!t.src)play(k);}).catch(()=>{t.busy=false;});}
-  function setMusicStage(stage){musicStage=Math.max(0,Math.min(2,stage|0));const t=TR.main;if(!t.filter||t.stage===musicStage||!ac)return;
-    const mixes=[[14000,0,0],[9500,1.5,0.10],[6500,3,0.18]],m=mixes[musicStage];t.stage=musicStage;
+  function setMusicStage(stage){musicStage=Math.max(0,Math.min(4,stage|0));const t=TR.main;if(!t.filter||t.stage===musicStage||!ac)return;
+    const mixes=[[14000,0,0],[9500,1.5,0.10],[8500,2,0.12],[7200,2.5,0.15],[6500,3,0.18]],m=mixes[musicStage];t.stage=musicStage;
     t.filter.frequency.setTargetAtTime(m[0],ac.currentTime,0.5);t.bass.gain.setTargetAtTime(m[1],ac.currentTime,0.5);t.echo.gain.setTargetAtTime(m[2],ac.currentTime,0.5);
   }
   function play(k){const a=ctx();const t=TR[k];if(!a||!t.buf||t.src)return;if(seq){clearInterval(seq);seq=null;}

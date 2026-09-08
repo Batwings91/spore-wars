@@ -30,7 +30,7 @@ addEventListener('keydown',e=>{
     else if(e.code==='ArrowUp'||e.code==='KeyW')shopSel=shopItem;
     else if(shopSel<3&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?2:1))%3;shopItem=shopSel;}
   }
-  if(mode==='sector'&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
+  if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
   if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}
   if(mode==='title'&&titleSel>=2){const k=titleSel===2?'sound':'music';if(e.code==='ArrowLeft'||e.code==='ArrowRight'){SFX.setVolume(k,SFX.getVolume(k)+(e.code==='ArrowLeft'?-0.1:0.1));SFX.preview(k);}if(e.code==='KeyV'&&!e.repeat)SFX.preview(k);}
   if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+TITLE_BUTTONS.length-1)%TITLE_BUTTONS.length;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%TITLE_BUTTONS.length;}

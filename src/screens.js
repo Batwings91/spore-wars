@@ -11,7 +11,7 @@ function drawPanels(){
   box(12,12,PX-24,44,'SCORE',String(score).padStart(6,'0'),C.yellow);
   box(12,64,PX-24,44,'BEST',String(Math.max(score,save.best)).padStart(6,'0'),C.text);
   box(12,116,PX-24,44,'LIVES');for(let i=0;i<lives;i++)ctx.drawImage(IMG.player||SHIP,X(20+i*22),X(139),24,22);
-  box(12,168,PX-24,44,'WAVE',boss||bossWarn?'BOSS':String(level),boss||bossWarn?C.red:C.text);
+  box(12,168,PX-24,44,'LEVEL',Math.max(1,Math.ceil(level/5))+'/5',C.text);txt(boss||bossWarn?'BOSS':'WAVE '+Math.max(1,level),20,203,boss||bossWarn?C.red:'#91a7b5',7);
   box(12,220,PX-24,56,'CHAIN','x'+chainMultiplier(),chainT>0?C.yellow:C.dim);
   ctx.fillStyle=C.s1;ctx.fillRect(X(20),X(264),X(PX-40),X(4));ctx.fillStyle=C.yellow;ctx.fillRect(X(20),X(264),X((PX-40)*chainT/CHAIN_TIME),X(4));
   box(12,284,PX-24,64,'HULL');
@@ -152,11 +152,11 @@ function completeSector(){
   if(!sectorPending)return;
   resetGround(); // wrecks too: travel resets worldScroll to 0, which would strand anchored wrecks far above the screen
   sectorBanked=cores-bankedCores;save.cores+=sectorBanked;bankedCores=cores;
-  if(score>save.best)save.best=score;persist();sectorPending=false;mode='sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();
+  if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();
 }
 let travelOrigin={x:0,y:0};
 function nextSector(){
-  if(mode!=='sector')return;
+  if(mode!=='sector'||level>=CAMPAIGN_WAVES)return;
   travelOrigin={x:ship.x,y:ship.y};shopFromSector=false;mode='travel';t=0;setPaused(false);
   shots=[];eshots=[];booms=[];floats=[];rings=[];evt=0;flash=0;shake=0;slow=0;muzz=0;
 }
@@ -178,22 +178,27 @@ function sectorTravelScreen(){
     txt(world.detail,LW/2,157,world.accent,10,'center');ctx.restore();}
 }
 function leaveShop(){if(shopFromSector){mode='sector';t=60;tapped=false;}else{clearScene();mode='title';t=0;}}
+function chooseSector(i){
+  if(mode==='victory'){if(i===0){newRun(campaignLoop+1);mode='play';t=0;setPaused(false);}else{clearScene();mode='title';t=0;}tapped=false;ptr.down=false;return;}
+  if(i===0){shopFromSector=true;mode='shop';t=0;}else nextSector();
+}
 function sectorScreen(){
+  const won=mode==='victory';
   playScene();ctx.save();const reveal=Math.min(1,t/30);ctx.globalAlpha=reveal;
   ctx.fillStyle='rgba(5,10,18,0.66)';ctx.fillRect(X(PX),0,X(PW),H);
   glassPanel(PX+14,24,PW-28,310,'#d6b36c');
-  txt('SECTOR SECURED',LW/2,42,'#d6b36c',11,'center');
-  txt('LEVEL '+Math.floor(level/5)+' COMPLETE',LW/2,65,'#f0d59c',26,'center');
-  txt('Take a breath. The next world can wait.',LW/2,105,'#a4b8c6',10,'center');
+  txt(won?'THE BROOD HAS FALLEN':'SECTOR SECURED',LW/2,42,'#d6b36c',11,'center');
+  txt(won?'CAMPAIGN COMPLETE':'LEVEL '+Math.floor(level/5)+' COMPLETE',LW/2,65,'#f0d59c',26,'center');
+  txt(won?'Five worlds cleared. The colony is safe.':'Take a breath. The next world can wait.',LW/2,105,'#a4b8c6',10,'center');
   txt('+'+Math.floor(sectorBanked*Math.min(1,t/60))+' cores banked',LW/2,133,C.cyan,14,'center');
   txt(save.cores+' cores available for upgrades',LW/2,154,'#a4b8c6',12,'center');
   ctx.globalAlpha=reveal*(t<60?0.35:1);
-  for(const [i,label] of ['UPGRADE / WORKSHOP','PROCEED'].entries()){
+  for(const [i,label] of (won?['HARDER REPLAY','MAIN MENU']:['UPGRADE / WORKSHOP','PROCEED']).entries()){
     menuChoice(label,LW/2-130,184+i*44,260,32,i===sectorSel,13);}
   ctx.globalAlpha=reveal;
-  txt('NEXT: '+WORLDS[worldForWave(level+1)].name,LW/2,277,'#d6b36c',10,'center');
+  txt(won?'FINAL SCORE: '+score:'NEXT: '+WORLDS[worldForWave(level+1)].name,LW/2,277,'#d6b36c',10,'center');
   if(t<60)txt(TOUCH?'Tap to finish tally':'ENTER to finish tally',LW/2,307,'#a4b8c6',9,'center');
-  else txt(TOUCH?'Choose when you are ready':'UP/DOWN choose / ENTER select / Q Workshop',LW/2,307,'#a4b8c6',9,'center');
+  else txt(TOUCH?'Choose when you are ready':won?'UP/DOWN choose / ENTER select':'UP/DOWN choose / ENTER select / Q Workshop',LW/2,307,'#a4b8c6',9,'center');
   ctx.restore();
 }
 

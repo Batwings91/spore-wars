@@ -58,3 +58,6 @@ Boot screen, title (fleet flyby, buttons), 5 gun levels, shields, cores/workshop
 - Don't rebalance and refactor in the same commit.
 - Never regress: the procedural fallbacks, touch controls, mute persistence, and the debug params must keep working.
 - Build dist/ (`node tools/build.js` or `python3 tools/build.py`) at release time only; it is not committed.
+
+## Current campaign (2026-09-08)
+Five levels  / 25 waves: Orbital Foundry, Infected Salvage, Spore Wilds, Living Labyrinth and Brood Heart. Bosses at5/10/15/20 / 25; Workshop breaks between levels and campaign victory after 25. Harder replay starts a fresh run from level1 with increased enemy HP; normal Launch resets difficulty. New scenery/creature silhouettes are procedural staging art pending the separate visual redesign. See docs/campaign-20260908.md. This supersedes the earlier rotating/endless roadmap.

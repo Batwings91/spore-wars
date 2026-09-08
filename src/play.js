@@ -49,6 +49,11 @@ function update(){t++;scroll=(scroll+1.8)%TH;
   for(const e of enemies){e.t++;
     if(e.k===0){e.y+=1.1+level*0.04;e.x+=Math.sin(e.t*0.05+e.ph)*1.8;}
     if(e.k===1){e.y+=2.8+level*0.06;}
+    if(e.k>=6){
+      if(e.k===7){e.y+=2.6;e.x=Math.max(PX+20,Math.min(PX+PW-20,e.x+Math.sin(e.t*0.08+e.ph)*2));}
+      else{e.y+=e.k===8?0.65:0.9;e.x+=Math.sin(e.t*0.035+e.ph)*0.45;}
+      if(e.y>20&&e.y<LH-100&&--e.ct<=0){const a=Math.atan2(ship.y-e.y,ship.x-e.x),fan=e.k===8?[-0.45,0,0.45]:e.k===6?[-0.18,0.18]:[0];for(const d of fan)eshots.push({x:e.x,y:e.y+12,vx:Math.cos(a+d)*1.8,vy:Math.sin(a+d)*1.8,ground:true,bio:true});e.ct=e.k===8?210:e.k===6?180:999;SFX.plasma();}
+    }
     if(e.k===5){e.y+=1.6;e.x=Math.max(PX+24,Math.min(PX+PW-24,e.x+Math.sin(e.t*0.055+e.ph)*1.6));}
     if(e.k===3){if(e.y<e.ty)e.y+=0.8;else e.x+=Math.sin(e.t*0.02)*1.2;e.ct--;
       if(e.ct<=0&&e.y>0){e.ct=110;for(let j=-1;j<=1;j++){const a=Math.atan2(ship.y-e.y,ship.x-e.x)+j*0.35;eshots.push({x:e.x,y:e.y+20,vx:Math.cos(a)*2.2,vy:Math.sin(a)*2.2,blue:true});}SFX.plasma();}
@@ -59,7 +64,7 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
   for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();booms.push({x:s.x,y:s.y-4,f:0,life:8,kind:'hit',sc:1});}s.y=-99;
-      if(e.hp<=0){awardKill([10,20,50,150,60,60][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
+      if(e.hp<=0){awardKill([10,20,50,150,60,60,80,50,120][e.k],e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
   for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){e.hp-=s.dmg||1;s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
   ground=ground.filter(e=>e.hp>0);
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
@@ -86,7 +91,7 @@ function updateGround(){
   if(level<1)return;
   const progress=Math.min(3,(level-1)%5),cap=progress===3?6:5;
   if(!suppress&&--groundTimer<=0&&ground.length<cap){const n=groundCount++,variant=n%3===2?2:Math.floor(n/3)%2,edge=variant?72:45,x=variant===2?PX+PW/2:(groundSide?PX+PW-edge:PX+edge);if(variant!==2)groundSide=1-groundSide;
-    ground.push({x,y:-28,anchor:worldScroll+56,stage:worldStage,variant,hp:4,ct:150,aim:Math.PI/2,flash:0});groundTimer=210-progress*30;}
+    ground.push({x,y:-28,anchor:worldScroll+56,stage:Math.min(2,worldStage),variant,hp:Math.ceil(4*(1+campaignLoop*0.25)),ct:150,aim:Math.PI/2,flash:0});groundTimer=210-progress*30;}
   for(const e of ground){e.y=(worldScroll-e.anchor)/K;if(e.flash>0)e.flash--;
     if(suppress||e.y<24||e.y>LH-90)continue;
     e.ct--;
@@ -268,6 +273,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
     else if(e.k===2){if(!img('frigate',e.x,e.y))blit(E3,e.x,e.y,1.5);if(e.ct<30&&Math.floor(e.ct/4)%2===0){ctx.fillStyle=C.magenta;ctx.fillRect(X(e.x)-9,X(e.y)+8,18,6);}}
     else if(e.k===3){drawLurkerArt(e);}
     else if(e.k===5){drawSporeSkimmer(e);}
+    else if(e.k>=6){drawCampaignCreature(e);}
     else if(e.k===4&&IMG.crawler_body){drawCrawlerArt(e);}
     else{const sc=K/1.5,cx=X(e.x),cy=X(e.y);ctx.save();ctx.translate(cx*(1-sc),cy*(1-sc));ctx.scale(sc,sc);drawCrawler(e);ctx.restore();}
     if(e.flash>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.fillStyle=C.white;ctx.fillRect(X(e.x)-X(R[e.k]),X(e.y)-X(R[e.k]),X(R[e.k]*2),X(R[e.k]*2));ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
@@ -281,3 +287,10 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.life/20);txt(f.txt,f.x+1,f.y+1,C.s0,f.big?22:13,'center');txt(f.txt,f.x,f.y,f.col,f.big?22:13,'center');}ctx.globalAlpha=1;
   if(bombFx>0){ctx.globalAlpha=bombFx/40*0.6;ctx.fillStyle=C.G;ctx.fillRect(X(PX),0,X(PW),H);ctx.globalAlpha=1;}
   drawShip();ctx.restore();}
+
+// Gameplay silhouettes for the campaign pass; final painted designs follow the visual review.
+function drawCampaignCreature(e){ctx.save();ctx.translate(X(e.x),X(e.y));const needle=e.k===7,colony=e.k===8;
+  const pulse=1+Math.sin(e.t*0.07)*0.04;ctx.scale(pulse,pulse);
+  if(needle){for(let i=4;i>=0;i--){ctx.fillStyle=i%2?'#6f4865':'#aa8297';ctx.beginPath();ctx.ellipse(X(Math.sin(e.t*0.09-i)*3),X(i*5-12),X(7-i),X(5),0,0,Math.PI*2);ctx.fill();}}
+  else{for(let i=0;i<(colony?5:3);i++){const a=i*2.4,x=Math.cos(a)*(colony?14:8),y=Math.sin(a)*12;ctx.fillStyle=colony?'#744553':'#68664b';ctx.beginPath();ctx.ellipse(X(x),X(y),X(13),X(16),a,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#2a1a29';ctx.lineWidth=X(2);ctx.stroke();}}
+  ctx.fillStyle=e.ct<45?'#ffd09a':'#c78b59';ctx.beginPath();ctx.ellipse(0,X(7),X(needle?3:6),X(5),0,0,Math.PI*2);ctx.fill();ctx.restore();}

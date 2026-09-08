@@ -27,7 +27,9 @@ const STARS=[];for(let i=0;i<20;i++)STARS.push({x:Math.random()*X(PW),y:Math.ran
 const WORLDS=[
   {name:'ORBITAL FOUNDRY',detail:'OUTER INDUSTRIAL BELT',accent:'#a9b6c0',asset:'world_foundry'},
   {name:'INFECTED SALVAGE',detail:'THE MACHINES ARE CHANGING',accent:'#bc92d5',asset:'world_salvage'},
-  {name:'SPORE HEART',detail:'BEYOND THE LAST MACHINE',accent:'#c09ba9',asset:'world_heart'}
+  {name:'SPORE WILDS',detail:'THE FOREST IS WATCHING',accent:'#aca978',asset:null},
+  {name:'LIVING LABYRINTH',detail:'THROUGH THE RIBS OF THE WORLD',accent:'#ad9dc3',asset:null},
+  {name:'BROOD HEART',detail:'SILENCE THE SOURCE',accent:'#d69391',asset:'world_heart'}
 ];
 const WORLD_TILES=WORLDS.map((world,stage)=>{
   const tile=document.createElement('canvas');tile.width=X(PW);tile.height=TH;
@@ -87,11 +89,19 @@ const WORLD_TILES=WORLDS.map((world,stage)=>{
       for(let x=136;x<PW-120;x+=17){g.beginPath();g.moveTo(x,0);for(let y=0;y<=height;y+=4)g.lineTo(x+Math.sin(y/height*Math.PI*4+x)*7,y);g.stroke();}
     }
   }
+  if(stage===2){
+    g.fillStyle='#0b1113';g.fillRect(0,0,PW,height);
+    for(let y=0;y<height;y+=90)for(const side of [0,1]){const x=side?PW-35:35;g.strokeStyle='#354136';g.lineWidth=10;g.beginPath();g.moveTo(x,y+70);g.quadraticCurveTo(x+(side?-18:18),y+30,x,y);g.stroke();for(let j=0;j<3;j++){g.fillStyle=['#485043','#596044','#38453e'][j];g.beginPath();g.ellipse(x+(j-1)*14,y+22+j*9,26-j*4,10,side?0.4:-0.4,0,Math.PI*2);g.fill();}}
+  }
+  if(stage===3){
+    g.fillStyle='#111019';g.fillRect(0,0,PW,height);
+    for(let y=-80;y<height+80;y+=80)for(const side of [0,1]){g.save();g.translate(side?PW:0,y);g.scale(side?-1:1,1);g.strokeStyle='#403746';g.lineWidth=18;g.beginPath();g.moveTo(-10,0);g.quadraticCurveTo(90,15,84,70);g.stroke();g.strokeStyle='#756774';g.lineWidth=3;g.stroke();g.restore();}
+  }
   return tile;
 });
 let worldStage=0,worldFrom=0,worldFade=0,worldNotice=0,worldScroll=0;
-const worldForWave=wave=>Math.min(2,Math.floor(Math.max(0,wave-1)/5));
-function resetWorld(){worldStage=worldFrom=worldForWave(STARTWAVE+1);worldFade=0;worldNotice=240;worldScroll=0;}
+const worldForWave=wave=>Math.min(4,Math.floor(Math.max(0,wave-1)/5));
+function resetWorld(wave=STARTWAVE+1){worldStage=worldFrom=worldForWave(wave);worldFade=0;worldNotice=240;worldScroll=0;}
 function updateWorld(){
   worldScroll+=1.1;
   if(worldFade>0)worldFade--;if(worldNotice>0)worldNotice--;
