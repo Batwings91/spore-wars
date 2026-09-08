@@ -153,6 +153,7 @@ function blit(img,x,y,sc){sc=sc||1;const w=img.width*sc,h=img.height*sc;ctx.draw
 function seg(x,y,r,fill,edge){ctx.fillStyle=edge;ctx.fillRect(Math.round(x-r-1),Math.round(y-r-1),r*2+2,r*2+2);ctx.fillStyle=fill;ctx.fillRect(Math.round(x-r),Math.round(y-r),r*2,r*2);}
 // Wave-six lurker: layered carapace over articulated, shaded tendrils.
 // The endpoint expression matches the existing tip collision in update().
+const LURKER_BANDS=[[1,5],[6,10],[11,14]]; // segment ranges sharing one stroke width, base to tip
 function drawLurkerArt(e){
   ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
   for(let j=0;j<e.tent.length;j++){
@@ -161,13 +162,12 @@ function drawLurkerArt(e){
     const tx=e.x+sw*tn.len*1.2,ty=e.y+18+tn.len*1.6;
     const points=[{x:ax,y:ay,r:4.5}];
     for(let i=1;i<=14;i++){const f=i/14,k=1-f;points.push({x:k*k*ax+2*k*f*(ax+sw*22)+f*f*tx,y:k*k*ay+2*k*f*(ay+tn.len*0.9)+f*f*ty,r:4.5-3*f});}
-    // Finish each shading layer before the next, so joins never become metal-like rings.
-    for(let pass=0;pass<3;pass++)for(let i=1;i<points.length;i++){
-      const p=points[i-1],q=points[i],offset=pass===2?0.8:0;
-      ctx.beginPath();ctx.moveTo(X(p.x-offset),X(p.y-offset));ctx.lineTo(X(q.x-offset),X(q.y-offset));
-      ctx.strokeStyle=['#130e20','#70445f','#a77586'][pass];
-      ctx.lineWidth=X(pass===0?q.r*2+2:pass===1?q.r*2:Math.max(0.6,q.r*0.45));ctx.stroke();
-    }
+    // Finish each shading layer before the next, so joins never become metal-like rings. The taper is three width
+    // bands per pass (9 strokes per tentacle) rather than a stroke per segment (42): the round joins hide the steps,
+    // and this was the single largest draw cost on levels 2-3 (~170 strokes per lurker per frame).
+    for(let pass=0;pass<3;pass++){const offset=pass===2?0.8:0;ctx.strokeStyle=['#130e20','#70445f','#a77586'][pass];
+      for(const [a,b] of LURKER_BANDS){const r=points[(a+b)>>1].r;ctx.lineWidth=X(pass===0?r*2+2:pass===1?r*2:Math.max(0.6,r*0.45));
+        ctx.beginPath();ctx.moveTo(X(points[a-1].x-offset),X(points[a-1].y-offset));for(let i=a;i<=b;i++)ctx.lineTo(X(points[i].x-offset),X(points[i].y-offset));ctx.stroke();}}
     // Pale tapered hook keeps the existing harmful tip easy to locate.
     ctx.beginPath();ctx.moveTo(X(tx-2),X(ty-4));ctx.quadraticCurveTo(X(tx),X(ty+3),X(tx+3),X(ty-3));ctx.strokeStyle='#d1b4c8';ctx.lineWidth=X(1);ctx.stroke();
   }
