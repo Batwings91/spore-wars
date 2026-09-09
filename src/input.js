@@ -34,6 +34,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Space'){if(!e.repeat){tapped=true;tapSrc='key';}e.preventDefault();}
   if(e.code==='Enter'&&!e.repeat){tapped=true;tapSrc='key';}
   if((e.code==='KeyX'||e.code==='KeyB'||e.code==='ShiftLeft')&&!e.repeat&&mode==='play'&&!paused)fireBomb();
+  if(e.code==='KeyX'&&!e.repeat&&mode==='shop'&&shopSel<SHOP.length)sell();
   if(e.code==='KeyQ'&&!e.repeat){if(mode==='sector'){if(t<60)t=60;else{shopInstalled=null;shopFromSector=true;mode='shop';t=0;}}else if(mode==='title'||mode==='dead'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(mode==='shop')leaveShop();}
   if(mode==='shop'){
     const previousShopSel=shopSel;

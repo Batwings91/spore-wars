@@ -234,12 +234,12 @@ function destroyLatticeNode(node){
   for(let i=0;i<8;i++){const a=i/8*Math.PI*2,r=4+(i%3)*3;booms.push({x:p.x+Math.cos(a)*r,y:p.y+Math.sin(a)*r,life:8,kind:'impact',bio:true});}
   const remaining=LATTICE_INTERACTIVE.filter(i=>broodLattice.nodes[i].state!=='destroyed');
   if(remaining.length){broodLattice.next=LATTICE_INTERACTIVE.indexOf(remaining[0]);broodLattice.pulse=0;}
-  else if(!broodLattice.rewarded){broodLattice.rewarded=true;broodLattice.open=true;for(const dx of [-24,0,24])drops.push({x:broodLattice.x+dx,y:p.y,k:'core'});pickupEvent('LATTICE OPEN / SALVAGE RELEASED','#f0b174');}
+  else if(!broodLattice.rewarded){broodLattice.rewarded=true;broodLattice.open=true;for(const dx of [-24,0,24])drops.push(makeDrop(broodLattice.x+dx,p.y,'core'));pickupEvent('LATTICE OPEN / SALVAGE RELEASED','#f0b174');}
 }
 function hitLatticeNode(node,damage,x,y){node.hp-=damage;node.flash=6;addHitImpact(x,y,true);SFX.hit();if(node.hp<=0)destroyLatticeNode(node);}
 function damageLatticeWithShots(){
   if(!broodLattice)return false;let hit=false;
-  for(const s of shots){if(s.y<-50)continue;for(const node of broodLattice.nodes){if(node.state!=='open')continue;const p=latticeNodeWorld(node.i);if(Math.hypot(s.x-p.x,s.y-p.y)>p.r)continue;hitLatticeNode(node,s.dmg||1,s.x,s.y);s.y=-99;hit=true;break;}}
+  for(const s of shots){if(s.y<-50)continue;for(const node of broodLattice.nodes){if(node.state!=='open')continue;const p=latticeNodeWorld(node.i);if(Math.hypot(s.x-p.x,s.y-p.y)>p.r)continue;const damage=s.dmg||1;hitLatticeNode(node,damage,s.x,s.y);addDamageFloat(s.x,s.y,damage,true);s.y=-99;hit=true;break;}}
   return hit;
 }
 function damageLatticeWithSideLaser(x,halfWidth,damage){

@@ -7,6 +7,8 @@ function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;s
   resetRockets();resetSideLasers();resetWorldEncounters();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
   if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 const BOMB_DROUGHT_LIMIT=22;
+function rollCoreValue(r=Math.random()){return r<0.9?1:r<0.98?2:r<0.995?5:10;}
+function makeDrop(x,y,k){return{x,y,k,...(k==='core'?{value:rollCoreValue()}:{})};}
 function dropFor(e){kills++;
   const weaponGap=level<=5?9:15;
   if(wpn<MAXW&&(kills===1||kills-lastW>=weaponGap)){lastW=kills;return 'w';}
@@ -23,7 +25,8 @@ function dropFor(e){kills++;
 function addHitImpact(x,y,bio){booms.push({x,y,life:8,kind:'impact',bio});}
 function addGroundImpact(e,x,y){const world=e.world===undefined?(e.stage||0):e.world,seed=(e.visualSeed||17)+groundMarks.length*29;
   addHitImpact(x,y,world>0);groundMarks.push({x:e.x,dx:x-e.x,dy:y-e.y,anchor:e.anchor,world,seed,age:0,life:world>0?420:70});if(groundMarks.length>40)groundMarks.shift();}
-function addFloat(x,y,txt,col,big){floats.push({x,y,txt,col,life:60,big});}
+function addFloat(x,y,txt,col,big,life=60){floats.push({x,y,txt,col,life,big});}
+function addDamageFloat(x,y,damage,bio=false){addFloat(x+16,y+8,'-'+damage,bio?'#ffb69f':'#ffd07c',false,28);}
 function pickupEvent(text,col){evt=50;evtText=text;evtCol=col;flash=6;slow=10;rings.push({x:ship.x,y:ship.y,r:10,col,life:30});
   for(let i=0;i<14;i++)booms.push({x:ship.x,y:ship.y,vx:Math.cos(i/14*6.283)*4,vy:Math.sin(i/14*6.283)*4,life:18,col});}
 function fireBomb(){if(paused||bombs<=0||bombFx>0)return;bombs--;bombFx=40;shake=18;flash=10;slow=14;SFX.bomb();
@@ -80,16 +83,16 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
   updateSideLasers();
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
-  for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){e.hp-=(s.dmg||1);e.flash=4;if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
-      if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}break;}}}
-  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){e.hp-=s.dmg||1;if(e.hp>0)addGroundImpact(e,s.x,s.y);s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
+  for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){const damage=s.dmg||1;e.hp-=damage;e.flash=4;addDamageFloat(s.x,s.y,damage,e.k>=3);if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
+      if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push(makeDrop(e.x,e.y,k));}break;}}}
+  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){const damage=s.dmg||1;e.hp-=damage;addDamageFloat(s.x,s.y,damage,e.stage>0);if(e.hp>0)addGroundImpact(e,s.x,s.y);s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
   damageLatticeWithShots();
   ground=ground.filter(e=>e.hp>0);
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);
   for(const s of eshots){s.x+=s.vx;s.y+=s.vy;const radius=s.radius||0;if(Math.abs(s.x-ship.x)<16+radius&&Math.abs(s.y-ship.y)<20+radius){s.y=999;hitShip();}}
   eshots=eshots.filter(s=>s.y<LH+10&&s.y>-10&&s.x>PX&&s.x<PX+PW);
-  for(const d of drops){if(sectorPending){const dx=ship.x-d.x,dy=ship.y-d.y,len=Math.hypot(dx,dy)||1;d.x+=dx/len*7;d.y+=dy/len*7;}else d.y+=1.4;if(Math.hypot(d.x-ship.x,d.y-ship.y)<34||(sectorPending&&waveT<=0)){d.y=999;
-      if(d.k==='core'){cores++;score+=5;SFX.core();addFloat(d.x,d.y,'+1 CORE',C.cyan);}
+  for(const d of drops){if(sectorPending){const dx=ship.x-d.x,dy=ship.y-d.y,len=Math.hypot(dx,dy)||1;d.x+=dx/len*7;d.y+=dy/len*7;}else d.y+=1.4;if(Math.hypot(d.x-ship.x,d.y-ship.y)<34||(sectorPending&&waveT<=0)){const pickupX=d.x,pickupY=d.y;d.y=999;
+      if(d.k==='core'){const value=d.value||1;cores+=value;score+=5*value;SFX.core();addFloat(pickupX,pickupY,'+'+value+' CORE'+(value===1?'':'S'),value>=5?C.G:C.cyan,value>=5);}
       if(d.k==='w'){if(wpn<MAXW){wpn++;pickupEvent('GUN '+(wpn+1)+'/'+GUN.length+' / '+GUN[wpn].n,C.cyan);}else{score+=100;pickupEvent('GUN MAX / +100 SCORE',C.cyan);}SFX.power();}
       if(d.k==='o'){if(orbActive){score+=100;pickupEvent('ORB ONLINE / +100 SCORE',C.cyan);}else{orbActive=true;resetOrb();pickupEvent('SEEKER ORB ONLINE',C.cyan);}SFX.power();}
       if(d.k==='h'&&lives>0){const full=ship.hull>=MAX_HULL;ship.hull=Math.min(MAX_HULL,ship.hull+1);pickupEvent(full?'HULL FULL':'HULL REPAIRED', '#79e69b');SFX.power();}
@@ -121,7 +124,7 @@ function updateGround(){
   ground=ground.filter(e=>e.y<LH+35&&e.hp>0);
 }
 function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
-  awardKill(40,e.x,e.y);boom(e.x,e.y,true);if(Math.random()<0.5)drops.push({x:e.x,y:e.y,k:'core'}); // 50%: a guaranteed core tripled first-sector income
+  awardKill(40,e.x,e.y);boom(e.x,e.y,true);if(Math.random()<0.5)drops.push(makeDrop(e.x,e.y,'core')); // 50%: a guaranteed core tripled first-sector income
   groundWrecks.push({x:e.x,y:e.y,anchor:e.anchor,stage:e.stage,world:e.world===undefined?(e.stage||0):e.world,variant:e.variant,seed:e.visualSeed||groundCount*53,heat:90,age:0});if(groundWrecks.length>20)groundWrecks.shift();
 }
 const WRECK_SMOKE=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),h=g.createRadialGradient(32,32,3,32,32,31);h.addColorStop(0,'rgba(156,148,137,0.8)');h.addColorStop(0.5,'rgba(104,102,99,0.5)');h.addColorStop(1,'rgba(80,80,80,0)');g.fillStyle=h;g.fillRect(0,0,64,64);return c;})();
@@ -347,12 +350,19 @@ function drawEquipmentIcon(id,tier,x,y,scale=0.5){ctx.save();ctx.translate(X(x),
   else if(id==='ordnance')drawRocketPods(0,0,24,0,-1);
   else if(id==='support')drawSeekerOrb(0,0,0,0);
   else if(id==='sideWeapon')drawSideLaserMounts(0,0,0,0,EQUIPMENT.sideWeapon.tiers[1].recharge);
+  else if(id==='life'){const base=IMG.player_hull||IMG.player||SHIP;for(let i=2;i>=0;i--){ctx.globalAlpha=i?0.42:1;ctx.drawImage(base,-base.width/2+i*9,-base.height/2-i*5);}}
   ctx.restore();}
 function drawShip(){if(mode==='title')return;if(ship.inv>0&&Math.floor(ship.inv/4)%2===0&&mode==='play')return;
   if(orbActive)drawSeekerOrb(orbX,orbY,t,orbFlash);
   const loadout=activeLoadout();loadout.orb=0;
   drawShipAssembly(ship.x,ship.y,loadout,t,muzz,podOpen,rocketFlash,rocketSide,shieldHit,sideLaserPhase,sideLaserT);
 }
+
+function drawCoreDrop(d,bob,p){const value=d.value||1,y=d.y+bob,col=value>=10?'#ff77dc':value>=5?'#ffd05a':'#55ffff',radius=value>=10?17:value>=5?14:11;
+  ctx.save();ctx.translate(X(d.x),X(y));ctx.rotate(value>=5?t*0.012:0);ctx.globalAlpha=0.55+Math.sin(t*0.18+d.x)*0.18;ctx.strokeStyle=col;ctx.lineWidth=value>=5?X(2):X(1);
+  if(value===2){ctx.beginPath();ctx.arc(0,0,X(radius),0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,X(radius-3),0,Math.PI*2);ctx.stroke();}
+  else if(value>=5){ctx.beginPath();ctx.moveTo(0,X(-radius));ctx.lineTo(X(radius),0);ctx.lineTo(0,X(radius));ctx.lineTo(X(-radius),0);ctx.closePath();ctx.stroke();if(value>=10)for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.beginPath();ctx.moveTo(Math.cos(a)*X(radius+2),Math.sin(a)*X(radius+2));ctx.lineTo(Math.cos(a)*X(radius+7),Math.sin(a)*X(radius+7));ctx.stroke();}}
+  ctx.restore();const scale=(value>=10?1.05:value>=5?0.9:value===2?0.78:0.7)*p;if(!img('icon_core',d.x,y,scale)){blit(CORE,d.x,y,scale*2);}if(value>1)txt('x'+value,d.x,y+16,col,value>=5?9:8,'center');}
 
 function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.clip();
   if(WORLD_TILES[worldStage])drawWorld();else{
@@ -364,7 +374,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
   }
   drawFaunaBackground();drawRouteSegments();drawBroodLattice();drawGround();drawWallFauna();
   for(const d of drops){const bob=Math.sin(t*0.15+d.y)*2,p=1+Math.sin(t*0.2+d.x)*0.08;
-    if(d.k==='core'){if(!img('icon_core',d.x,d.y,0.7*p)){blit(CORE,d.x,d.y,1.4*p);}}
+    if(d.k==='core'){drawCoreDrop(d,bob,p);}
     else if(d.k==='o'){drawSeekerOrb(d.x,d.y+bob,t,0);txt('ORB',d.x,d.y+bob+14,C.cyan,8,'center');}
     else if(d.k==='h'){blit(CAP_H,d.x,d.y+bob,2*p);txt('+',d.x,d.y+bob-4,'#f0fff2',10,'center');txt('REPAIR',d.x,d.y+bob+17,'#79e69b',8,'center');}
     else{const nm=d.k==='w'?'icon_w':d.k==='b'?'icon_b':'icon_s';if(!img(nm,d.x,d.y+bob,p)){const cap=d.k==='w'?CAP_W:d.k==='b'?CAP_B:CAP_S;blit(cap,d.x,d.y+bob,2);}txt(d.k.toUpperCase(),d.x+0.5,d.y+bob-7,C.s0,13,'center');txt(d.k.toUpperCase(),d.x,d.y+bob-8,C.white,13,'center');}}

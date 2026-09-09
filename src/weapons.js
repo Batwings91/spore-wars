@@ -34,12 +34,16 @@ const EQUIPMENT=Object.freeze({
     effect:t=>t?'Twin sustained beams / 3.9 sec cycle':'No side weapon fitted',note:'Wider hull: 28 units less dodge room per side.',
     draw:(tier,x,y,v)=>{if(tier)drawSideLaserMounts(x,y,v.frame,v.laserPhase,v.laserT);}}
 });
-const SHOP_COLUMNS=4,SHOP=Object.freeze(['primary','defence','engine','ordnance','support','sideWeapon'].map(id=>EQUIPMENT[id]));
+const LIFE_SELL_VALUE=75;
+const LIFE_OFFER=Object.freeze({id:'life',virtual:true,label:'SPARE SHIP',name:'Reserve ship',maxOwned:3,costs:[],
+  effect:n=>n>1?'Sell one of '+(n-1)+' spare ships for '+LIFE_SELL_VALUE+' cores':'The final ship cannot be sold',note:'Available only at a sector Workshop.'});
+const SHOP_COLUMNS=4,SHOP=Object.freeze(['primary','defence','engine','ordnance','support','sideWeapon'].map(id=>EQUIPMENT[id]).concat(LIFE_OFFER));
 function equipmentFor(key){return EQUIPMENT[key]||SHOP.find(it=>it.saveKey===key||it.loadoutKey===key);}
 function equipmentOwned(it,source=save){return it.saveKey?Math.max(0,Math.min(it.maxOwned,Number(source[it.saveKey])||0)):0;}
-function equipmentCost(it,level=equipmentOwned(it)){return it.locked||level>=it.maxOwned?null:it.costs[level];}
+function equipmentCost(it,level=equipmentOwned(it)){return it.virtual||it.locked||level>=it.maxOwned?null:it.costs[level];}
+function equipmentSellValue(it,level=equipmentOwned(it)){return !it||it.virtual||level<=0?null:Math.floor(it.costs[level-1]*0.5);}
 function savedLoadout(source=save){return{weapon:Number(source.weapon)||0,shield:Number(source.shield)||0,engine:Number(source.engine)||0,rockets:source.rockets===1?1:0,orb:source.orb===1?1:0,sideLaser:source.sideLaser===1?1:0};}
-function candidateLoadout(base,kind,tier){const it=equipmentFor(kind),loadout=Object.assign({},base);if(it&&!it.locked)loadout[it.loadoutKey]=tier;return loadout;}
+function candidateLoadout(base,kind,tier){const it=equipmentFor(kind),loadout=Object.assign({},base);if(it&&!it.locked&&it.loadoutKey)loadout[it.loadoutKey]=tier;return loadout;}
 function previewLoadout(kind,tier,source=save){return candidateLoadout(savedLoadout(source),kind,tier);}
 function drawEquipmentModule(id,tier,x,y,visual={}){const it=EQUIPMENT[id];if(!it)return;it.draw(tier,x,y,{frame:visual.frame||0,flash:visual.flash||0,open:visual.open||0,side:visual.side===undefined?-1:visual.side,laserPhase:visual.laserPhase||0,laserT:visual.laserT||0});}
 // Player-only, cached white/cyan bolts: needle, rails, spear, chevron, split lance.
@@ -154,7 +158,7 @@ function damageWithSideLasers(){
   const p=EQUIPMENT.sideWeapon.tiers[1];let hit=false;
   for(const mount of SHIP_MOUNTS.sideWeapon){const x=ship.x+mount[0],top=ship.y+mount[1];
     for(const e of enemies){if(e.hp<=0||e.y<0||e.y>top||!sideLaserHitsX(x,e.x,R[e.k]))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.k>=3);hit=true;
-      if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push({x:e.x,y:e.y,k});}}
+      if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push(makeDrop(e.x,e.y,k));}}
     for(const e of ground){if(e.hp<=0||e.y<=0||e.y>top||!sideLaserHitsX(x,e.x,21))continue;e.hp-=p.damage;e.flash=6;sideLaserImpact(x,e.y,e.stage>0);hit=true;if(e.hp<=0)destroyGround(e);else addGroundImpact(e,x,e.y);}
     if(typeof damageBossWithSideLaser==='function'&&damageBossWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,boss?boss.y+30:80,true);hit=true;}
     if(typeof damageLatticeWithSideLaser==='function'&&damageLatticeWithSideLaser(x,p.width/2,p.damage)){sideLaserImpact(x,80,true);hit=true;}

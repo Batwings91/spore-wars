@@ -203,44 +203,53 @@ function sectorScreen(){
   ctx.restore();
 }
 
+function drawTraderAnimation(painted){const blink=t%210<9,eyeY=painted?125:139,eyes=painted?[108,153]:[115,159],swing=Math.sin(t*0.08)*3;
+  if(blink){ctx.fillStyle=painted?'#38251f':'#526047';ctx.strokeStyle='#171117';ctx.lineWidth=X(1);for(const x of eyes){ctx.beginPath();ctx.ellipse(X(x),X(eyeY),X(5),X(1.7),-0.12,0,Math.PI*2);ctx.fill();ctx.stroke();}}
+  // A bright moving earring and an occasional claw tap make the salesman visibly alive even in the static painted scene.
+  ctx.save();ctx.translate(X(painted?188:177),X(painted?139:153));ctx.rotate(swing*0.035);ctx.strokeStyle='#d5a94d';ctx.lineWidth=X(1);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(X(swing),X(12));ctx.stroke();ctx.fillStyle='#f2cf70';ctx.beginPath();ctx.arc(X(swing),X(14),X(2),0,Math.PI*2);ctx.fill();ctx.restore();
+  const tap=t%150;if(tap<28){const f=tap/28,x=painted?219:198,y=painted?282:279;ctx.globalAlpha=Math.sin(Math.PI*f);ctx.strokeStyle='#f0c86b';ctx.lineWidth=X(1);for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(X(x),X(y),X(3+i*3+f*4),0.2,1.25);ctx.stroke();}ctx.globalAlpha=1;}}
+
 function shopScreen(){
   ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);
-  if(IMG.trader_shop){ctx.save();ctx.imageSmoothingEnabled=true;const breath=1.003+Math.sin(t/70)*0.002;ctx.translate(X(145),X(140));ctx.scale(breath,breath);ctx.drawImage(IMG.trader_shop,-X(145),-X(140),W,H);ctx.restore();}
+  if(IMG.trader_shop){ctx.save();ctx.imageSmoothingEnabled=true;const breath=1.005+Math.sin(t/55)*0.004;ctx.translate(X(145),X(140));ctx.scale(breath,breath);ctx.drawImage(IMG.trader_shop,-X(145),-X(140),W,H);ctx.restore();drawTraderAnimation(true);}
   else{
     // A complete counter and merchant remain when the illustration is unavailable.
     ctx.fillStyle='#352b35';ctx.fillRect(X(48),X(178),X(178),X(115));ctx.fillStyle='#777952';
     ctx.beginPath();ctx.ellipse(X(136),X(148),X(49),X(58),0,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#111b23';ctx.fillRect(X(104),X(135),X(22),X(8));ctx.fillRect(X(148),X(130),X(22),X(8));ctx.fillRect(X(116),X(170),X(47),X(5));
-    ctx.fillStyle='#29333c';ctx.fillRect(X(20),X(265),X(250),X(34));
+    ctx.fillStyle='#29333c';ctx.fillRect(X(20),X(265),X(250),X(34));drawTraderAnimation(false);
   }
   const small=(text,x,y,col,size=9,align='left')=>txt(text,x,y,col,size,align);
   const surface=(x,y,w,h,hot)=>{ctx.fillStyle='rgba(7,16,25,0.88)';ctx.fillRect(X(x),X(y),X(w),X(h));ctx.strokeStyle=hot?'#b4e7ee':'#41505a';ctx.lineWidth=hot?2:1;ctx.strokeRect(X(x),X(y),X(w),X(h));};
   small('SALVAGE EXCHANGE',24,22,'#e5d4b7',15);small('WEAPONS / SYSTEMS / PARTS',24,43,'#93a4ae',8);
   small('AVAILABLE',614,20,'#91a4af',8,'right');txt(save.cores+' cores',614,34,'#b5f1f4',14,'right');
   small('EQUIPMENT WALL / 4 x 2',304,50,'#a7b6c0',8);
-  const launchFit=savedLoadout(),iconScale={primary:0.52,defence:0.72,engine:0.72,ordnance:0.34,support:0.72,sideWeapon:0.29};
-  SHOP.forEach((it,i)=>{const b=shopTileBounds(i),lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),hot=shopSel===i,can=cost!==null&&save.cores>=cost;
+  const launchFit=savedLoadout(),iconScale={primary:0.52,defence:0.72,engine:0.72,ordnance:0.34,support:0.72,sideWeapon:0.29,life:0.34};
+  SHOP.forEach((it,i)=>{const b=shopTileBounds(i),isLife=it.id==='life',lvl=isLife?lives:equipmentOwned(it),maxed=!isLife&&lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),hot=shopSel===i,can=cost!==null&&save.cores>=cost;
     surface(b.x,b.y,b.w,b.h,hot);
     if(hot){small('>',b.x+4,b.y+4,'#e8ffff',8);ctx.strokeStyle='#e8ffff';ctx.strokeRect(X(b.x+3),X(b.y+3),X(b.w-6),X(b.h-6));}
-    const previewTier=it.locked?1:Math.max(1,Math.min(it.maxOwned,lvl+1)),fitted=it.id==='primary'||it.id==='engine'||launchFit[it.loadoutKey]>0;
+    const previewTier=isLife?Math.max(1,lvl):it.locked?1:Math.max(1,Math.min(it.maxOwned,lvl+1)),fitted=isLife?shopFromSector&&lives>1:it.id==='primary'||it.id==='engine'||launchFit[it.loadoutKey]>0;
     ctx.save();ctx.globalAlpha=fitted?1:hot?0.5:0.3;drawEquipmentIcon(it.id,previewTier,b.x+b.w/2,b.y+22,iconScale[it.id]);ctx.restore();
-    const state=it.locked?'LOCKED':maxed?'FITTED / MAX':fitted?'FITTED':'NOT FITTED',price=cost===null?(maxed?'MAX':'---'):cost+' CORES';
+    const state=isLife?(shopFromSector?(lives>1?(lives-1)+' SPARE':'FINAL SHIP'):'CHECKPOINT ONLY'):it.locked?'LOCKED':maxed?'FITTED / MAX':fitted?'FITTED':'NOT FITTED',price=isLife?'+ '+LIFE_SELL_VALUE+' CORES':cost===null?(maxed?'MAX':'---'):cost+' CORES';
     small(it.label,b.x+b.w/2,b.y+41,hot?'#f0fbfc':'#c2ced3',7,'center');
     small(state,b.x+b.w/2,b.y+51,it.locked?'#8fa2ac':fitted?'#a8d3d8':'#71818a',6,'center');
-    small(price,b.x+b.w/2,b.y+61,cost!==null?(can?'#a8e4cf':'#d4ad91'):'#8fa2ac',6,'center');
+    small(price,b.x+b.w/2,b.y+61,isLife?(fitted?'#a8e4cf':'#8fa2ac'):cost!==null?(can?'#a8e4cf':'#d4ad91'):'#8fa2ac',6,'center');
   });
   if(shopSel<SHOP.length)shopItem=shopSel;
-  const it=SHOP[shopItem],lvl=equipmentOwned(it),maxed=lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),can=cost!==null&&save.cores>=cost,installed=!!(shopInstalled&&shopInstalled.id===it.id&&shopInstalled.tier===lvl),candidate=installed?lvl:it.locked?0:Math.min(it.maxOwned,lvl+1);
+  const it=SHOP[shopItem],isLife=it.id==='life',lvl=isLife?lives:equipmentOwned(it),maxed=!isLife&&lvl>=it.maxOwned&&!it.locked,cost=equipmentCost(it,lvl),can=cost!==null&&save.cores>=cost,notice=shopInstalled&&shopInstalled.id===it.id?shopInstalled:null,bought=!!(notice&&notice.action!=='sold'),sold=!!(notice&&notice.action==='sold'),candidate=notice||isLife?lvl:it.locked?0:Math.min(it.maxOwned,lvl+1),sellValue=isLife?LIFE_SELL_VALUE:equipmentSellValue(it,lvl),canSell=isLife?shopFromSector&&lives>1:sellValue!==null;
   surface(292,207,322,84,false);small(shopFromSector?'NEXT LAUNCH':'YOUR SHIP',302,213,'#8faebc',7);drawWorkshopShip(it.id,candidate,352,251,0.56);
   ctx.fillStyle='#354956';ctx.fillRect(X(407),X(215),X(1),X(68));
-  small(it.name,418,213,'#e4e9e9',10);small(it.locked?'RESERVED':'OWNED '+lvl+' / '+it.maxOwned,602,214,'#a6b7c0',7,'right');
+  small(it.name,418,213,'#e4e9e9',10);small(isLife?lives+' SHIP'+(lives===1?'':'S'):it.locked?'RESERVED':'OWNED '+lvl+' / '+it.maxOwned,602,214,'#a6b7c0',7,'right');
   small(it.effect(candidate),418,232,'#bdcbd2',7);small(it.note,418,247,it.locked?'#b39aaa':'#9cb7b8',6);
-  const installCopy=installed?'INSTALLED / FULL SHIP UPDATED':it.locked?'Preview leaves the loadout unchanged.':maxed?'Installed / preview and combat match.':can?(shopFromSector&&(it.id==='primary'||it.id==='defence')?'Applies on your next launch.':'Ready to install.'):'Collect '+(cost-save.cores)+' more cores.';
-  small(installCopy,418,269,installed?'#a8e4cf':can?'#9cb7b8':'#d4ad91',6);
-  surface(292,298,208,32,shopSel<SHOP.length&&!it.locked);small(installed?'INSTALLED':it.locked?'NOT FOR SALE':maxed?'FULLY EQUIPPED':can?'BUY / '+cost+' CORES':'NOT ENOUGH CORES',396,310,installed?'#a8e4cf':maxed||!can?'#8fa2ac':'#d9f1ee',9,'center');
+  const installCopy=sold?'SOLD / +'+notice.value+' CORES':bought?'INSTALLED / FULL SHIP UPDATED':isLife?(shopFromSector?'Keep at least one ship.':'Return after clearing a sector.'):it.locked?'Preview leaves the loadout unchanged.':maxed?'Installed / preview and combat match.':can?(shopFromSector&&(it.id==='primary'||it.id==='defence')?'Applies on your next launch.':'Ready to install.'):'Collect '+(cost-save.cores)+' more cores.';
+  small(installCopy,418,269,sold||bought?'#a8e4cf':can||canSell?'#9cb7b8':'#d4ad91',6);
+  const buyLabel=isLife?'NO BUY':sold?'SOLD':bought?'INSTALLED':it.locked?'NOT FOR SALE':maxed?'FULLY EQUIPPED':can?'BUY '+cost:'NEED CORES',sellLabel=notice?(sold?'SOLD +'+notice.value:'INSTALLED'):canSell?'SELL +'+sellValue:isLife?(shopFromSector?'KEEP 1 SHIP':'CHECKPOINT'):'NOTHING TO SELL';
+  surface(292,298,101,32,shopSel<SHOP.length&&!isLife&&!it.locked);small(buyLabel,342.5,310,bought?'#a8e4cf':maxed||!can?'#8fa2ac':'#d9f1ee',7,'center');
+  surface(399,298,103,32,shopSel<SHOP.length&&canSell);small(sellLabel,450.5,310,sold?'#a8e4cf':canSell?'#f0c98a':'#8fa2ac',7,'center');
   surface(510,298,104,32,shopSel===SHOP.length);small(shopFromSector?'MENU':'BACK',562,310,'#d9e1e4',9,'center');
   small('"Quality parts. Mostly legal."',146,318,'#ddc8ac',9,'center');
-  if(!TOUCH)small('ARROWS grid / DOWN back / ENTER buy',453,344,'#8b9fae',8,'center');
+  if(!TOUCH)small('ARROWS choose / ENTER buy / X sell',453,344,'#8b9fae',8,'center');
 }
 
-function buy(){const it=SHOP[shopSel];if(!it||it.locked||(shopInstalled&&shopInstalled.id===it.id))return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;shopInstalled={id:it.id,tier:lvl+1};if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.power();}
+function buy(){const it=SHOP[shopSel];if(!it||it.virtual||it.locked||(shopInstalled&&shopInstalled.id===it.id))return;const lvl=equipmentOwned(it),cost=equipmentCost(it,lvl);if(cost===null)return;if(save.cores<cost){flash=4;SFX.hit();return;}save.cores-=cost;save[it.saveKey]=lvl+1;shopInstalled={id:it.id,tier:lvl+1,action:'bought'};if(it.id==='support'){orbActive=true;resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.power();}
+function sell(){const it=SHOP[shopSel];if(!it||(shopInstalled&&shopInstalled.id===it.id))return;if(it.id==='life'){if(!shopFromSector||lives<=1){flash=4;SFX.hit();return;}lives--;save.cores+=LIFE_SELL_VALUE;shopInstalled={id:it.id,tier:lives,action:'sold',value:LIFE_SELL_VALUE};persist();SFX.core();return;}const lvl=equipmentOwned(it),value=equipmentSellValue(it,lvl);if(value===null){flash=4;SFX.hit();return;}save[it.saveKey]=lvl-1;save.cores+=value;shopInstalled={id:it.id,tier:lvl-1,action:'sold',value};if(it.id==='support'){orbActive=false;shots=shots.filter(s=>!s.orb);resetOrb();}if(it.id==='ordnance')resetRockets();if(it.id==='sideWeapon')resetSideLasers();persist();SFX.core();}

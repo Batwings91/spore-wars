@@ -21,7 +21,7 @@ function updateBoss(){
     b.y+=0.4;b.x+=Math.sin(b.t*0.3)*1.5;
     if(bossDying===0){booms.push({x:b.x,y:b.y,f:0,life:40,kind:'exp_boss',sc:1.4});booms.push({x:b.x,y:b.y+20,f:0,life:60,kind:'smoke',sc:2});flash=14;shake=26;slow=30;
       score+=2000+bossCount*500;addFloat(b.x,b.y-40,'+'+(2000+bossCount*500),C.G,true);pickupEvent(b.name+' DEFEATED',C.G);
-      lastW=kills;drops.push({x:b.x-40,y:b.y,k:'w'});drops.push({x:b.x,y:b.y,k:'s'});drops.push({x:b.x+40,y:b.y,k:'b'});for(let i=0;i<6;i++)drops.push({x:b.x-60+i*24,y:b.y+30,k:'core'});
+      lastW=kills;drops.push(makeDrop(b.x-40,b.y,'w'));drops.push(makeDrop(b.x,b.y,'s'));drops.push(makeDrop(b.x+40,b.y,'b'));for(let i=0;i<6;i++)drops.push(makeDrop(b.x-60+i*24,b.y+30,'core'));
       boss=null;waveT=200;sectorPending=true;enemies=[];eshots=[];shots=[];resetRockets();resetSideLasers();SFX.bossTheme(false);}
     return;}
   // entry
@@ -43,8 +43,8 @@ function updateBoss(){
   // Carrier lower wings stay open so shots can reach the launch bays.
   // player shots vs turrets then hull
   for(const s of shots){if(s.y<-50)continue;let hit=false;
-    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){tu.hp-=(s.dmg||1);hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}break;}}
-    if(!hit&&(b.mother?((Math.abs(s.x-b.x)<32&&Math.abs(s.y-b.y)<142)||(Math.abs(s.x-b.x)<96&&Math.abs(s.y-b.y)<62)):(Math.abs(s.x-b.x)<(b.mech?54:80)&&Math.abs(s.y-b.y)<(b.mech?36:60)))){b.hp-=(s.dmg||1);b.flash=3;hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);SFX.hit();}
+    for(const tu of b.turrets){if(tu.hp>0&&Math.abs(s.x-(b.x+tu.dx))<14&&Math.abs(s.y-(b.y+tu.dy))<14){const damage=s.dmg||1;tu.hp-=damage;hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);addDamageFloat(s.x,s.y,damage,b.kind>=2||b.mother);if(tu.hp<=0){boom(b.x+tu.dx,b.y+tu.dy,false);awardKill(150,b.x+tu.dx,b.y+tu.dy);}break;}}
+    if(!hit&&(b.mother?((Math.abs(s.x-b.x)<32&&Math.abs(s.y-b.y)<142)||(Math.abs(s.x-b.x)<96&&Math.abs(s.y-b.y)<62)):(Math.abs(s.x-b.x)<(b.mech?54:80)&&Math.abs(s.y-b.y)<(b.mech?36:60)))){const damage=s.dmg||1;b.hp-=damage;b.flash=3;hit=true;addHitImpact(s.x,s.y,b.kind>=2||b.mother);addDamageFloat(s.x,s.y,damage,b.kind>=2||b.mother);SFX.hit();}
     if(hit)s.y=-99;}
   if(b.phase===1&&b.hp<b.hpMax*0.5){b.phase=2;pickupEvent(b.kind>=2?'BROOD FRENZY':b.mech?'MECH OVERDRIVE':'HULL BREACH',C.red);shake=10;flash=6;}
   if(b.hp<=0){bossDying=110;eshots=[];SFX.bossTheme(false);}

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-09 — Damage feedback, valuable salvage and Workshop buyback
+- Player bullets and rockets now show short `-damage` numbers at the impact point on air units, ground units, boss hulls/turrets and open Brood Lattice nodes.
+- Fixed core pickup text being positioned after the pickup moved off-screen. Every collection now flashes `+N CORE(S)` at the actual pickup point.
+- Added visibly distinct 2-, 5- and 10-core salvage: 90% of core drops remain value 1, with 8% value 2, 1.5% value 5 and 0.5% value 10.
+- Added contextual Workshop selling. Purchased equipment tiers sell back one tier at a time for 50% of that tier's price; optional live systems are removed safely. Sector Workshops can also sell spare ships for 75 cores while always retaining the final ship.
+- Expanded the painted and fallback salesman idle with stronger breathing, periodic blinking, a swinging earring and a claw-tap flourish.
+
 ## 2026-09-08 — Workshop clarity, integrated modules and material wreckage
 - Raised ordinary bomb drops from 2% to 4% using the no-drop band and added a 22-eligible-kill drought ceiling; other pickup odds, the starting bomb, capacity and boss rewards are unchanged.
 - Replaced the unexplained CHAIN panel with a KILL STREAK score-multiplier readout that states the kills needed for the next tier.
