@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-19 — CrazyGames rewarded-ad hooks
+- Added an optional CrazyGames HTML5 SDK v3 adapter with explicit initialization, environment-safe itch/dev fallback, constrained `continue` and `doubleCores` rewards, and no reward on real SDK errors.
+- Routed the Fleet Lost C/Continue action and a new one-use sector-results double-core offer through the adapter, including keyboard and touch states, pending feedback and retryable unavailable messaging.
+- Added ad-time freeze/input blocking, reversible external audio mute, CrazyGames `muteAudio` settings support and deduplicated gameplay start/stop reporting without sending focus-only lifecycle events.
+- Added `tools/ads-smoke.js` coverage and documented portal behavior and manual preview checks.
+
 ## 2026-09-09 — Damage feedback, valuable salvage and Workshop buyback
 - Player bullets and rockets now show short `-damage` numbers at the impact point on air units, ground units, boss hulls/turrets and open Brood Lattice nodes.
 - Fixed core pickup text being positioned after the pickup moved off-screen. Every collection now flashes `+N CORE(S)` at the actual pickup point.

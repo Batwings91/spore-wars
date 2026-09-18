@@ -4,7 +4,7 @@
 const SFX=(function(){
   let ac=null,master=null,musicBus=null,pcmBus=null,pcmLP=null,previewBus=null,muted=false,musicMuted=false,seq=null;
   try{muted=localStorage.getItem('640k.mute')==='1';const m=localStorage.getItem('640k.musicMute');musicMuted=m===null?muted:m==='1';if(m===null)localStorage.setItem('640k.musicMute',musicMuted?'1':'0');}catch(e){}
-  let audioBlocked=false,previewUntil=0;
+  let audioBlocked=false,externalMuted=false,previewUntil=0;
   const volume={sound:1,music:1};
   try{for(const k of ['sound','music']){const v=localStorage.getItem('640k.volume.'+k);if(v!==null&&Number.isFinite(Number(v)))volume[k]=Math.max(0,Math.min(1,Number(v)));}}catch(e){}
   const samples={impact:null,burst:null};let sampleLoading=false,lastImpact=-1,lastBurst=-1;
@@ -21,7 +21,7 @@ const SFX=(function(){
     if(!previewBus){previewBus=a.createGain();previewBus.connect(pcmLP);}previewBus.gain.value=0.8*volume.sound;pcm('previewBoom',0.55,explosion(0.55,0),11025,127,previewBus);}
   function stopPreview(){previewUntil=0;}
 
-  function ctx(){if(document.hidden||audioBlocked)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=0.6;master.connect(ac.destination);
+  function ctx(){if(document.hidden||audioBlocked||externalMuted)return null;if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();master=ac.createGain();master.gain.value=0.6;master.connect(ac.destination);
       musicBus=ac.createGain();musicBus.gain.value=0.5*volume.music;musicBus.connect(master);
       pcmBus=ac.createGain();pcmBus.gain.value=muted?0:0.8*volume.sound;pcmLP=ac.createBiquadFilter();pcmLP.type='lowpass';pcmLP.frequency.value=5200;pcmBus.connect(pcmLP);pcmLP.connect(master);loadSamples(ac);}
     if(ac.state==='suspended')ac.resume();return ac;}
@@ -133,7 +133,7 @@ const SFX=(function(){
   function stop(k){const t=TR[k];if(!t.src)return;t.src.stop();for(const n of ['src','filter','bass','delay','echo','feedback','g']){t[n].disconnect();t[n]=null;}delete t.stage;}
   function select(k){if(cur===k)return;if(cur)stop(cur);cur=k;if(!k)return;loadTrack(k);if(TR[k].buf)play(k);else if(k==='main'){step=0;melPos=0;melWait=0;if(!seq)seq=setInterval(tick,STEP*1000);}}
   // Duck the recorded loop rather than stopping it, so it keeps its position across pause, menus and focus changes.
-  function music(on,stage=0){on=on&&!musicMuted&&!document.hidden&&!audioBlocked;if(on)setMusicStage(stage);if(mainOn===on)return;mainOn=on;const t=TR.main;
+  function music(on,stage=0){on=on&&!musicMuted&&!document.hidden&&!audioBlocked&&!externalMuted;if(on)setMusicStage(stage);if(mainOn===on)return;mainOn=on;const t=TR.main;
     const ramp=(to,secs)=>{if(!t.src||!t.g||!ac)return;const g=t.g.gain;g.cancelScheduledValues(ac.currentTime);g.setValueAtTime(Math.max(0.0001,g.value),ac.currentTime);g.exponentialRampToValueAtTime(to,ac.currentTime+secs);};
     if(on){const a=ctx();if(a)musicBus.gain.value=0.5*volume.music;if(cur!=='main')select('main');else if(t.src)ramp(Math.max(0.0001,t.gain*volume.music),0.6);else if(!t.buf&&!seq){step=0;melPos=0;melWait=0;seq=setInterval(tick,STEP*1000);}}
     else{ramp(0.0001,0.25);if(seq){clearInterval(seq);seq=null;}if(musicBus)musicBus.gain.value=0;}}
@@ -141,7 +141,7 @@ const SFX=(function(){
   const AUDIO_KEY='640k.sporewars.audio-owner',audioId=Date.now()+'-'+Math.random();
   let audioChannel=null;
   function silenceAudio(){stopPreview();music(false);if(master)master.gain.value=0;if(ac&&ac.state==='running')ac.suspend().catch(()=>{});}
-  function takeAudio(){if(document.hidden)return;audioBlocked=false;if(master)master.gain.value=0.6;
+  function takeAudio(){if(document.hidden)return;audioBlocked=false;if(master)master.gain.value=externalMuted?0:0.6;
     if(audioChannel)audioChannel.postMessage(audioId);
     try{localStorage.setItem(AUDIO_KEY,audioId);}catch(e){}
   }
@@ -158,9 +158,10 @@ const SFX=(function(){
   takeAudio();
   function bossTheme(on){/* boss track removed: main theme plays throughout */}
   function loadBoss(){loadTrack('main');}
+  function setExternalMute(on){externalMuted=!!on;if(externalMuted)silenceAudio();else if(!document.hidden&&!audioBlocked){if(master)master.gain.value=0.6;if(ac&&ac.state==='suspended')ac.resume().catch(()=>{});}}
   function toggleMute(){muted=!muted;if(pcmBus)pcmBus.gain.value=muted?0:0.8*volume.sound;try{localStorage.setItem('640k.mute',muted?'1':'0');}catch(e){}return muted;}
   // Only the off side is handled here: stepLogic() calls music() every step, so switching back on takes effect
   // on the next step for whichever mode is current.
   function toggleMusic(){musicMuted=!musicMuted;if(musicMuted)music(false);try{localStorage.setItem('640k.musicMute',musicMuted?'1':'0');}catch(e){}return musicMuted;}
-  return Object.assign(S,{music,bossTheme,toggleMute,toggleMusic,setVolume,getVolume:k=>volume[k],preview,stopPreview,previewing:()=>performance.now()<previewUntil,isMuted:()=>muted,isMusicMuted:()=>musicMuted,unlock:ctx,preload:loadBoss});
+  return Object.assign(S,{music,bossTheme,toggleMute,toggleMusic,setExternalMute,setVolume,getVolume:k=>volume[k],preview,stopPreview,previewing:()=>performance.now()<previewUntil,isMuted:()=>muted,isMusicMuted:()=>musicMuted,unlock:ctx,preload:loadBoss});
 })();

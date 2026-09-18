@@ -18,6 +18,7 @@ if(hadStoredSave&&(!Object.prototype.hasOwnProperty.call(storedSave,'rockets')||
 const keys={};let tapped=false,tapSrc='key';
 const KEYMAP={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',KeyA:'l',KeyD:'r',KeyW:'u',KeyS:'d'};
 addEventListener('keydown',e=>{
+  if(adPlaying||rewardPending){e.preventDefault();return;}
   if(e.code==='KeyM'&&!e.repeat){SFX.toggleMute();}
   if(e.code==='KeyN'&&!e.repeat){SFX.toggleMusic();}
   if(mode==='play'||mode==='travel'){
@@ -48,20 +49,21 @@ addEventListener('keydown',e=>{
     else if(shopSel<SHOP.length&&(e.code==='ArrowLeft'||e.code==='ArrowRight')){shopSel=(shopSel+(e.code==='ArrowLeft'?SHOP.length-1:1))%SHOP.length;shopItem=shopSel;}
     if(shopSel!==previousShopSel)shopInstalled=null;
   }
-  if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowUp'||e.code==='ArrowDown'||e.code==='KeyW'||e.code==='KeyS'))sectorSel=1-sectorSel;
+  if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowUp'||e.code==='KeyW'))sectorSel=(sectorSel+sectorOptions().length-1)%sectorOptions().length;
+  if((mode==='sector'||mode==='victory')&&!e.repeat&&(e.code==='ArrowDown'||e.code==='KeyS'))sectorSel=(sectorSel+1)%sectorOptions().length;
   if(mode==='dead'&&!e.repeat){const n=deadOptions().length;if(e.code==='ArrowUp'||e.code==='KeyW')deadSel=(deadSel+n-1)%n;if(e.code==='ArrowDown'||e.code==='KeyS')deadSel=(deadSel+1)%n;}
   if(mode==='title'&&titleSel>=2){const k=titleSel===2?'sound':'music';if(e.code==='ArrowLeft'||e.code==='ArrowRight'){SFX.setVolume(k,SFX.getVolume(k)+(e.code==='ArrowLeft'?-0.1:0.1));SFX.preview(k);}if(e.code==='KeyV'&&!e.repeat)SFX.preview(k);}
   if(mode==='title'){if(e.code==='ArrowUp'||e.code==='KeyW')titleSel=(titleSel+TITLE_BUTTONS.length-1)%TITLE_BUTTONS.length;if(e.code==='ArrowDown'||e.code==='KeyS')titleSel=(titleSel+1)%TITLE_BUTTONS.length;}
   if(e.code==='Escape'&&!e.repeat){if(mode==='shop')leaveShop();else if(mode==='dead'){clearScene();mode='title';t=0;}}
-  if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)continueRun();
+  if(mode==='dead'&&e.code==='KeyC'&&!usedContinue)requestContinue();
   if(mode==='boot'&&t>60&&(assetsReady||assetsFailed)){SFX.unlock();mode='title';t=0;}
 });
 addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;});
 // Losing window focus pauses a live run: an alt-tabbed player should not die off-screen.
-addEventListener('blur',()=>{if((mode==='play'||mode==='travel')&&!paused)setPaused(true);});
+addEventListener('blur',()=>{if((mode==='play'||mode==='travel')&&!paused)setPaused(true,true);});
 let ptr={down:false,x:0,y:0,lx:0,ly:0,rel:0};
 function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width*LW,y:(p.clientY-r.top)/r.height*LH};}
-function pdown(e){if(e.cancelable)e.preventDefault();cv.focus();const p=pos(e);if(p.x>=PX+PW+12&&p.x<=LW-12&&(mode==='play'||mode==='dead'||mode==='travel')){if(p.y>=268&&p.y<=292){SFX.toggleMute();return;}if(p.y>=296&&p.y<=320){SFX.toggleMusic();return;}}
+function pdown(e){if(e.cancelable)e.preventDefault();if(adPlaying||rewardPending)return;cv.focus();const p=pos(e);if(p.x>=PX+PW+12&&p.x<=LW-12&&(mode==='play'||mode==='dead'||mode==='travel')){if(p.y>=268&&p.y<=292){SFX.toggleMute();return;}if(p.y>=296&&p.y<=320){SFX.toggleMusic();return;}}
   if((mode==='play'||mode==='travel')&&paused){pauseTap(p);return;}
   if(mode==='play'&&p.x>PX+PW+12&&p.y>168&&p.y<248){fireBomb();ptr.down=false;return;}ptr.down=true;ptr.x=ptr.lx=p.x;ptr.y=ptr.ly=p.y;ptr.rel=p.y/LH;tapped=true;tapSrc='ptr';}
 function pmove(e){if(mode==='title'&&!e.touches){const p=pos(e),i=TITLE_BUTTONS.findIndex(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);if(i>=0)titleSel=i;}if(!ptr.down)return;if(e.cancelable)e.preventDefault();const p=pos(e);ptr.x=p.x;ptr.y=p.y;}

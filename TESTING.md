@@ -16,6 +16,14 @@ Do **not** open `index.html` by double-clicking: `file://` blocks the music fetc
 | `?god=1&wave=4` | both — the standard boss-testing URL |
 Mute state persists in `localStorage['640k.mute']`; save data in `localStorage['640k.sporewars.v3']`. Clear via browser devtools → Application → Local Storage to reset upgrades/cores. Existing v3 records without `rockets` migrate to Mk I pods; a fresh save starts without them.
 
+## Rewarded ads
+
+Run `node tools/ads-smoke.js`. It covers the SDK-free itch/dev stub, CrazyGames v3 initialization, the two allowed reward kinds, finished versus failed ads, SDK `muteAudio` changes, ad-time mute restoration and deduplicated gameplay start/stop calls.
+
+On an ordinary hosted build (SDK environment `disabled` or script blocked), lose the fleet and use both Enter on `CONTINUE [C] / WATCH AD` and the C shortcut; Continue must happen immediately and only once. Complete a sector with cores, select `DOUBLE CORES / WATCH AD` by keyboard and touch, and verify exactly the displayed checkpoint amount is added once, persists after refresh and cannot be claimed again on that results screen. Zero-core checkpoints must show a disabled explanation.
+
+In the CrazyGames preview, verify the game freezes and all audio mutes only after `adStarted`. A completed video grants the selected reward; `unfilled`, adblock, cooldown and Basic Launch errors show `AD UNAVAILABLE` and grant nothing. Audio and input recover after both finish and error. SDK-requested `muteAudio` must override the in-game sound/music switches. Confirm gameplay start on Launch, Continue, resume and next-sector arrival; gameplay stop on user pause, results, game over and menus; focus changes must not emit extra gameplay events.
+
 ## Manual smoke test (do this before every commit that touches gameplay)
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
 2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.

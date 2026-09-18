@@ -54,8 +54,9 @@ function bootScreen(){ctx.fillStyle=C.black;ctx.fillRect(0,0,W,H);const L=BOOT_L
   L.forEach((l,i)=>{if(l[0]!=='<logo>')txt(l[0],16,16+i*20,l[1],16);else if(IMG.logo_prompt)ctx.drawImage(IMG.logo_prompt,X(16)-16,X(16+i*20)-12,388,60);else txt('C:\\>'+BRAND+'_',16,16+i*20,l[1],16);});
   if(t<=230&&Math.floor(blink/16)%2===0){ctx.fillStyle=DOS.grey;ctx.fillRect(X(16),X(16+L.length*20),X(10),X(16));}
   if(t>250){if(assetsReady||assetsFailed)txt('Press any key or tap to continue . . .',16,16+L.length*20+8,DOS.white,16);else txt('Loading graphics'+'.'.repeat(Math.floor(t/15)%4),16,16+L.length*20+8,DOS.white,16);}}
-let titleSel=0,paused=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0,shopItem=0,shopInstalled=null;
-function setPaused(on){pauseSel=0;paused=on;exitConfirm=false;exitChoice=0;tapped=false;ptr.down=false;for(const k in keys)keys[k]=false;}
+let titleSel=0,paused=false,focusPaused=false,adPlaying=false,exitConfirm=false,exitChoice=0,exitWait=0,pauseSel=0,sectorSel=0,deadSel=0,shopItem=0,shopInstalled=null;
+let rewardPending=null,rewardNotice='',rewardNoticeT=0;
+function setPaused(on,fromFocus=false){pauseSel=0;paused=on;focusPaused=on&&fromFocus;exitConfirm=false;exitChoice=0;tapped=false;ptr.down=false;for(const k in keys)keys[k]=false;}
 function pauseTap(p){
   if(exitConfirm&&exitWait>0)return;
   const y=exitConfirm?190:174;
@@ -115,14 +116,16 @@ function menuChoice(label,x,y,w,h,selected,size=12){
   if(selected){ctx.strokeStyle='#85deeb';ctx.lineWidth=1;ctx.strokeRect(X(x)+0.5,X(y)+0.5,X(w)-1,X(h)-1);ctx.fillStyle='#85deeb';ctx.fillRect(X(x),X(y+6),X(2),X(h-12));}
   txt(label,x+w/2,y+(h-7*Math.max(2,Math.round(size*K/10))/K)/2,selected?'#eefbff':'#a4b8c6',size,'center');ctx.restore();
 }
-function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RETRY','CONTINUE','WORKSHOP','MAIN MENU'];}
-function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action==='CONTINUE')continueRun();else if(action==='WORKSHOP'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
+function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RETRY','CONTINUE [C] / WATCH AD','WORKSHOP','MAIN MENU'];}
+async function claimReward(kind,grant){if(rewardPending)return;rewardPending=kind;rewardNotice='';const granted=await ads.showRewarded(kind);rewardPending=null;if(granted)grant();else{rewardNotice='AD UNAVAILABLE - TRY AGAIN';rewardNoticeT=180;}}
+function requestContinue(){if(mode==='dead'&&!usedContinue)claimReward('continue',()=>{if(mode==='dead')continueRun();});}
+function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action.startsWith('CONTINUE'))requestContinue();else if(action==='WORKSHOP'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
 function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,210,'#b86a72');
   if(score>=save.best&&score>0)txt('NEW BEST!',PX+PW-32,85,C.yellow,9,'right');
   txt('FLEET LOST',LW/2,96,C.red,28,'center');txt('score '+score+' / wave '+level,LW/2,132,C.white,14,'center');
   txt(cores+' run cores saved / '+save.cores+' available',LW/2,153,C.cyan,11,'center');
-  deadOptions().forEach((label,i)=>menuChoice(label,LW/2-130,176+i*23,260,22,deadSel===i,12));
-  txt(TOUCH?'Tap an option':'UP/DOWN choose / ENTER select',LW/2,274,'#a4b8c6',9,'center');}
+  deadOptions().forEach((label,i)=>menuChoice(rewardPending==='continue'&&label.startsWith('CONTINUE')?'CONTACTING PORTAL...':label,LW/2-130,176+i*23,260,22,deadSel===i,label.length>18?9:12));
+  txt(rewardNotice|| (TOUCH?'Tap an option':'UP/DOWN choose / ENTER select'),LW/2,274,rewardNotice?'#e6b27f':'#a4b8c6',9,'center');}
 
 function pauseScreen(){
   glassPanel(PX+40,90,PW-80,190,'#55c5d8');
@@ -152,7 +155,7 @@ function drawVictorySweep(){
 function completeSector(){
   if(!sectorPending)return;
   resetGround();resetWorldEncounters(); // travel resets worldScroll to 0, so anchored scenery encounters must clear too
-  sectorBanked=cores-bankedCores;save.cores+=sectorBanked;bankedCores=cores;
+  sectorBanked=cores-bankedCores;sectorDoubled=false;save.cores+=sectorBanked;bankedCores=cores;
   if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();resetSideLasers();
 }
 let travelOrigin={x:0,y:0};
@@ -179,7 +182,10 @@ function sectorTravelScreen(){
     txt(world.detail,LW/2,157,world.accent,10,'center');ctx.restore();}
 }
 function leaveShop(){shopInstalled=null;if(shopFromSector){mode='sector';sectorSel=1;t=60;tapped=false;}else{clearScene();mode='title';t=0;}}
+function sectorOptions(){return mode==='victory'?['HARDER REPLAY','MAIN MENU',sectorDoubled?'CORES DOUBLED':sectorBanked?'DOUBLE CORES / WATCH AD':'NO CORES TO DOUBLE']:['UPGRADE / WORKSHOP','PROCEED',sectorDoubled?'CORES DOUBLED':sectorBanked?'DOUBLE CORES / WATCH AD':'NO CORES TO DOUBLE'];}
+function requestDoubleCores(){if((mode!=='sector'&&mode!=='victory')||sectorDoubled||sectorBanked<=0)return;claimReward('doubleCores',()=>{if(mode!=='sector'&&mode!=='victory')return;save.cores+=sectorBanked;sectorDoubled=true;persist();SFX.core();});}
 function chooseSector(i){
+  if(i===2){requestDoubleCores();return;}
   if(mode==='victory'){if(i===0){newRun(campaignLoop+1);mode='play';t=0;setPaused(false);}else{clearScene();mode='title';t=0;}tapped=false;ptr.down=false;return;}
   if(i===0){shopInstalled=null;shopFromSector=true;mode='shop';t=0;}else nextSector();
 }
@@ -187,19 +193,20 @@ function sectorScreen(){
   const won=mode==='victory';
   playScene();ctx.save();const reveal=Math.min(1,t/30);ctx.globalAlpha=reveal;
   ctx.fillStyle='rgba(5,10,18,0.66)';ctx.fillRect(X(PX),0,X(PW),H);
-  glassPanel(PX+14,24,PW-28,310,'#d6b36c');
-  txt(won?'THE BROOD HAS FALLEN':'SECTOR SECURED',LW/2,42,'#d6b36c',11,'center');
-  txt(won?'CAMPAIGN COMPLETE':'LEVEL '+Math.floor(level/5)+' COMPLETE',LW/2,65,'#f0d59c',26,'center');
-  txt(won?'Five worlds cleared. The colony is safe.':'Take a breath. The next world can wait.',LW/2,105,'#a4b8c6',10,'center');
-  txt('+'+Math.floor(sectorBanked*Math.min(1,t/60))+' cores banked',LW/2,133,C.cyan,14,'center');
-  txt(save.cores+' cores available for upgrades',LW/2,154,'#a4b8c6',12,'center');
+  glassPanel(PX+14,16,PW-28,334,'#d6b36c');
+  txt(won?'THE BROOD HAS FALLEN':'SECTOR SECURED',LW/2,34,'#d6b36c',11,'center');
+  txt(won?'CAMPAIGN COMPLETE':'LEVEL '+Math.floor(level/5)+' COMPLETE',LW/2,57,'#f0d59c',26,'center');
+  txt(won?'Five worlds cleared. The colony is safe.':'Take a breath. The next world can wait.',LW/2,97,'#a4b8c6',10,'center');
+  txt('+'+Math.floor(sectorBanked*Math.min(1,t/60))+' cores banked'+(sectorDoubled?' + '+sectorBanked+' ad bonus':''),LW/2,125,C.cyan,14,'center');
+  txt(save.cores+' cores available for upgrades',LW/2,146,'#a4b8c6',12,'center');
   ctx.globalAlpha=reveal*(t<60?0.35:1);
-  for(const [i,label] of (won?['HARDER REPLAY','MAIN MENU']:['UPGRADE / WORKSHOP','PROCEED']).entries()){
-    menuChoice(label,LW/2-130,184+i*44,260,32,i===sectorSel,13);}
+  for(const [i,label] of sectorOptions().entries()){
+    const shown=rewardPending==='doubleCores'&&i===2?'CONTACTING PORTAL...':label;
+    menuChoice(shown,LW/2-130,174+i*42,260,30,i===sectorSel,i===2?10:13);}
   ctx.globalAlpha=reveal;
-  txt(won?'FINAL SCORE: '+score:'NEXT: '+WORLDS[worldForWave(level+1)].name,LW/2,277,'#d6b36c',10,'center');
-  if(t<60)txt(TOUCH?'Tap to finish tally':'ENTER to finish tally',LW/2,307,'#a4b8c6',9,'center');
-  else txt(TOUCH?'Choose when you are ready':won?'UP/DOWN choose / ENTER select':'UP/DOWN choose / ENTER select / Q Workshop',LW/2,307,'#a4b8c6',9,'center');
+  txt(rewardNotice||(won?'FINAL SCORE: '+score:'NEXT: '+WORLDS[worldForWave(level+1)].name),LW/2,307,rewardNotice?'#e6b27f':'#d6b36c',10,'center');
+  if(t<60)txt(TOUCH?'Tap to finish tally':'ENTER to finish tally',LW/2,329,'#a4b8c6',9,'center');
+  else txt(TOUCH?'Choose when you are ready':won?'UP/DOWN choose / ENTER select':'UP/DOWN choose / ENTER select / Q Workshop',LW/2,329,'#a4b8c6',9,'center');
   ctx.restore();
 }
 
