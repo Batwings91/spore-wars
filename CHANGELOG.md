@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-19 — Cross-platform line endings
+- Added a repository-wide text policy (`text=auto eol=lf`) and renormalized tracked text so Windows and non-Windows builds use the same committed line endings.
+
 ## 2026-09-19 — Local DOS high-score table
 - Added a sanitized local top 10 under its own versioned storage key while leaving the compatible `save.best` field and v3 save record unchanged; an existing best migrates once as an anonymous legacy row.
 - Added a modal three-initial entry for new run bests with direct typing, arrow controls and touch arrows/SAVE, including terminal victory and explicit mid-run exit handling.
