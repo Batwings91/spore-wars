@@ -3,7 +3,7 @@
 // drawField() draws the live world (enemies, boss, booms, floats), and the title uses it as a backdrop:
 // clear the run's transient state on every return to the title so nothing bleeds through.
 function clearScene(){orbActive=false;resetGround();resetWorldEncounters();resetRockets();resetSideLasers();enemies=[];eshots=[];shots=[];drops=[];booms=[];floats=[];rings=[];boss=null;bossWarn=0;bossDying=0;}
-function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
+function quitRun(){clearScene();save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();considerHighScore(score);setPaused(false);mode='title';t=0;SFX.bossTheme(false);}
 function continueRun(){resetGround();resetWorldEncounters();resetRockets();resetSideLasers();chain=0;chainT=0;usedContinue=true;mode='play';lives=2;ship.hull=ship.hullDisplay=MAX_HULL;ship.inv=120;eshots=[];enemies=[];flash=6;}
 
 newRun();
@@ -16,7 +16,7 @@ function stepLogic(){const gameplay=(mode==='play'||mode==='travel')&&(!paused||
   else if(mode==='title'){if(tapped&&t>10){const i=tapSrc==='ptr'?TITLE_BUTTONS.findIndex(b=>ptr.x>=b.x&&ptr.x<=b.x+b.w&&ptr.y>=b.y&&ptr.y<=b.y+b.h):titleSel;if(i===1){shopInstalled=null;mode='shop';}else if(i===2||i===3)titleAudioAction(i,tapSrc==='ptr'?ptr.x:undefined);else if(i===0){newRun();mode='play';t=0;}}}
   else if(mode==='play'){if(!paused){if(slow>0){slow--;if(blink%2===0)update();}else update();}}
   else if(mode==='travel'){if(!paused)updateSectorTravel();}
-  else if(mode==='dead'){if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-176)/23);if(i>=0&&i<deadOptions().length)chooseDead(i);}}}
+  else if(mode==='dead'){if(tapped){if(tapSrc==='key')chooseDead(deadSel);else if(ptr.x>=130&&ptr.x<=330){const i=Math.floor((ptr.y-170)/25);if(i>=0&&i<deadOptions().length&&ptr.y<=170+i*25+23)chooseDead(i);}}}
   else if(mode==='sector'||mode==='victory'){if(tapped&&t>15){if(t<60)t=60;else if(tapSrc==='key')chooseSector(sectorSel);else if(ptr.x>=LW/2-130&&ptr.x<=LW/2+130){const i=Math.floor((ptr.y-174)/42);if(i>=0&&i<sectorOptions().length&&ptr.y<=174+i*42+30)chooseSector(i);}}}
   else if(mode==='shop'){if(tapped){if(tapSrc==='key'){if(shopSel===SHOP.length)leaveShop();else buy();}else{const i=shopHitTest(ptr.x,ptr.y);if(i>=0){if(shopSel!==i)shopInstalled=null;shopSel=i;shopItem=i;}else if(ptr.y>=298&&ptr.y<=330){if(ptr.x>=510&&ptr.x<=614)leaveShop();else if(ptr.x>=399&&ptr.x<=502&&shopSel<SHOP.length)sell();else if(ptr.x>=292&&ptr.x<=393&&shopSel<SHOP.length)buy();}}}}
   if(mode!=='title')SFX.stopPreview();
@@ -32,5 +32,6 @@ function render(){
   else if(mode==='dead')deadScreen();
   else if(mode==='sector'||mode==='victory')sectorScreen();
   else if(mode==='travel'){sectorTravelScreen();if(paused)pauseScreen();}
-  else if(mode==='shop')shopScreen();}
+  else if(mode==='shop')shopScreen();
+  if(highScoreEntry)highScoreEntryScreen();}
 requestAnimationFrame(frame);

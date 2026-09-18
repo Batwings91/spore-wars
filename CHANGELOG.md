@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-19 — Local DOS high-score table
+- Added a sanitized local top 10 under its own versioned storage key while leaving the compatible `save.best` field and v3 save record unchanged; an existing best migrates once as an anonymous legacy row.
+- Added a modal three-initial entry for new run bests with direct typing, arrow controls and touch arrows/SAVE, including terminal victory and explicit mid-run exit handling.
+- Added title and Fleet Lost score tables. Continued runs update their existing row instead of duplicating it or asking for initials twice.
+- Added `tools/highscore-smoke.js` coverage and documented migration, persistence and manual input checks.
+
 ## 2026-09-19 — CrazyGames rewarded-ad hooks
 - Added an optional CrazyGames HTML5 SDK v3 adapter with explicit initialization, environment-safe itch/dev fallback, constrained `continue` and `doubleCores` rewards, and no reward on real SDK errors.
 - Routed the Fleet Lost C/Continue action and a new one-use sector-results double-core offer through the adapter, including keyboard and touch states, pending feedback and retryable unavailable messaging.

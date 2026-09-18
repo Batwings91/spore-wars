@@ -5,7 +5,7 @@ function hitShip(){if(ship.inv>0||GOD)return;if(shield>0){shield--;ship.inv=40;s
   ship.hull--;
   if(ship.hull>0){ship.inv=40;shake=6;flash=3;SFX.hit();addFloat(Math.max(PX+90,Math.min(PX+PW-90,ship.x)),ship.y-44,ship.hull===1?'HULL CRITICAL 33%':'HULL DAMAGED 67%',C.red,true);return;}
   resetRockets();resetSideLasers();resetWorldEncounters();chain=0;chainT=0;lives--;ship.hull=ship.hullDisplay=lives>0?MAX_HULL:0;boom(ship.x,ship.y,true);SFX.die();shake=14;flash=8;ship.inv=90;wpn=Math.max(0,wpn-1);addFloat(ship.x,ship.y-40,'SHIP LOST',C.red);
-  if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
+  if(lives<=0){save.cores+=cores-bankedCores;bankedCores=cores;if(score>save.best)save.best=score;persist();considerHighScore(score);mode='dead';deadSel=0;t=0;SFX.bossTheme(false);}}
 const BOMB_DROUGHT_LIMIT=22;
 function rollCoreValue(r=Math.random()){return r<0.9?1:r<0.98?2:r<0.995?5:10;}
 function makeDrop(x,y,k){return{x,y,k,...(k==='core'?{value:rollCoreValue()}:{})};}

@@ -24,6 +24,12 @@ On an ordinary hosted build (SDK environment `disabled` or script blocked), lose
 
 In the CrazyGames preview, verify the game freezes and all audio mutes only after `adStarted`. A completed video grants the selected reward; `unfilled`, adblock, cooldown and Basic Launch errors show `AD UNAVAILABLE` and grant nothing. Audio and input recover after both finish and error. SDK-requested `muteAudio` must override the in-game sound/music switches. Confirm gameplay start on Launch, Continue, resume and next-sector arrival; gameplay stop on user pause, results, game over and menus; focus changes must not emit extra gameplay events.
 
+## Local high scores
+
+Run `node tools/highscore-smoke.js`. It covers migration from `save.best`, sanitization, top-10 ordering/capping, direct letter entry, same-run updates after Continue, persistence and the keyboard/touch/title/game-over wiring.
+
+With an existing v3 save and no `640k.sporewars.scores.v1`, refresh and confirm the old best appears once as `---` while `save.best` is unchanged. Beat that score and lose the fleet: menu controls must be blocked by the initials modal. Type three letters or use arrow keys, then Enter; repeat with touch arrows and SAVE. The new row must lead both title and Fleet Lost tables after refresh. Continue that run, exceed the submitted score and lose again: the same initials row must update rather than duplicate or prompt again. Fill more than ten qualifying runs and confirm only the best ten remain. Also verify a campaign victory and an explicit mid-run Main Menu preserve a qualifying score through the same modal.
+
 ## Manual smoke test (do this before every commit that touches gameplay)
 1. Boot screen shows DOS text, then "Press any key" (not stuck on "Loading graphics…").
 2. Title: LAUNCH / WORKSHOP / SOUND buttons work by keyboard (Enter, Q, M) and by click/tap. Up/down moves the highlight; Enter on SOUND toggles mute and stays on the menu. Footer text stays inside the playfield.

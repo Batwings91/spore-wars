@@ -78,6 +78,19 @@ function glassPanel(x,y,w,h,accent){
   ctx.strokeStyle=accent||'#435765';ctx.lineWidth=X(0.5);ctx.strokeRect(X(x)+0.5,X(y)+0.5,X(w)-1,X(h)-1);
   ctx.fillStyle=accent||'#597481';ctx.fillRect(X(x+12),X(y),X(Math.min(28,w-24)),X(1));ctx.restore();
 }
+function drawHighScoreTable(x,y,w,h,rowStep=12){
+  glassPanel(x,y,w,h,'#708898');txt('LOCAL TOP 10',x+w/2,y+8,'#b9dce5',9,'center');
+  for(let i=0;i<10;i++){const row=highScores[i],yy=y+27+i*rowStep;txt(String(i+1).padStart(2,'0'),x+9,yy,'#718996',7);txt(row?row.initials:'---',x+31,yy,row?'#dce8e9':'#546672',8);txt(row?String(row.score).padStart(7,'0'):'-------',x+w-9,yy,row?'#d6b36c':'#546672',8,'right');}
+}
+function highScoreEntryScreen(){
+  ctx.fillStyle='rgba(0,0,0,0.72)';ctx.fillRect(0,0,W,H);glassPanel(180,70,280,220,'#d6b36c');
+  txt('NEW LOCAL HIGH SCORE',LW/2,89,'#f0d59c',16,'center');txt(String(highScoreEntry.score).padStart(7,'0'),LW/2,114,C.cyan,13,'center');
+  const centers=[260,320,380];for(let i=0;i<3;i++){const hot=highScoreEntry.position===i;txt('▲',centers[i],130,hot?'#85deeb':'#617985',13,'center');
+    ctx.fillStyle=hot?'rgba(31,109,128,0.55)':'rgba(8,19,29,0.7)';ctx.fillRect(X(centers[i]-22),X(151),X(44),X(43));ctx.strokeStyle=hot?'#85deeb':'#435765';ctx.strokeRect(X(centers[i]-22)+0.5,X(151)+0.5,X(44)-1,X(43)-1);
+    txt(highScoreEntry.letters[i],centers[i],158,hot?'#fff4c9':'#c6d6dc',28,'center');txt('▼',centers[i],199,hot?'#85deeb':'#617985',13,'center');}
+  menuChoice('SAVE INITIALS',250,238,140,34,true,12);
+  txt(TOUCH?'Tap arrows, then SAVE':'TYPE A-Z / ARROWS / ENTER',LW/2,277,'#9fb3bf',9,'center');
+}
 function titleScreen(){
   ctx.fillStyle='#050a12';ctx.fillRect(0,0,W,H);
   if(IMG.menu_hangar){ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(IMG.menu_hangar,0,0,W,H);ctx.restore();}
@@ -108,6 +121,7 @@ function titleScreen(){
   txt(titleSel>=2?(TOUCH?'Tap level to adjust / TEST to listen':'LEFT / RIGHT volume   ENTER on/off   V test'):(TOUCH?'Drag to move / tap BOMB to clear fire':'ARROWS / WASD move   X bomb   P pause'),40,319,'#93a9b8',9);
   txt('Art: Skorpio / Daniel Cook / chabull / LuminousDragonGames',40,336,'#788a98',7);
   txt('Music: MintoDog / Illustrated by 640k games.',40,348,'#788a98',7);
+  drawHighScoreTable(402,184,210,158,12);
 }
 
 // These rectangles match the existing keyboard and touch option bounds.
@@ -120,12 +134,13 @@ function deadOptions(){return usedContinue?['RETRY','WORKSHOP','MAIN MENU']:['RE
 async function claimReward(kind,grant){if(rewardPending)return;rewardPending=kind;rewardNotice='';const granted=await ads.showRewarded(kind);rewardPending=null;if(granted)grant();else{rewardNotice='AD UNAVAILABLE - TRY AGAIN';rewardNoticeT=180;}}
 function requestContinue(){if(mode==='dead'&&!usedContinue)claimReward('continue',()=>{if(mode==='dead')continueRun();});}
 function chooseDead(i){const action=deadOptions()[i];if(action==='RETRY'){newRun();mode='play';t=0;}else if(action.startsWith('CONTINUE'))requestContinue();else if(action==='WORKSHOP'){shopInstalled=null;shopFromSector=false;mode='shop';}else if(action==='MAIN MENU'){clearScene();mode='title';t=0;}}
-function deadScreen(){playScene();glassPanel(PX+24,80,PW-48,210,'#b86a72');
-  if(score>=save.best&&score>0)txt('NEW BEST!',PX+PW-32,85,C.yellow,9,'right');
-  txt('FLEET LOST',LW/2,96,C.red,28,'center');txt('score '+score+' / wave '+level,LW/2,132,C.white,14,'center');
-  txt(cores+' run cores saved / '+save.cores+' available',LW/2,153,C.cyan,11,'center');
-  deadOptions().forEach((label,i)=>menuChoice(rewardPending==='continue'&&label.startsWith('CONTINUE')?'CONTACTING PORTAL...':label,LW/2-130,176+i*23,260,22,deadSel===i,label.length>18?9:12));
-  txt(rewardNotice|| (TOUCH?'Tap an option':'UP/DOWN choose / ENTER select'),LW/2,274,rewardNotice?'#e6b27f':'#a4b8c6',9,'center');}
+function deadScreen(){playScene();glassPanel(PX+8,50,PW-16,292,'#b86a72');
+  if(score>=save.best&&score>0)txt('NEW BEST!',PX+PW-18,57,C.yellow,9,'right');
+  txt('FLEET LOST',230,72,C.red,25,'center');txt('score '+score+' / wave '+level,230,108,C.white,13,'center');
+  txt(cores+' run cores saved',230,130,C.cyan,10,'center');txt(save.cores+' available',230,147,'#a4b8c6',9,'center');
+  deadOptions().forEach((label,i)=>menuChoice(rewardPending==='continue'&&label.startsWith('CONTINUE')?'CONTACTING PORTAL...':label,130,170+i*25,200,23,deadSel===i,label.length>18?8:11));
+  drawHighScoreTable(350,83,164,202,16);
+  txt(rewardNotice|| (TOUCH?'Tap an option':'UP/DOWN choose / ENTER select'),230,315,rewardNotice?'#e6b27f':'#a4b8c6',8,'center');}
 
 function pauseScreen(){
   glassPanel(PX+40,90,PW-80,190,'#55c5d8');
@@ -156,7 +171,7 @@ function completeSector(){
   if(!sectorPending)return;
   resetGround();resetWorldEncounters(); // travel resets worldScroll to 0, so anchored scenery encounters must clear too
   sectorBanked=cores-bankedCores;sectorDoubled=false;save.cores+=sectorBanked;bankedCores=cores;
-  if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();resetSideLasers();
+  if(score>save.best)save.best=score;persist();sectorPending=false;mode=level>=CAMPAIGN_WAVES?'victory':'sector';if(mode==='victory')considerHighScore(score);sectorSel=0;t=0;setPaused(false);shots=[];eshots=[];resetRockets();resetSideLasers();
 }
 let travelOrigin={x:0,y:0};
 function nextSector(){
