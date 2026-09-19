@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-19 — Desktop release checklist pass
+- Made both release builders emit byte-identical LF HTML and package `CREDITS.txt`; added `tools/release-audit.js` to enforce the 8 MB initial-download target, deferred-asset parity, exhaustive asset credits and the runtime AI disclosure.
+- Expanded the credits into an exact runtime asset manifest and updated the disclosure for every AI-assisted runtime illustration, AI coding assistance, and the absence of AI-generated music, voices or sampled sound.
+- Updated the README roadmap to reflect the completed bosses, chain/pause/high-score work and CrazyGames v3 hooks; the remaining order is itch.io, CrazyGames, Poki, then optional portrait layout.
+- Hardened all browser smoke drivers with timeouts and an optional Playwright pipe fallback for Node/Chrome CDP stalls; updated the general and campaign runs for initials entry and rewarded core doubling.
+
 ## 2026-09-19 — Cross-platform line endings
 - Added a repository-wide text policy (`text=auto eol=lf`) and renormalized tracked text so Windows and non-Windows builds use the same committed line endings.
 

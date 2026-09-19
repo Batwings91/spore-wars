@@ -16,5 +16,6 @@ for f in sorted(os.listdir(assets)):
         shutil.copyfile(full,os.path.join(dist_assets,f));copied+=1;copied_bytes+=os.path.getsize(full)
 html=re.sub(r'<script src="(src/[^"]+)"></script>',lambda m:'<script>\n'+open(os.path.join(root,m.group(1)),encoding='utf8').read()+'</script>',html)
 html=re.sub(r"const ASSET_DATA=\{.*?\};[^\n]*\n","const ASSET_DATA="+json.dumps(data)+";\n",html,count=1,flags=re.S)
-open(os.path.join(dist,'index.html'),'w',encoding='utf8').write(html)
-print('wrote dist/index.html',len(html.encode('utf8'))//1024,'KB (initial download); dist/assets/',copied,'files',copied_bytes//1024,'KB loaded after boot')
+open(os.path.join(dist,'index.html'),'w',encoding='utf8',newline='\n').write(html)
+shutil.copyfile(os.path.join(root,'CREDITS.txt'),os.path.join(dist,'CREDITS.txt'))
+print('wrote dist/index.html',len(html.encode('utf8'))//1024,'KB (initial download); dist/assets/',copied,'files',copied_bytes//1024,'KB loaded after boot; copied CREDITS.txt')

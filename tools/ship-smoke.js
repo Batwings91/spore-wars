@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Ship/shop regression over Chrome DevTools Protocol. Serve the game on port 8000, then run node tools/ship-smoke.js.
 // Uses a fresh browser profile; output is in tools/smoke-out (ignored).
-const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');
+const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os'),{webSocketImpl}=require('./cdp-socket');
+const WebSocketImpl=webSocketImpl();
 const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=Number(process.env.SMOKE_PORT)||9464;
 const CANDIDATES=[process.env.CHROME,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean);
@@ -16,13 +17,13 @@ const keepAlive=setInterval(()=>{},1000);
 function finish(code){clearInterval(keepAlive);try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recursive:true,force:true});}catch(e){}process.exit(code);}
 (async()=>{
   let wsUrl;for(let i=0;i<50&&!wsUrl;i++){try{const l=await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();const pg=l.find(t=>t.type==='page');if(pg)wsUrl=pg.webSocketDebuggerUrl;}catch(e){}if(!wsUrl)await sleep(200);}
-  if(!wsUrl)throw new Error('no CDP page target');
-  const ws=new WebSocket(wsUrl);ws.binaryType='arraybuffer';await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(5000).then(()=>{throw Error('CDP websocket open timeout');})]);
+  if(!wsUrl)throw new Error('no CDP page target');wsUrl=wsUrl.replace('localhost','127.0.0.1');
+  const ws=new WebSocketImpl(wsUrl);ws.binaryType='arraybuffer';await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(20000).then(()=>{throw Error('CDP websocket open timeout');})]);
   let id=0;const pending={};
   ws.addEventListener('message',ev=>{const raw=typeof ev.data==='string'?ev.data:Buffer.from(ev.data).toString('utf8'),m=JSON.parse(raw);if(m.id&&pending[m.id]){clearTimeout(pending[m.id].timer);pending[m.id].resolve(m.result||m.error);delete pending[m.id];}
     if(m.method==='Runtime.exceptionThrown')errors.push('EXCEPTION: '+(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text));
     if(m.method==='Runtime.consoleAPICalled'&&(m.params.type==='error'||m.params.type==='warning'))errors.push(m.params.type.toUpperCase()+': '+m.params.args.map(a=>a.value??a.description).join(' '));
-    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
+    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon|sdk\.crazygames\.com/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
   const send=(method,params={})=>new Promise((resolve,reject)=>{const i=++id,timer=setTimeout(()=>{delete pending[i];reject(Error('CDP timeout: '+method));},10000);pending[i]={resolve,timer};ws.send(JSON.stringify({id:i,method,params}));});
   await send('Page.enable');await send('Runtime.enable');await send('Log.enable');
   const VK={Enter:13,Escape:27,ArrowUp:38,ArrowDown:40,Space:32,KeyP:80,KeyQ:81};

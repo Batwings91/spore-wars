@@ -3,12 +3,17 @@ SPORE WARS — a 640K Games production
 
 AI-generated content disclosure
 -------------------------------
-Some illustrations are AI-assisted: generated with OpenAI image generation under 640K Games' art
-direction, then edited, encoded and composed by 640K Games. Each is listed individually below
-(the world backdrops, the Mothership, Mech and Battleship bodies, the crawler and lurker
-bodies, the title hangar, the salvage trader and the modular player hull). Everything else - sprites derived from the
-credited packs, the studio logo, procedural art, code and sound synthesis - is human-made.
-Declare this on store pages that ask (itch.io has an AI-generation disclosure field).
+Some runtime illustrations are AI-assisted: generated with OpenAI image generation under 640K
+Games' art direction, then selected, edited, encoded and composed by 640K Games. The complete
+runtime list is: battleship_hull.webp, colony_body.webp, crawler_body.webp,
+ground_bunkers.webp, ground_sentries.webp, lurker_body.webp, matriarch_body.webp,
+mech_body.webp, menu_hangar.webp, mothership_body.webp, needle_body.webp,
+player_hull.png, seeder_body.webp, spore_skimmer.webp, trader_shop.webp,
+warden_body.webp, world_brood.webp, world_foundry.webp, world_heart.webp,
+world_labyrinth.webp, world_salvage.webp and world_wilds.webp. Each is described below.
+Gameplay code has also been developed with AI coding assistants under owner direction and review.
+There is no AI-generated music, voice acting or sampled sound. Declare these facts on store pages
+that ask (itch.io has an AI-generation disclosure field).
 
 Art credits
 -----------
@@ -183,3 +188,43 @@ Phase 4 alien-family silhouette study (docs/phase4-creature-silhouettes.png):
 Carapace Rammer, Tendril Hunter, Spore Ray membrane/projectile and Brood Lattice:
   Original procedural Canvas artwork by 640K Games, 2026-09-08. No third-party assets.
   Design and gameplay contract: docs/phase4-creature-design.md.
+
+Runtime asset manifest
+----------------------
+This manifest is exhaustive for assets/ and is checked by tools/release-audit.js.
+
+Skorpio, CC-BY-SA 3.0 derivatives:
+  bomber.png, boss_battleship.png, boss_mech.png, boss_mech_fire.png,
+  boss_mothership.png, cruiser.png, destroyer.png, frigate.png, heavycruiser.png,
+  player.png, scout.png.
+
+Daniel Cook / Remastered Tyrian Graphics, CC-BY 3.0 derivatives:
+  bolt0.png, bolt1.png, bolt2.png, bolt3.png, bolt4.png, flash0.png, flash1.png,
+  icon_b.png, icon_core.png, icon_s.png, icon_w.png, plasma_blue.png, plasma_red.png.
+
+chabull, CC-BY 3.0 derivatives:
+  exp_big.png, exp_boss.png, exp_ring.png, exp_small.png, smoke.png.
+
+LuminousDragonGames / Parallax Space Scene, CC0 derivatives:
+  px_haze1.png, px_haze2.png, px_nebula.png, px_stars_far.png, px_stars_mid.png,
+  px_stars_near.png.
+
+OpenAI image generation under 640K Games art direction; original AI-assisted assets:
+  battleship_hull.webp, colony_body.webp, crawler_body.webp, ground_bunkers.webp,
+  ground_sentries.webp, lurker_body.webp, matriarch_body.webp, mech_body.webp,
+  menu_hangar.webp, mothership_body.webp, needle_body.webp, player_hull.png,
+  seeder_body.webp, spore_skimmer.webp, trader_shop.webp, warden_body.webp,
+  world_brood.webp, world_foundry.webp, world_heart.webp, world_labyrinth.webp,
+  world_salvage.webp, world_wilds.webp.
+
+Original 640K Games studio artwork:
+  logo_icon.png, logo_prompt.png.
+
+MintoDog / "Space Adventure", CC0:
+  space-adventure.m4a.
+
+Brian MacIntosh (BMacZero), CC0 derivative:
+  impact.wav.
+
+Spring Spring, CC0 derivative:
+  enemy-burst.wav.

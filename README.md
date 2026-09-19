@@ -12,15 +12,15 @@ Budget: effectively £0/month for tools; keep everything free-licensed.
 ## Layout
 ```
 index.html          dev build — loads src/*.js in order plus ./assets/. Serve over http (see below); file:// won't fetch the music.
-src/                the game code, one topic per file (core, sprites, weapons, scene, audio, input, game, world encounters, bosses, play, screens, main); see ARCHITECTURE.md
+src/                the game code, one topic per file (core, sprites, weapons, scene, audio, ads, input, scores, game, world encounters, bosses, play, screens, main); see ARCHITECTURE.md
 assets/             final game sprites (already palette-reduced/outlined), music
 tools/build.js      release build → dist/ (build.py is the identical Python version; use whichever runtime the machine has)
 tools/serve.js      dev server on port 8000 (or python3 -m http.server 8000)
 tools/smoke.js      headless regression run; see TESTING.md
 tools/world-smoke.js focused living-fauna and split-route regression; see TESTING.md
 tools/ecosystem-smoke.js focused six-family and Brood Lattice Playwright regression; see TESTING.md
-dist/               release artefact, NOT committed (gitignored): dist/index.html with the PNG sprites inlined plus dist/assets/ (WebP
-                    illustrations + music, loaded after boot). Build at release time and zip the folder with index.html at the root.
+dist/               release artefact, NOT committed (gitignored): dist/index.html with the PNG sprites inlined, dist/assets/ (WebP,
+                    audio loaded after boot), and CREDITS.txt. Build at release time and zip the folder with index.html at the root.
 docs/               palette256.json, contact sheets, extracted Tyrian sprites (docs/tyrian-sprites/, IDs like A050 match the index sheets)
 CREDITS.txt         licence/attribution for every third-party asset. Keep it accurate; it ships with the game.
 (logo)              the 640K Games logo lives outside this repo in `../Logo` (its own git repo; gen.js is the source). Copy exports into assets/ as needed. © 640K Games, not CC.
@@ -43,16 +43,14 @@ See `ARCHITECTURE.md`. Decisions and their reasons: `DECISIONS.md`. How to test:
 - Raw source packs are on the owner's Mac (Downloads), not in this repo.
 
 ## Done
-Boot screen, title and Workshop, six gun states, independent rocket pods, twin sustained side lasers, shields, persistent upgrades, megabomb, pickup fanfare, a 25-wave five-stage campaign, five bosses, painted/fallback scenery, synthesised SFX, streamed music, separate audio controls, touch controls, fixed timestep and debug params.
+Boot screen, title and Workshop, six gun states, independent rocket pods, twin sustained side lasers, shields, persistent upgrades, megabomb, pickup fanfare, a 25-wave five-stage campaign, five bosses, painted/fallback scenery, synthesised SFX, streamed music, separate audio controls, touch controls, local DOS high scores, CrazyGames rewarded-ad hooks, fixed timestep and debug params.
 
 ## Next (agreed order)
-1. **Playtest balance** of the Battleship (owner feedback pending): sponginess, phase-2 bullet density, turret value.
-2. **Mech boss** (wave 10; walk/fire frames exist: boss_mech, boss_mech_fire) and **Mothership** (wave 15; spawns scouts from bays). Then bosses rotate.
-3. Score multiplier chain; DOS-style high-score initials + local table; pause (P); faster game-over→retry.
-4. Rewarded-ad hooks: continue, double cores. Keep as clearly-labelled stubs until an SDK is chosen (CrazyGames SDK first, Poki SDK later).
-5. Portrait layout for phones.
-6. itch.io page (cover, GIF, description with credits/links) → CrazyGames Basic Launch → Poki submission (check current official developer docs before each; verify size limits — dist/index.html is the initial download (~2.5 MB); the ~4.5 MB of illustrations and music load after boot. Poki guidance was <8 MB initial load).
-7. Later ideas: enemy ladder (cruiser/destroyer/heavycruiser unused so far), Tyrian ground/wall tiles for a surface stage, Human fleet as second faction, better logo/font, CC0 SFX pack from OGA if synth SFX not good enough.
+1. Publish the verified desktop package and store page on itch.io (cover, GIF, description, AI disclosure and credits/links).
+2. Upload the same package to CrazyGames Basic Launch, verify the v3 SDK lifecycle in its preview, then enable the existing Continue / Double Cores rewarded placements when ads are available.
+3. Add the Poki adapter and complete Poki submission after the CrazyGames release is stable; re-check current official portal requirements at that point.
+4. Treat portrait phone layout as a separate post-itch layout project; landscape desktop/mobile remains the release layout.
+5. Later ideas: enemy ladder (cruiser/destroyer/heavycruiser unused so far), Tyrian ground/wall tiles for a surface stage, Human fleet as second faction, better logo/font, CC0 SFX pack from OGA if synth SFX not good enough.
 
 ## Working agreement between assistants
 - One assistant edits at a time; commit with a clear message before handing over. Read the diff of the other's last commit before continuing.

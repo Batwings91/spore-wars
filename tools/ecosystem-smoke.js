@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Phase 4 creature-family and Brood Lattice regression over Chrome DevTools Protocol (no npm dependencies).
 // Serve the project on port 8000 first. Ported from the Playwright version so it runs on every machine.
-const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');
+const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os'),{webSocketImpl}=require('./cdp-socket');
+const WebSocketImpl=webSocketImpl();
 const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=Number(process.env.SMOKE_PORT)||9482;
 const CANDIDATES=[process.env.CHROME,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean);
@@ -15,12 +16,12 @@ const keepAlive=setInterval(()=>{},1000);
 function finish(code){clearInterval(keepAlive);try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recursive:true,force:true});}catch(e){}process.exit(code);}
 (async()=>{
   let wsUrl;for(let i=0;i<50&&!wsUrl;i++){try{const l=await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json(),pg=l.find(t=>t.type==='page');if(pg)wsUrl=pg.webSocketDebuggerUrl;}catch(e){}if(!wsUrl)await sleep(200);}
-  if(!wsUrl)throw new Error('no CDP page target');
-  const ws=new WebSocket(wsUrl);await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(5000).then(()=>{throw Error('CDP websocket open timeout');})]);let id=0;const pending={};
-  ws.addEventListener('message',async ev=>{const raw=typeof ev.data==='string'?ev.data:ev.data&&typeof ev.data.text==='function'?await ev.data.text():String(ev.data),m=JSON.parse(raw);if(m.id&&pending[m.id]){clearTimeout(pending[m.id].timer);pending[m.id].resolve(m.result||m.error);delete pending[m.id];}
+  if(!wsUrl)throw new Error('no CDP page target');wsUrl=wsUrl.replace('localhost','127.0.0.1');
+  const ws=new WebSocketImpl(wsUrl);await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(20000).then(()=>{throw Error('CDP websocket open timeout');})]);let id=0;const pending={};
+  ws.addEventListener('message',async ev=>{const raw=typeof ev.data==='string'?ev.data:ev.data&&typeof ev.data.text==='function'?await ev.data.text():Buffer.from(ev.data).toString('utf8'),m=JSON.parse(raw);if(m.id&&pending[m.id]){clearTimeout(pending[m.id].timer);pending[m.id].resolve(m.result||m.error);delete pending[m.id];}
     if(m.method==='Runtime.exceptionThrown')errors.push('EXCEPTION: '+(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text));
     if(m.method==='Runtime.consoleAPICalled'&&(m.params.type==='error'||m.params.type==='warning'))errors.push(m.params.type.toUpperCase()+': '+m.params.args.map(a=>a.value??a.description).join(' '));
-    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
+    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon|sdk\.crazygames\.com/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
   const send=(method,params={})=>new Promise((resolve,reject)=>{const i=++id,timer=setTimeout(()=>{delete pending[i];reject(Error('CDP timeout: '+method));},10000);pending[i]={resolve,timer};ws.send(JSON.stringify({id:i,method,params}));});
   const evalJs=async expr=>(await send('Runtime.evaluate',{expression:expr,returnByValue:true,awaitPromise:true})).result?.value;
   const shot=async name=>{const r=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(OUT,name+'.png'),Buffer.from(r.data,'base64'));console.log('shot',name);};

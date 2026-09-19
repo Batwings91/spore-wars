@@ -66,11 +66,14 @@ node tools/smoke.js
 ```
 Needs Node 22+ and a Chrome/Edge install (no npm packages), with the dev build served on port 8000. It drives headless Chrome over the DevTools protocol through boot → title → menu arrows → mute → play → pause → resume → quit via the confirmation → Workshop → Esc, then dies at `?wave=4` and returns to the title. Screenshots land in `tools/smoke-out/` (gitignored); exit code 1 on any page error, rAF starvation, or if the ship never dies. `URL=http://localhost:8000/dist/index.html node tools/smoke.js` tests the release build. Run it before every gameplay commit; look at the screenshots, not just the exit code.
 
+The browser suites use native WebSocket CDP by default. If Playwright is already discoverable through `NODE_PATH`, `tools/cdp-socket.js` automatically uses its pipe transport instead; this avoids a known Node/Chrome combination that opens CDP but never answers commands, without adding a project dependency.
+
 ## Release checklist
-1. `node tools/build.js` (or `python3 tools/build.py` — same bytes) → `dist/index.html` + `dist/assets/`. The build prints the initial-download size (target < 8 MB for Poki; ~2.5 MB) and the deferred size.
-2. Serve `dist/` over http and run `URL=http://localhost:8000/dist/index.html node tools/smoke.js`: illustrations, music, no errors. Zip the dist/ folder with index.html at the root.
-3. CREDITS.txt reflects every asset in `assets/`.
-4. Commit with a version tag.
+1. `node tools/build.js` (or `python3 tools/build.py` — same output) → `dist/index.html`, `dist/assets/` and `dist/CREDITS.txt`.
+2. `node tools/release-audit.js` enforces the 8 MB initial-download target, exact credit coverage for every file in `assets/`, the complete runtime AI-asset disclosure, packaged credits and deferred-asset parity.
+3. Serve the repository over HTTP, set `URL=http://127.0.0.1:8000/dist/index.html`, then run `node tools/smoke.js`, `node tools/campaign-smoke.js`, `node tools/world-smoke.js`, `node tools/ecosystem-smoke.js`, and `node tools/ship-smoke.js`. Also run the browser-independent `node tools/ads-smoke.js` and `node tools/highscore-smoke.js`.
+4. Inspect the fresh screenshots in `tools/smoke-out/`, especially title, Fleet Lost, victory, Workshop, narrow layouts and the new high-score modal/table. Zip the contents of `dist/` with `index.html` at the archive root.
+5. Commit with a version tag.
 
 ## Menu navigation consistency
 Check Up/Down and W/S wrapping plus Enter selection on title, pause, exit confirmation, level complete, Workshop (including Back), and game over. Game over defaults to Retry and omits Continue once used. Confirm menu arrows do not move the ship after resuming; touch activates the corresponding visible rows.

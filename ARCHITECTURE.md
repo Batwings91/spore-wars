@@ -19,7 +19,7 @@ No framework, no bundler. The game code is plain classic scripts in `src/`, load
 | `src/screens.js` | HUD panels, play scene, boot, title, pause, game over, sector complete and Workshop screens. |
 | `src/main.js` | Run transitions (clearScene/quitRun/continueRun), the fixed-step loop, stepLogic() and render(). |
 
-Dev needs no build step. `tools/build.js` inlines the files into `dist/index.html` for release. Add new code to the file whose topic fits; add a new file only by appending a `<script src>` tag after the files it depends on. `.gitattributes` keeps all detected text at LF in the repository on every development platform.
+Dev needs no build step. `tools/build.js` inlines the files into `dist/index.html`, copies deferred assets, and ships `CREDITS.txt`; `tools/release-audit.js` verifies the package. Add new code to the file whose topic fits; add a new file only by appending a `<script src>` tag after the files it depends on. `.gitattributes` keeps all detected text at LF in the repository on every development platform.
 
 ## Systems
 - **Resolution:** logic runs in a 640×360 space (`LW,LH`), rendered at 1280×720 (`K=2`, `X(v)` converts). Playfield is `PX..PX+PW` (100..540 logic) with bevelled HUD panels either side. 16:9 is mandatory for Poki/CrazyGames. Portrait/phone-upright layout is a wanted future feature.

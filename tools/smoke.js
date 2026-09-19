@@ -5,7 +5,8 @@
 //   URL=http://localhost:8000/dist/index.html node tools/smoke.js   (test the release build instead)
 // Flow: boot -> title -> menu arrows -> mute toggle -> play -> pause -> resume -> quit via confirmation -> workshop
 // -> Esc; then ?wave=4 without god mode until the fleet is lost -> Esc back to title.
-const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os');
+const {spawn}=require('child_process'),fs=require('fs'),path=require('path'),os=require('os'),{webSocketImpl}=require('./cdp-socket');
+const WebSocketImpl=webSocketImpl();
 const BASE=process.env.URL||'http://localhost:8000/index.html',PORT=Number(process.env.SMOKE_PORT)||9333;
 const CANDIDATES=[process.env.CHROME,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean);
@@ -13,23 +14,24 @@ const EXE=CANDIDATES.find(p=>fs.existsSync(p));if(!EXE){console.error('No Chrome
 const OUT=path.join(__dirname,'smoke-out');fs.mkdirSync(OUT,{recursive:true});
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'spore-smoke-'));
 const chrome=spawn(EXE,['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--autoplay-policy=no-user-gesture-required',
-  '--remote-debugging-port='+PORT,'--window-size=1280,760','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+  '--remote-allow-origins=*','--remote-debugging-port='+PORT,'--window-size=1280,760','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const errors=[];
-function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recursive:true,force:true});}catch(e){}process.exit(code);}
+const keepAlive=setInterval(()=>{},1000);
+function finish(code){clearInterval(keepAlive);try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recursive:true,force:true});}catch(e){}process.exit(code);}
 (async()=>{
   let wsUrl;for(let i=0;i<50&&!wsUrl;i++){try{const l=await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();const pg=l.find(t=>t.type==='page');if(pg)wsUrl=pg.webSocketDebuggerUrl;}catch(e){}if(!wsUrl)await sleep(200);}
-  if(!wsUrl)throw new Error('no CDP page target');
-  const ws=new WebSocket(wsUrl);await new Promise(r=>ws.onopen=r);
+  if(!wsUrl)throw new Error('no CDP page target');wsUrl=wsUrl.replace('localhost','127.0.0.1');
+  const ws=new WebSocketImpl(wsUrl);ws.binaryType='arraybuffer';await Promise.race([new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(Error('CDP websocket failed'));ws.onclose=()=>reject(Error('CDP websocket closed before opening'));}),sleep(20000).then(()=>{throw Error('CDP websocket open timeout');})]);
   let id=0;const pending={};
-  ws.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.id&&pending[m.id]){pending[m.id](m.result||m.error);delete pending[m.id];}
+  ws.addEventListener('message',ev=>{const raw=typeof ev.data==='string'?ev.data:Buffer.from(ev.data).toString('utf8'),m=JSON.parse(raw);if(m.id&&pending[m.id]){clearTimeout(pending[m.id].timer);pending[m.id].resolve(m.result||m.error);delete pending[m.id];}
     if(m.method==='Runtime.exceptionThrown')errors.push('EXCEPTION: '+(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text));
     if(m.method==='Runtime.consoleAPICalled'&&(m.params.type==='error'||m.params.type==='warning'))errors.push(m.params.type.toUpperCase()+': '+m.params.args.map(a=>a.value??a.description).join(' '));
-    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));};
-  const send=(method,params={})=>new Promise(r=>{const i=++id;pending[i]=r;ws.send(JSON.stringify({id:i,method,params}));});
+    if(m.method==='Log.entryAdded'&&m.params.entry.level==='error'&&!/favicon|sdk\.crazygames\.com/.test(m.params.entry.text+m.params.entry.url))errors.push('LOG: '+m.params.entry.text+' '+(m.params.entry.url||''));});
+  const send=(method,params={})=>new Promise((resolve,reject)=>{const i=++id,timer=setTimeout(()=>{delete pending[i];reject(Error('CDP timeout: '+method));},10000);pending[i]={resolve,timer};ws.send(JSON.stringify({id:i,method,params}));});
   await send('Page.enable');await send('Runtime.enable');await send('Log.enable');
-  const VK={Enter:13,Escape:27,ArrowUp:38,ArrowDown:40,Space:32,KeyP:80,KeyQ:81};
-  const KEYS={Enter:'Enter',Escape:'Escape',ArrowUp:'ArrowUp',ArrowDown:'ArrowDown',Space:' ',KeyP:'p',KeyQ:'q'};
+  const VK={Enter:13,Escape:27,ArrowUp:38,ArrowDown:40,Space:32,KeyA:65,KeyC:67,KeyP:80,KeyQ:81,KeyT:84};
+  const KEYS={Enter:'Enter',Escape:'Escape',ArrowUp:'ArrowUp',ArrowDown:'ArrowDown',Space:' ',KeyA:'a',KeyC:'c',KeyP:'p',KeyQ:'q',KeyT:'t'};
   const key=async code=>{const b={code,key:KEYS[code],windowsVirtualKeyCode:VK[code],nativeVirtualKeyCode:VK[code]};
     await send('Input.dispatchKeyEvent',{type:code==='Space'?'keyDown':'rawKeyDown',...b,...(code==='Space'?{text:' '}:{})});await send('Input.dispatchKeyEvent',{type:'keyUp',...b});await sleep(60);};
   const shot=async name=>{const r=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(OUT,name+'.png'),Buffer.from(r.data,'base64'));console.log('shot',name);};
@@ -58,6 +60,7 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   // Quit through the confirmation: pause, select Main menu, confirm Return to main menu.
   await key('Escape');await key('ArrowDown');await key('Enter');await sleep(300);await shot('08-exit-confirm');
   await key('ArrowDown');await key('Enter');await sleep(500);await shot('09-title-after-quit');
+  if(await evalJs('!!highScoreEntry')){await key('KeyC');await key('KeyA');await key('KeyT');await key('Enter');await sleep(300);await shot('09b-title-highscores');}
   await key('ArrowDown');await key('Enter');await sleep(300);await shot('10-workshop');
   await key('Escape');await sleep(300);await shot('11-title-from-workshop');
 
@@ -68,7 +71,8 @@ function finish(code){try{chrome.kill();}catch(e){}try{fs.rmSync(profile,{recurs
   let dead=false;for(let i=0;i<40&&!dead;i++){await sleep(3000);const n=await shipsPixels();dead=n<10;console.log('run tick',i,'ship pixels',n,'dead?',dead);}
   if(!dead)errors.push('ship never died within 120 s at ?wave=4');
   await sleep(800);await shot('12-fleet-lost');
-  await key('Escape');await sleep(400);await shot('13-title-from-fleet-lost');
+  if(await evalJs('!!highScoreEntry')){await key('KeyC');await key('KeyA');await key('KeyT');await key('Enter');await sleep(300);await shot('12b-fleet-lost-table');}
+  await key('Escape');await sleep(400);if(await evalJs('mode')!=='title')throw Error('Fleet Lost Escape did not reach title');await shot('13-title-from-fleet-lost');
 
   console.log('\n=== page errors ===');console.log(errors.length?errors.join('\n'):'(none)');
   ws.close();finish(errors.length?1:0);

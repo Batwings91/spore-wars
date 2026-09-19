@@ -4,7 +4,8 @@
 // boot). Upload the dist/ folder as one zip with index.html at the root. Node port of build.py: byte-identical output.
 const fs=require('fs'),path=require('path');
 const root=path.dirname(__dirname),assets=path.join(root,'assets'),dist=path.join(root,'dist'),distAssets=path.join(dist,'assets');
-let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const readText=file=>fs.readFileSync(file,'utf8').replace(/\r\n?/g,'\n');
+let html=readText(path.join(root,'index.html'));
 // Dropbox or an open preview can hold dist/ files: clear best-effort with retries, then overwrite in place.
 try{fs.rmSync(dist,{recursive:true,force:true,maxRetries:5,retryDelay:200});}catch(e){console.warn('dist/ not fully cleared ('+e.code+'); overwriting in place');}
 fs.mkdirSync(distAssets,{recursive:true});
@@ -16,8 +17,9 @@ for(const f of fs.readdirSync(assets).sort()){
 }
 // Match Python json.dumps separators so both builders produce the same bytes.
 const dumps=o=>'{'+Object.entries(o).map(([k,v])=>JSON.stringify(k)+': '+JSON.stringify(v)).join(', ')+'}';
-html=html.replace(/<script src="(src\/[^"]+)"><\/script>/g,(m,src)=>'<script>\n'+fs.readFileSync(path.join(root,src),'utf8')+'</script>');
+html=html.replace(/<script src="(src\/[^"]+)"><\/script>/g,(m,src)=>'<script>\n'+readText(path.join(root,src))+'</script>');
 html=html.replace(/const ASSET_DATA=\{[\s\S]*?\};[^\n]*\n/,()=>'const ASSET_DATA='+dumps(data)+';\n');
 fs.writeFileSync(path.join(dist,'index.html'),html,'utf8');
+fs.copyFileSync(path.join(root,'CREDITS.txt'),path.join(dist,'CREDITS.txt'));
 const kb=n=>Math.round(n/1024);
-console.log('wrote dist/index.html',kb(Buffer.byteLength(html,'utf8')),'KB (initial download); dist/assets/',copied,'files',kb(copiedBytes),'KB loaded after boot');
+console.log('wrote dist/index.html',kb(Buffer.byteLength(html,'utf8')),'KB (initial download); dist/assets/',copied,'files',kb(copiedBytes),'KB loaded after boot; copied CREDITS.txt');
