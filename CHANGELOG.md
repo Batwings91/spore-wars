@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-19 — Painted wall fauna
+- Replaced the procedural Level 2 edge enemies with original painted Spore Spitter and Snap Bloom artwork, including distinct idle/charged and folded/open states, subtle breathing and clean left/right mirroring.
+- Retained their exact timing, collision, suppression and lifecycle behaviour plus the procedural missing-image fallback; added focused smoke coverage, asset provenance, credits and release-audit disclosure.
+
 ## 2026-09-19 — Lethal pod rockets
 - Made each purchased pod rocket deal exactly its impact target's remaining health, guaranteeing a kill against air enemies, ground fixtures, boss parts/hulls and open Lattice nodes while retaining the three-second cadence, homing and two-live cap.
 - Kept Seeker Orb missiles at one damage and updated the Workshop description, regression coverage and gameplay documentation to make the distinction explicit.

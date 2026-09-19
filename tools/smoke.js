@@ -66,7 +66,8 @@ function finish(code){clearInterval(keepAlive);try{chrome.kill();}catch(e){}try{
 
   // Game over: wave 4 gives an immediate boss; the ship never moves. Dead when the SHIPS box holds no ship pixels.
   await go(BASE+'?wave=4');
-  await key('Enter');await sleep(600);await key('Enter');
+  await evalJs("save.weapon=0;save.shield=0;save.rockets=0;save.orb=0;save.sideLaser=0;persist()");
+  await key('Enter');await sleep(600);await key('Enter');await evalJs('fireT=99999;shots=[]');
   const shipsPixels=()=>evalJs(`(()=>{const c=document.querySelector('canvas');const d=c.getContext('2d').getImageData(36,258,124,30).data;let n=0;for(let i=0;i<d.length;i+=4)if(Math.abs(d[i]-14)+Math.abs(d[i+1]-28)+Math.abs(d[i+2]-41)>60)n++;return n;})()`);
   let dead=false;for(let i=0;i<40&&!dead;i++){await sleep(3000);const n=await shipsPixels();dead=n<10;console.log('run tick',i,'ship pixels',n,'dead?',dead);}
   if(!dead)errors.push('ship never died within 120 s at ?wave=4');
