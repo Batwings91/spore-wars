@@ -125,16 +125,17 @@ function drawWorld(){
   const paint=stage=>{
     const art=worldArt(stage);
     if(art){
-      const h=art.height,y=Math.floor(worldScroll%(h*2));
+      const h=art.height,y=worldScroll%(h*2);
       // Alternate vertical reflection joins identical edge pixels without a hard seam.
       for(let i=-2;i<=0;i++){
         const top=y+i*h;if(top>=H||top+h<=0)continue;
         ctx.save();ctx.translate(X(PX),top+(i===-1?h:0));ctx.scale(1,i===-1?-1:1);
         ctx.drawImage(art,0,0);ctx.restore();
       }
-    }else{const y=Math.floor(worldScroll%TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y-TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y);}
+    }else{const y=worldScroll%TH;ctx.drawImage(WORLD_TILES[stage],X(PX),y-TH);ctx.drawImage(WORLD_TILES[stage],X(PX),y);}
   };
   ctx.save();
+  ctx.imageSmoothingEnabled=true;
   if(worldFade>0){paint(worldFrom);ctx.globalAlpha=1-worldFade/150;}
   paint(worldStage);ctx.restore();
 }

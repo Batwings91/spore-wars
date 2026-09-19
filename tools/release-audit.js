@@ -6,7 +6,7 @@ const credits=fs.readFileSync(path.join(root,'CREDITS.txt'),'utf8'),disclosure=c
 const files=fs.readdirSync(assets).filter(name=>fs.statSync(path.join(assets,name)).isFile()).sort();
 const missingCredits=files.filter(name=>!credits.includes(name));
 assert.deepStrictEqual(missingCredits,[],'CREDITS.txt is missing assets: '+missingCredits.join(', '));
-const aiAssets=['battleship_hull.webp','colony_body.webp','crawler_body.webp','ground_bunkers.webp','ground_sentries.webp','lurker_body.webp','matriarch_body.webp','mech_body.webp','menu_hangar.webp','mothership_body.webp','needle_body.webp','player_hull.png','seeder_body.webp','spore_skimmer.webp','trader_shop.webp','wall_fauna.png','warden_body.webp','world_brood.webp','world_foundry.webp','world_heart.webp','world_labyrinth.webp','world_salvage.webp','world_wilds.webp'];
+const aiAssets=['battleship_hull.webp','colony_body.webp','crawler_body.webp','ground_bunkers.webp','ground_sentries.webp','ground_wrecks.webp','snap_barb.png','spore_globule.png','lurker_body.webp','matriarch_body.webp','mech_body.webp','menu_hangar.webp','mothership_body.webp','needle_body.webp','player_hull.png','seeder_body.webp','spore_skimmer.webp','trader_shop.webp','wall_fauna.png','warden_body.webp','world_brood.webp','world_foundry.webp','world_heart.webp','world_labyrinth.webp','world_salvage.webp','world_wilds.webp'];
 const missingDisclosure=aiAssets.filter(name=>!disclosure.includes(name));
 assert.deepStrictEqual(missingDisclosure,[],'AI disclosure is missing runtime assets: '+missingDisclosure.join(', '));
 assert(credits.includes('AI coding assistants')&&credits.includes('no AI-generated music'),'AI disclosure must cover code assistance and excluded media');

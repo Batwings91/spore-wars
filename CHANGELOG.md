@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-19 — Smoother wall fauna and painted organic aftermath
+- Smoothed wall creatures, scenery and ground anchoring with fractional rendering; eased opening/recovery poses and added stronger anchored breathing, sway and firing recoil. Scrolling speed/direction and all attack logic remain unchanged.
+- Replaced flat biological wreck polygons with three original painted remains, and organic spore shots/snapping tongues with authored artwork. Retained procedural fallbacks, smoke, damage/collision, lifecycle rules and side-laser behaviour.
+- Added provenance/full prompts and complete asset credits/disclosure. World, campaign and general smoke suites passed; desktop/small-screen/fallback captures reviewed. General smoke: 62 FPS, no page errors. Active wave-11 render probe: 0.38 ms painted before/after, 0.36/0.35 ms fallback (desktop diagnostic, not phone performance); used the existing optional pipe transport and excluded the unavailable external portal SDK from the probe error count.
+- Release output was not rebuilt or uploaded; review the development index.html.
+
 ## 2026-09-19 — Painted wall fauna
 - Replaced the procedural Level 2 edge enemies with original painted Spore Spitter and Snap Bloom artwork, including distinct idle/charged and folded/open states, subtle breathing and clean left/right mirroring.
 - Retained their exact timing, collision, suppression and lifecycle behaviour plus the procedural missing-image fallback; added focused smoke coverage, asset provenance, credits and release-audit disclosure.

@@ -129,14 +129,22 @@ function destroyGround(e){if(e.destroyed)return;e.destroyed=true;
 }
 const WRECK_SMOKE=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),h=g.createRadialGradient(32,32,3,32,32,31);h.addColorStop(0,'rgba(156,148,137,0.8)');h.addColorStop(0.5,'rgba(104,102,99,0.5)');h.addColorStop(1,'rgba(80,80,80,0)');g.fillStyle=h;g.fillRect(0,0,64,64);return c;})();
 const GROUND_FALLBACK_GRADIENT=[null,null]; // radial gradients are in user space, so one per variant serves every unit
-// Snap to the same scrolling pixel as the scenery, with a fixed world anchor.
-const groundRenderY=anchor=>Math.floor(worldScroll)-Math.floor(anchor);
+// Share fractional scenery scrolling while keeping a fixed world anchor.
+const groundRenderY=anchor=>worldScroll-anchor;
 function drawGround(){
   for(const m of groundMarks){const bio=m.world>0,fade=Math.min(1,m.age/10,m.life/60);ctx.save();ctx.translate(X(m.x+m.dx),groundRenderY(m.anchor)+X(m.dy));ctx.globalAlpha=fade;
     if(!bio){ctx.fillStyle='rgba(8,10,11,0.72)';ctx.beginPath();ctx.ellipse(0,0,X(3.5),X(2.3),m.seed,0,Math.PI*2);ctx.fill();if(m.age<24)for(let i=0;i<4;i++){const a=m.seed+i*1.7,r=3+m.age*0.55;ctx.strokeStyle=i%2?'#ffd285':'#e98843';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();}}
     else{const fluids=[null,['#77a747','#b6ce69','#704157'],['#7fa64b','#d2b65c','#60364e'],['#7e5aa0','#b7d06b','#713d68'],['#9d4855','#d49a55','#6d9a43']],pal=fluids[Math.min(4,m.world)];ctx.fillStyle=pal[m.seed%pal.length];ctx.beginPath();for(let i=0;i<9;i++){const a=i/9*Math.PI*2,r=X(3.5+((m.seed+i*11)%5));ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*0.65);}ctx.closePath();ctx.fill();for(let i=0;i<3;i++){const a=m.seed+i*2.1,r=X(7+i*3);ctx.fillStyle=pal[(i+1)%pal.length];ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*0.7,X(1.2+i*0.4),0,Math.PI*2);ctx.fill();}}
     ctx.restore();}
   for(const w of groundWrecks){ctx.save();ctx.translate(X(w.x),groundRenderY(w.anchor));
+    if(w.stage>0&&IMG.ground_wrecks){
+      const art=IMG.ground_wrecks,cell=art.width/3,frame=w.variant===2?2:(w.world||w.stage)===1?0:1,size=w.variant===2?76:68;
+      ctx.imageSmoothingEnabled=true;ctx.drawImage(art,frame*cell,0,cell,art.height,-size*K/2,-size*K/2,size*K,size*K);
+      // Keep the existing age-driven smoke subtle over the authored remains.
+      if((w.world||w.stage)===1)for(let i=0;i<8;i++){const age=w.age-i*18;if(age<0||age>=300)continue;const f=age/300,puff=(16+f*24)*K;
+        ctx.globalAlpha=0.2*Math.sin(Math.PI*f);ctx.drawImage(WRECK_SMOKE,(Math.sin(i*2+w.variant)*8+f*11)*K-puff/2,(-5-f*37)*K-puff/2,puff,puff);}
+      ctx.restore();continue;
+    }
     const world=w.world===undefined?(w.stage||0):w.world,bio=world>0,fluids=[null,['#597f38','#9dbb54','#6d4056'],['#6e913f','#c09e49','#593548'],['#75528c','#9db950','#643a61'],['#873e4c','#bd8045','#577e39']],fluid=fluids[Math.min(4,world)],r=w.variant===2?32:27;ctx.fillStyle='rgba(5,8,12,0.4)';ctx.beginPath();ctx.ellipse(0,X(3),X(r),X(r*0.7),0,0,Math.PI*2);ctx.fill();
     if(bio){ctx.fillStyle=fluid[0];ctx.globalAlpha=0.72;ctx.beginPath();for(let i=0;i<12;i++){const a=i/12*Math.PI*2,rr=X((i%2?18:25)+(w.seed+i*7)%8);ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr*0.62);}ctx.closePath();ctx.fill();ctx.globalAlpha=1;for(let i=0;i<6;i++){const a=w.seed+i*1.4,rr=12+(i*7%24);ctx.fillStyle=fluid[i%fluid.length];ctx.beginPath();ctx.arc(X(Math.cos(a)*rr),X(Math.sin(a)*rr*0.6),X(2+(i%3)),0,Math.PI*2);ctx.fill();}}
     // Torn plates/chitin, a charred crater and a collapsed weapon.
@@ -382,7 +390,7 @@ function drawField(){ctx.save();ctx.beginPath();ctx.rect(X(PX),0,X(PW),H);ctx.cl
 
   drawBoss();drawSideLaserBeams();
   for(const s of shots){ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(Math.atan2(s.vy,s.vx)+Math.PI/2);if(s.rocket){const flame=7+(s.life%4)*2;ctx.fillStyle='rgba(67,209,236,0.3)';ctx.beginPath();ctx.moveTo(X(-3),X(5));ctx.lineTo(0,X(5+flame));ctx.lineTo(X(3),X(5));ctx.fill();ctx.fillStyle='#d9fbff';ctx.fillRect(X(-1),X(5),X(2),X(flame*0.55));}const b=s.rocket?ROCKET:BOLT[s.g];ctx.drawImage(b,-b.width/2,-12);ctx.restore();}
-  for(const s of eshots){if(s.fauna==='spore'){drawFaunaProjectile(s);continue;}if(s.family==='ray'){drawRayProjectile(s);continue;}if(s.ground){ctx.fillStyle=s.bio?'#e58cbd':'#efb65d';ctx.beginPath();ctx.arc(X(s.x),X(s.y),X(4.5),0,Math.PI*2);ctx.fill();ctx.fillStyle=s.bio?'#67334e':'#784b28';ctx.beginPath();ctx.arc(X(s.x-1),X(s.y+1),X(2),0,Math.PI*2);ctx.fill();continue;}const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
+  for(const s of eshots){if(s.fauna==='spore'){drawFaunaProjectile(s);continue;}if(s.family==='ray'){drawRayProjectile(s);continue;}if(s.ground){if(s.bio&&drawOrganicProjectile(s,4.5))continue;ctx.fillStyle=s.bio?'#e58cbd':'#efb65d';ctx.beginPath();ctx.arc(X(s.x),X(s.y),X(4.5),0,Math.PI*2);ctx.fill();ctx.fillStyle=s.bio?'#67334e':'#784b28';ctx.beginPath();ctx.arc(X(s.x-1),X(s.y+1),X(2),0,Math.PI*2);ctx.fill();continue;}const nm=s.blue?'plasma_blue':'plasma_red';for(let k=1;k<=3;k++){if(!img(nm,s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,1-k*0.2,0.35-k*0.1))blit(PLASMA[1],s.x-s.vx*k*1.5,s.y-s.vy*k*1.5,3-k*0.6);}ctx.globalAlpha=1;if(!img(nm,s.x,s.y,1+(t%8<4?0.1:0)))blit(PLASMA[t%8<4?0:1],s.x,s.y,3);}
   for(const b of booms){if(b.kind==='impact'){
     const age=8-b.life;ctx.save();ctx.globalAlpha=b.life/8;
     for(let i=0;i<4;i++){const a=i*2.4,dx=Math.cos(a),dy=Math.sin(a),r=2+age*0.7;

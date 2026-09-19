@@ -6,7 +6,7 @@ AI-generated content disclosure
 Some runtime illustrations are AI-assisted: generated with OpenAI image generation under 640K
 Games' art direction, then selected, edited, encoded and composed by 640K Games. The complete
 runtime list is: battleship_hull.webp, colony_body.webp, crawler_body.webp,
-  ground_bunkers.webp, ground_sentries.webp, lurker_body.webp, matriarch_body.webp,
+  ground_bunkers.webp, ground_sentries.webp, ground_wrecks.webp, snap_barb.png, spore_globule.png, lurker_body.webp, matriarch_body.webp,
 mech_body.webp, menu_hangar.webp, mothership_body.webp, needle_body.webp,
   player_hull.png, seeder_body.webp, spore_skimmer.webp, trader_shop.webp, wall_fauna.png,
 warden_body.webp, world_brood.webp, world_foundry.webp, world_heart.webp,
@@ -216,7 +216,8 @@ LuminousDragonGames / Parallax Space Scene, CC0 derivatives:
 
 OpenAI image generation under 640K Games art direction; original AI-assisted assets:
   battleship_hull.webp, colony_body.webp, crawler_body.webp, ground_bunkers.webp,
-  ground_sentries.webp, lurker_body.webp, matriarch_body.webp, mech_body.webp,
+  ground_sentries.webp, ground_wrecks.webp, snap_barb.png, spore_globule.png,
+  lurker_body.webp, matriarch_body.webp, mech_body.webp,
   menu_hangar.webp, mothership_body.webp, needle_body.webp, player_hull.png,
   seeder_body.webp, spore_skimmer.webp, trader_shop.webp, wall_fauna.png, warden_body.webp,
   world_brood.webp, world_foundry.webp, world_heart.webp, world_labyrinth.webp,
@@ -233,3 +234,8 @@ Brian MacIntosh (BMacZero), CC0 derivative:
 
 Spring Spring, CC0 derivative:
   enemy-burst.wav.
+
+Organic aftermath and weapons (assets/ground_wrecks.webp, assets/spore_globule.png, assets/snap_barb.png):
+  Original AI-assisted artwork generated with the built-in OpenAI image-generation tool,
+  2026-09-19, under 640K Games direction. No third-party source pack.
+  Full prompts and processing: docs/organic-effects-20260919.md.

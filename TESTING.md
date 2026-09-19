@@ -142,7 +142,7 @@ Defeat each boss: salvage, once-only bank, then Workshop/Proceed for levels1–4
 Automated campaign regression: `node tools/campaign-smoke.js` (server on port 8000). Exercises all 25 roster slots, world mapping, bosses/projectiles, checkpoints, final banking, replay/menu and debug finale.
 
 ## Longer levels and ground wrecks
-Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Foundry wrecks show torn metal, wiring, collapsed weapons and smoke; Infected Salvage combines metal with tissue and toxic leaks; later stages leave biological splats, bubbles and differently coloured ooze. Ground rendering shares the scenery pixel snap. Verify no drift or jump on hit/destruction, pause freezes every effect, and wreck/mark limits, rewards and lifecycle resets remain unchanged.
+Each non-boss wave now has two additional formations, preserving spawn intervals and enemy introductions. Foundry wrecks show torn metal, wiring, collapsed weapons and smoke; Infected Salvage combines metal with tissue and toxic leaks; later stages leave biological splats, bubbles and differently coloured ooze. Ground rendering shares fractional scenery scrolling. Verify no drift or jump on hit/destruction, pause freezes every effect, and wreck/mark limits, rewards and lifecycle resets remain unchanged.
 
 ## Modular ship presentation
 Run `node tools/ship-smoke.js` alongside `node tools/smoke.js`. It checks the equipment catalogue, gun mount/origin derivation, full-loadout candidate overrides, side-laser purchase/equip/save and v3 migration, beam rhythm/footprint/damage, rocket purchasing/cadence/origins, grid keyboard/touch navigation and representative screenshots. Inspect all six gun tiers, attached engines, shield emitters, purchased rocket magazines, Twin Ion Lances and Orb. Block `player_hull.png` for fallback. Check transparent hull edges, live/shop consistency, shields hit/depleted, pause and smaller-viewport sizing.
@@ -181,3 +181,6 @@ Run node tools/campaign-smoke.js and node tools/smoke.js. Before and after drawi
 - Impacts: check alpha boundaries, no tint leaking into scenery/player/UI, rapid fire, pause and performance. Mechanical hits use sparks; biological hits use puffs. Check guns, rockets and bombs, unchanged damage/rewards, and boss-to-level transitions.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md#campaign-artwork) for asset mappings and rendering contracts.
+
+## Organic animation and aftermath
+Run `tools/world-smoke.js`, `tools/campaign-smoke.js` and `tools/smoke.js`. Inspect `organic-art-salvage`, `organic-art-fallback` and `organic-art-small` captures. Verify wall poses ease open and recover, breathing/sway and recoil freeze on pause, and the scenery/organisms/wrecks scroll together without whole-pixel judder. Painted projectiles must keep their luminous heads over the original collision centres; the snap barb ends at the existing reach. Block `ground_wrecks.webp`, `spore_globule.png` and `snap_barb.png` independently for fallbacks. No attack clock, damage, collision, reward or side-laser behaviour changes.

@@ -40,8 +40,8 @@ function buildFaunaDecor(stage){
 
 function drawFaunaBackground(){
   if(worldStage<1)return;
-  const tile=faunaDecor(worldStage),y=Math.floor(worldScroll%tile.height);
-  ctx.save();ctx.drawImage(tile,X(PX),y-tile.height);ctx.drawImage(tile,X(PX),y);
+  const tile=faunaDecor(worldStage),y=worldScroll%tile.height;
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(tile,X(PX),y-tile.height);ctx.drawImage(tile,X(PX),y);
   // Waves 21-22 establish the Lattice as distant ecology before its interactive wave-23 sequence.
   if(worldStage===4&&!broodLattice&&level<23){const ly=Math.floor((worldScroll*0.24)%X(430))-X(280);ctx.globalAlpha=0.12;ctx.drawImage(LATTICE_ART,X(PX+PW/2-110),ly);}
   ctx.restore();
@@ -266,12 +266,21 @@ function drawBroodLattice(){
 }
 
 function wallFaunaFrame(kind,open){return(kind==='spitter'?0:2)+(open?1:0);}
+// Ease authored poses in and out without changing the encounter clock.
+function wallFaunaOpen(e){
+  const p=WALL_FAUNA[e.kind],elapsed=p.cycle+(e.id%3)*17-e.ct;
+  const v=e.ct<=p.tell?Math.min(1,(p.tell-e.ct)/(e.kind==='snap'?p.tell-p.active:18)):Math.max(0,1-elapsed/18);
+  return v*v*(3-2*v);
+}
 function drawWallFauna(){
   for(const e of wallFauna){
     const profile=WALL_FAUNA[e.kind],tell=e.ct<=profile.tell,charge=tell?1-e.ct/profile.tell:0;
-    ctx.save();ctx.translate(X(e.x),X(e.y));ctx.scale(e.side,1);ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.save();ctx.translate(e.x*K,e.y*K);ctx.scale(e.side,1);ctx.lineCap='round';ctx.lineJoin='round';
     const painted=IMG.wall_fauna;
-    if(painted){const cell=painted.width/4,frame=wallFaunaFrame(e.kind,tell),breathe=1+Math.sin((t+e.id*23)*0.055)*0.012;ctx.save();ctx.scale(breathe,breathe);ctx.imageSmoothingEnabled=true;ctx.drawImage(painted,frame*cell,0,cell,painted.height,X(-20),X(-46),X(76),X(92));ctx.restore();}
+    if(painted){const cell=painted.width/4,frame=wallFaunaFrame(e.kind,false),open=wallFaunaOpen(e),phase=(t+e.id*23)*0.055;
+      ctx.save();ctx.translate(-20*K,0);ctx.transform(1+Math.sin(phase)*0.028+open*0.025-e.flash*0.004,Math.sin(phase*0.63)*0.025,0,1-Math.sin(phase)*0.018,0,0);ctx.imageSmoothingEnabled=true;
+      ctx.globalAlpha=1-open;if(open<1)ctx.drawImage(painted,frame*cell,0,cell,painted.height,0,-46*K,76*K,92*K);
+      ctx.globalAlpha=open;if(open>0)ctx.drawImage(painted,(frame+1)*cell,0,cell,painted.height,0,-46*K,76*K,92*K);ctx.restore();}
     else{
       ctx.strokeStyle='#241728';ctx.lineWidth=X(7);ctx.beginPath();ctx.moveTo(X(-18),X(-20));ctx.quadraticCurveTo(X(2),0,X(-16),X(22));ctx.stroke();
       if(e.kind==='spitter'){
@@ -289,7 +298,8 @@ function drawWallFauna(){
       if(tell){ctx.globalAlpha=0.45+charge*0.45;ctx.strokeStyle='#ffd0a0';ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(painted?36:10),0,X(19-charge*7),0,Math.PI*2);ctx.stroke();}
     }else{
       const active=e.ct<=profile.active,open=tell?Math.min(1,(profile.tell-e.ct)/(profile.tell-profile.active)):0;
-      if(active){const root=painted?34:12;ctx.strokeStyle='#35182c';ctx.lineWidth=X(9);ctx.beginPath();ctx.moveTo(X(root),0);ctx.bezierCurveTo(X(root+10),X(-4),X(profile.reach-12),X(4),X(profile.reach),0);ctx.stroke();ctx.strokeStyle='#b85c78';ctx.lineWidth=X(4);ctx.stroke();ctx.strokeStyle='#e3a58f';ctx.lineWidth=X(1);ctx.stroke();ctx.fillStyle='#ead0a1';ctx.beginPath();ctx.moveTo(X(profile.reach+5),0);ctx.lineTo(X(profile.reach-3),X(-4));ctx.lineTo(X(profile.reach-1),0);ctx.lineTo(X(profile.reach-3),X(4));ctx.closePath();ctx.fill();}
+      if(active&&IMG.snap_barb){const root=painted?30:12;ctx.imageSmoothingEnabled=true;ctx.drawImage(IMG.snap_barb,root*K,-5*K,(profile.reach-root)*K,10*K);}
+      else if(active){const root=painted?34:12;ctx.strokeStyle='#35182c';ctx.lineWidth=X(9);ctx.beginPath();ctx.moveTo(X(root),0);ctx.bezierCurveTo(X(root+10),X(-4),X(profile.reach-12),X(4),X(profile.reach),0);ctx.stroke();ctx.strokeStyle='#b85c78';ctx.lineWidth=X(4);ctx.stroke();ctx.strokeStyle='#e3a58f';ctx.lineWidth=X(1);ctx.stroke();ctx.fillStyle='#ead0a1';ctx.beginPath();ctx.moveTo(X(profile.reach+5),0);ctx.lineTo(X(profile.reach-3),X(-4));ctx.lineTo(X(profile.reach-1),0);ctx.lineTo(X(profile.reach-3),X(4));ctx.closePath();ctx.fill();}
       else if(tell){ctx.globalAlpha=0.5+open*0.35;ctx.strokeStyle='#f0c893';ctx.lineWidth=X(1);ctx.beginPath();ctx.arc(X(painted?34:0),0,X(21+open*5),0,Math.PI*2);ctx.stroke();}
     }
     if(e.flash>0){ctx.globalAlpha=e.flash/8;ctx.fillStyle='#ffe0b5';ctx.beginPath();ctx.arc(X(painted?38:12),0,X(6),0,Math.PI*2);ctx.fill();}
@@ -313,10 +323,17 @@ function drawRouteSegments(){
 }
 
 function drawFaunaProjectile(s){
+  if(drawOrganicProjectile(s,6))return;
   const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(a);
   ctx.strokeStyle='rgba(176,104,132,0.5)';ctx.lineWidth=X(3);ctx.beginPath();ctx.moveTo(X(-13),0);ctx.lineTo(X(-4),0);ctx.stroke();
   ctx.fillStyle='#5d3048';ctx.strokeStyle='#f0aa79';ctx.lineWidth=X(1.5);ctx.beginPath();ctx.ellipse(0,0,X(6),X(5),0,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.fillStyle='#ffd2a2';ctx.beginPath();ctx.ellipse(X(2),X(-1),X(2),X(1.5),0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawOrganicProjectile(s,radius){
+  const art=IMG.spore_globule;if(!art)return false;
+  ctx.save();ctx.translate(s.x*K,s.y*K);ctx.rotate(Math.atan2(s.vy,s.vx));ctx.imageSmoothingEnabled=true;
+  // The bright head stays centred on the existing damage circle; the tail trails behind it.
+  ctx.drawImage(art,-radius*3*K,-radius*K,radius*4*K,radius*2*K);ctx.restore();return true;
 }
 function drawRayProjectile(s){
   const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(X(s.x),X(s.y));ctx.rotate(a);
