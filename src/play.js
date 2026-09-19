@@ -83,9 +83,9 @@ function update(){t++;scroll=(scroll+1.8)%TH;
     if(Math.abs(e.x-ship.x)<R[e.k]+6&&Math.abs(e.y-ship.y)<R[e.k]+10){e.hp=0;boom(e.x,e.y,false);hitShip();}}
   updateSideLasers();
   // One hit per shot per tick; spent shots (y=-99) must not test enemies still queued above the screen.
-  for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){const damage=s.dmg||1;e.hp-=damage;e.flash=4;addDamageFloat(s.x,s.y,damage,e.k>=3);if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
+  for(const s of shots){if(s.y<-50)continue;for(const e of enemies){if(e.hp>0&&Math.abs(s.x-e.x)<R[e.k]&&Math.abs(s.y-e.y)<R[e.k]){const damage=shotDamage(s,e);e.hp-=damage;e.flash=4;addDamageFloat(s.x,s.y,damage,e.k>=3);if(e.hp>0){SFX.hit();addHitImpact(s.x,s.y,e.k>=3);}s.y=-99;
       if(e.hp<=0){awardKill(ENEMY_POINTS[e.k]||10,e.x,e.y);boom(e.x,e.y,e.k>=2);const k=dropFor(e);if(k)drops.push(makeDrop(e.x,e.y,k));}break;}}}
-  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){const damage=s.dmg||1;e.hp-=damage;addDamageFloat(s.x,s.y,damage,e.stage>0);if(e.hp>0)addGroundImpact(e,s.x,s.y);s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
+  for(const s of shots){if(s.y<-50)continue;for(const e of ground)if(e.hp>0&&e.y>0&&Math.abs(s.x-e.x)<21&&Math.abs(s.y-e.y)<21){const damage=shotDamage(s,e);e.hp-=damage;addDamageFloat(s.x,s.y,damage,e.stage>0);if(e.hp>0)addGroundImpact(e,s.x,s.y);s.y=-99;e.flash=5;if(e.hp<=0)destroyGround(e);else SFX.hit();break;}}
   damageLatticeWithShots();
   ground=ground.filter(e=>e.hp>0);
   enemies=enemies.filter(e=>e.hp>0&&e.y<LH+30);if(enemies.some(e=>e.k===3)&&enemies.length>12)enemies=enemies.filter(e=>e.k!==0||e.y>-100);

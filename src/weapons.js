@@ -25,7 +25,7 @@ const EQUIPMENT=Object.freeze({
     effect:t=>'Flight speed +'+Math.round(EQUIPMENT.engine.tiers[t].bonus/3.7*100)+'%',note:'Installs immediately and persists.',
     draw:(tier,x,y,v)=>drawEngines(tier,x,y,v.frame)},
   ordnance:{id:'ordnance',saveKey:'rockets',loadoutKey:'rockets',label:'ROCKET PODS',name:'Twin rocket pods',maxOwned:1,costs:[90],tiers:[null,{reload:180,limit:2,damage:1,life:180,turn:0.055,maxSpeed:4.2,accel:0.06}],
-    effect:t=>t?'Twin homing pods / 3.0 sec reload':'No ordnance fitted',note:'Primary gun tier does not control pods.',
+    effect:t=>t?'Twin lethal homing pods / 3.0 sec reload':'No ordnance fitted',note:'Each pod rocket destroys the target it hits.',
     draw:(tier,x,y,v)=>{if(tier)drawRocketPods(x,y,v.open,v.flash,v.side);}},
   support:{id:'support',saveKey:'orb',loadoutKey:'orb',label:'SEEKER ORB',name:'Seeker orb',maxOwned:1,costs:[120],tiers:[null,{reload:180,limit:2,damage:1}],
     effect:t=>t?'Trailing homing missile support':'No support fitted',note:'Equips now and on future runs.',
@@ -101,6 +101,7 @@ const ROCKET=(()=>{const c=document.createElement('canvas');c.width=20;c.height=
   g.fillStyle='#54e5ff';g.fillRect(6,14,8,3);g.fillRect(8,29,4,9);return c;})();
 let podOpen=0,rocketT=240,rocketSide=-1,rocketFlash=0;
 function resetRockets(){resetOrb();podOpen=0;rocketT=240;rocketSide=-1;rocketFlash=0;if(shots)shots=shots.filter(s=>!s.rocket);}
+function shotDamage(s,target){return s.lethal&&target&&target.hp>0?target.hp:(s.dmg||1);}
 function rocketTarget(x,y){
   const candidates=enemies.concat(ground).filter(e=>e.hp>0&&e.y>0&&e.y<y&&e.x>PX&&e.x<PX+PW);
   if(!candidates.length)return boss&&!bossDying&&boss.hp>0&&boss.y>=boss.ty&&boss.y<y?boss:null;
@@ -116,7 +117,7 @@ function updateRockets(){
   else rocketT=Math.min(rocketT,profile.reload);
   if(profile&&podOpen===24&&--rocketT<=0&&shots.filter(s=>s.rocket&&!s.orb&&s.y>0).length<profile.limit){
     const mount=SHIP_MOUNTS.ordnance[rocketSide<0?0:1],x=ship.x+mount[0],y=ship.y+mount[1],target=rocketTarget(x,ship.y);
-    if(target){shots.push({x,y,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:profile.damage,rocket:true,target,life:profile.life,retargeted:false});rocketSide*=-1;rocketT=profile.reload;rocketFlash=12;}
+    if(target){shots.push({x,y,vx:rocketSide*0.7,vy:-2.4,g:wpn,dmg:profile.damage,rocket:true,lethal:true,target,life:profile.life,retargeted:false});rocketSide*=-1;rocketT=profile.reload;rocketFlash=12;}
   }
   updateOrb();
   for(const s of shots){if(!s.rocket||s.y<-50)continue;

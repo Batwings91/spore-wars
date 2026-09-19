@@ -19,7 +19,7 @@ The Side Laser record reserves `sideWeapon` mounts and a `sideLaser` loadout key
 
 ## Rocket ordnance and migration
 
-Twin rocket pods are Mk I ordnance, not a primary-gun side effect. They install immediately, remain visible at every primary tier, alternate the shared left/right mounts and use a three-second (180 fixed-tick) reload, damage 1, two-live cap and the existing homing/reacquisition behavior. The slower rhythm keeps rockets as readable punctuation beside rapid primary fire.
+Twin rocket pods are Mk I ordnance, not a primary-gun side effect. They install immediately, remain visible at every primary tier, alternate the shared left/right mounts and use a three-second (180 fixed-tick) reload, a two-live cap and the existing homing/reacquisition behavior. Pod rockets are lethal on impact: each deals exactly the remaining health of the enemy, ground fixture, boss part, boss hull or open Lattice node it hits. The Seeker Orb's support missiles retain their normal one-point damage. The slower rhythm keeps pod rockets as readable punctuation beside rapid primary fire.
 
 The storage key remains `640k.sporewars.v3`. Fresh saves default `rockets` to 0. When an existing v3 object lacks the field, migration preserves its cores, best score, weapon, shield, engine and Orb values and grants `rockets:1`. This player-favouring default retains a capability that all existing players previously received automatically after reaching Twin during a run. The migrated field is written back immediately.
 

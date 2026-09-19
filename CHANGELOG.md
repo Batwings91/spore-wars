@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-19 — Lethal pod rockets
+- Made each purchased pod rocket deal exactly its impact target's remaining health, guaranteeing a kill against air enemies, ground fixtures, boss parts/hulls and open Lattice nodes while retaining the three-second cadence, homing and two-live cap.
+- Kept Seeker Orb missiles at one damage and updated the Workshop description, regression coverage and gameplay documentation to make the distinction explicit.
+
 ## 2026-09-19 — Desktop release checklist pass
 - Made both release builders emit byte-identical LF HTML and package `CREDITS.txt`; added `tools/release-audit.js` to enforce the 8 MB initial-download target, deferred-asset parity, exhaustive asset credits and the runtime AI disclosure.
 - Expanded the credits into an exact runtime asset manifest and updated the disclosure for every AI-assisted runtime illustration, AI coding assistance, and the absence of AI-generated music, voices or sampled sound.

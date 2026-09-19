@@ -239,7 +239,7 @@ function destroyLatticeNode(node){
 function hitLatticeNode(node,damage,x,y){node.hp-=damage;node.flash=6;addHitImpact(x,y,true);SFX.hit();if(node.hp<=0)destroyLatticeNode(node);}
 function damageLatticeWithShots(){
   if(!broodLattice)return false;let hit=false;
-  for(const s of shots){if(s.y<-50)continue;for(const node of broodLattice.nodes){if(node.state!=='open')continue;const p=latticeNodeWorld(node.i);if(Math.hypot(s.x-p.x,s.y-p.y)>p.r)continue;const damage=s.dmg||1;hitLatticeNode(node,damage,s.x,s.y);addDamageFloat(s.x,s.y,damage,true);s.y=-99;hit=true;break;}}
+  for(const s of shots){if(s.y<-50)continue;for(const node of broodLattice.nodes){if(node.state!=='open')continue;const p=latticeNodeWorld(node.i);if(Math.hypot(s.x-p.x,s.y-p.y)>p.r)continue;const damage=shotDamage(s,node);hitLatticeNode(node,damage,s.x,s.y);addDamageFloat(s.x,s.y,damage,true);s.y=-99;hit=true;break;}}
   return hit;
 }
 function damageLatticeWithSideLaser(x,halfWidth,damage){
